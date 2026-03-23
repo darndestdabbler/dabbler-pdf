@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenPdf</RootNamespace>
+    <AssemblyName>OpenPdf</AssemblyName>
+    <Description>A .NET port of OpenPDF — text measurement and coordinate-based PDF generation.</Description>
+    <PackageLicenseExpression>LGPL-2.1-only AND MPL-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/LibrePDF/OpenPDF</PackageProjectUrl>
+    <Copyright>Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares. C# port Copyright (C) 2026.</Copyright>
+  </PropertyGroup>
+
+</Project>

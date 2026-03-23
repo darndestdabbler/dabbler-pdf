@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/OpenPdf/OpenPdf.csproj" />
+  <Project Path="tests/OpenPdf.Tests/OpenPdf.Tests.csproj" />
+</Solution>
