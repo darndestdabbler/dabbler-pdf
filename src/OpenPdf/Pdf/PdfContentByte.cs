@@ -523,8 +523,10 @@ public sealed class PdfContentByte
                     }
                     else
                     {
-                        // Encode as octal for non-ASCII
-                        Append($"\\{(int)ch:o3}");
+                        // Convert Unicode to WinAnsi byte value, then emit as octal
+                        int byteVal = Text.PdfEncodings.CharToWinAnsi(ch);
+                        if (byteVal < 0) byteVal = 0x3F; // '?' for unmappable chars
+                        Append($"\\{Convert.ToString(byteVal, 8).PadLeft(3, '0')}");
                     }
                     break;
             }

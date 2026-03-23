@@ -2,7 +2,7 @@
   "issueTrackerApiUrl": "http://localhost:5124/api",
   "projectName": "openpdf-dotnet",
   "projectId": 10,
-  "currentClaudeSessionId": 227,
+  "currentClaudeSessionId": 228,
   "currentGeminiSessionId": null,
   "actorIdForClaude": 1,
   "actorIdForHuman": 2,
