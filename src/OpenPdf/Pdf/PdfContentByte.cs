@@ -366,23 +366,35 @@ public sealed class PdfContentByte
     /// </summary>
     public void SetFontAndSize(BaseFont font, double size)
     {
-        if (font is Type1Font type1Font)
+        // Check if this font is already registered in the writer (avoid creating
+        // duplicate font stream/descriptor indirect objects for TrueType fonts)
+        var fontRef = _writer.GetCachedFontRef(font.PostscriptName);
+        if (fontRef == null)
         {
-            // Create font dictionary and register with writer
-            var fontDict = type1Font.CreateFontDictionary();
-            var fontRef = _writer.AddFontObject(fontDict);
-            var resourceName = _writer.AddPageFont(new PdfName(font.PostscriptName), fontRef);
+            PdfDictionary fontDict;
+            if (font is Type1Font type1Font)
+            {
+                fontDict = type1Font.CreateFontDictionary();
+            }
+            else if (font is TrueTypeFont ttFont)
+            {
+                fontDict = ttFont.CreateFontDictionary(_writer);
+            }
+            else
+            {
+                throw new NotSupportedException($"Font type {font.GetType().Name} is not yet supported for PDF rendering.");
+            }
 
-            Append("/");
-            Append(resourceName.Value);
-            Append(" ");
-            Append(FormatDouble(size));
-            Append(" Tf\n");
+            fontRef = _writer.AddFontObject(fontDict);
         }
-        else
-        {
-            throw new NotSupportedException($"Font type {font.GetType().Name} is not yet supported for PDF rendering.");
-        }
+
+        var resourceName = _writer.AddPageFont(new PdfName(font.PostscriptName), fontRef);
+
+        Append("/");
+        Append(resourceName.Value);
+        Append(" ");
+        Append(FormatDouble(size));
+        Append(" Tf\n");
     }
 
     /// <summary>

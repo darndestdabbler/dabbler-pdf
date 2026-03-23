@@ -89,6 +89,24 @@ public sealed class PdfWriter
     }
 
     /// <summary>
+    /// Writes any PDF object as an indirect object and returns its reference.
+    /// Used for font descriptors, font streams, and other supporting objects.
+    /// </summary>
+    internal PdfIndirectReference AddIndirectObject(PdfObject obj)
+    {
+        return _body.Add(obj, _outputStream);
+    }
+
+    /// <summary>
+    /// Checks if a font with the given PostScript name is already registered in this writer.
+    /// Returns the cached reference if so, or null if the font needs to be created.
+    /// </summary>
+    internal PdfIndirectReference? GetCachedFontRef(string postscriptName)
+    {
+        return _fontObjects.GetValueOrDefault(postscriptName);
+    }
+
+    /// <summary>
     /// Writes a font dictionary as an indirect object and returns its reference.
     /// Caches by PostScript name to avoid writing duplicates.
     /// </summary>

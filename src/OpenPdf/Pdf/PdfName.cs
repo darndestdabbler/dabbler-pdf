@@ -124,8 +124,12 @@ public sealed class PdfName : PdfObject, IEquatable<PdfName>, IComparable<PdfNam
 
     // Font descriptors
     public static readonly PdfName FontDescriptor = new("FontDescriptor");
+    public static readonly PdfName FontName = new("FontName");
     public static readonly PdfName FirstChar = new("FirstChar");
     public static readonly PdfName LastChar = new("LastChar");
     public static readonly PdfName Widths = new("Widths");
     public static readonly PdfName Type1 = new("Type1");
+    public static readonly PdfName TrueType = new("TrueType");
+    public static readonly PdfName FontFile2 = new("FontFile2");
+    public static readonly PdfName Length1 = new("Length1");
 }

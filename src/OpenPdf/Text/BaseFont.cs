@@ -55,10 +55,11 @@ public abstract class BaseFont
     /// <summary>
     /// Creates a BaseFont for the given font name and encoding.
     /// For the 14 standard PDF fonts, no external font file is needed.
+    /// For TrueType fonts, pass the .ttf file path as <paramref name="name"/>.
     /// </summary>
-    /// <param name="name">Font name (e.g., "Helvetica", "Times-Roman").</param>
+    /// <param name="name">Font name (e.g., "Helvetica") or a .ttf file path.</param>
     /// <param name="encoding">Encoding (e.g., <see cref="WinAnsiEncoding"/>).</param>
-    /// <param name="embedded">Whether to embed the font (ignored for standard fonts).</param>
+    /// <param name="embedded">Whether to embed the font (always true for TrueType).</param>
     public static BaseFont CreateFont(string name, string encoding, bool embedded)
     {
         string key = $"{name}-{encoding}";
@@ -72,7 +73,25 @@ public abstract class BaseFont
             return font;
         }
 
-        throw new ArgumentException($"Font '{name}' is not a standard PDF font. TrueType font loading is not yet implemented.", nameof(name));
+        // Try loading as a TrueType font file
+        if (IsTrueTypeFontFile(name))
+        {
+            byte[] fontData = File.ReadAllBytes(name);
+            string psName = TrueTypeFont.ExtractPostscriptName(fontData);
+            var ttFont = new TrueTypeFont(psName, fontData);
+            _fontCache[key] = ttFont;
+            return ttFont;
+        }
+
+        throw new ArgumentException(
+            $"Font '{name}' is not a standard PDF font and is not a valid TrueType font file path.",
+            nameof(name));
+    }
+
+    private static bool IsTrueTypeFontFile(string name)
+    {
+        return name.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
+            || name.EndsWith(".TTF", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
