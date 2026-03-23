@@ -114,4 +114,18 @@ public sealed class PdfName : PdfObject, IEquatable<PdfName>, IComparable<PdfNam
     // Metadata
     public static readonly PdfName Producer = new("Producer");
     public static readonly PdfName CreationDate = new("CreationDate");
+
+    // Procedure sets
+    public static readonly PdfName ProcSet = new("ProcSet");
+    public static readonly PdfName Pdf = new("PDF");
+    public static readonly PdfName Text = new("Text");
+    public static readonly PdfName ImageB = new("ImageB");
+    public static readonly PdfName ImageC = new("ImageC");
+
+    // Font descriptors
+    public static readonly PdfName FontDescriptor = new("FontDescriptor");
+    public static readonly PdfName FirstChar = new("FirstChar");
+    public static readonly PdfName LastChar = new("LastChar");
+    public static readonly PdfName Widths = new("Widths");
+    public static readonly PdfName Type1 = new("Type1");
 }

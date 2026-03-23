@@ -12,4 +12,8 @@
     <Copyright>Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares. C# port Copyright (C) 2026.</Copyright>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenPdf.Tests" />
+  </ItemGroup>
+
 </Project>

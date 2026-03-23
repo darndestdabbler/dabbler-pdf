@@ -22,6 +22,9 @@ public class Document : IDisposable
     /// <summary>The page size for new pages.</summary>
     public Rectangle PageSize { get; set; }
 
+    /// <summary>The page size of the most recently started page (before the current one).</summary>
+    internal Rectangle? PreviousPageSize { get; private set; }
+
     /// <summary>The current page number (1-based).</summary>
     public int PageNumber => _pageNumber;
 
@@ -66,6 +69,7 @@ public class Document : IDisposable
         EnsureOpen();
         _pageNumber++;
         _writer!.AddPage(PageSize);
+        PreviousPageSize = PageSize;
     }
 
     /// <summary>
