@@ -445,6 +445,54 @@ public sealed class PdfContentByte
         Append("T*\n");
     }
 
+    // ─── Images ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Adds an image to the page at the image's absolute position and scaled dimensions.
+    /// The image must have an absolute position set via <see cref="Image.Image.SetAbsolutePosition"/>.
+    /// Emits: q → cm (transform) → /ImN Do → Q.
+    /// </summary>
+    public void AddImage(Image.Image image)
+    {
+        if (!image.HasAbsolutePosition)
+            throw new InvalidOperationException(
+                "Image must have an absolute position set before adding to a page.");
+
+        AddImage(image, image.ScaledWidth, 0, 0, image.ScaledHeight,
+            image.AbsoluteX, image.AbsoluteY);
+    }
+
+    /// <summary>
+    /// Adds an image with an explicit transformation matrix.
+    /// The matrix maps from image space (1×1 unit square) to page coordinates.
+    /// Parameters a–f form the CTM: [a b c d e f].
+    /// Typical usage: a = width, d = height, e = x, f = y (others 0).
+    /// </summary>
+    public void AddImage(Image.Image image, double a, double b, double c, double d, double e, double f)
+    {
+        // Register the image as a page XObject and get its resource name
+        var resourceName = _writer.AddPageImage(image, _writer);
+
+        // Save state, apply transformation, invoke image, restore state
+        Append("q\n");
+        Append(FormatDouble(a));
+        Append(" ");
+        Append(FormatDouble(b));
+        Append(" ");
+        Append(FormatDouble(c));
+        Append(" ");
+        Append(FormatDouble(d));
+        Append(" ");
+        Append(FormatDouble(e));
+        Append(" ");
+        Append(FormatDouble(f));
+        Append(" cm\n");
+        Append("/");
+        Append(resourceName.Value);
+        Append(" Do\n");
+        Append("Q\n");
+    }
+
     // ─── Internal helpers ──────────────────────────────────────────
 
     private void Append(string text)

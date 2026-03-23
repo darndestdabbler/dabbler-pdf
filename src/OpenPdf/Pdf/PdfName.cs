@@ -132,4 +132,7 @@ public sealed class PdfName : PdfObject, IEquatable<PdfName>, IComparable<PdfNam
     public static readonly PdfName TrueType = new("TrueType");
     public static readonly PdfName FontFile2 = new("FontFile2");
     public static readonly PdfName Length1 = new("Length1");
+
+    // Image soft mask / transparency
+    public static readonly PdfName SMask = new("SMask");
 }

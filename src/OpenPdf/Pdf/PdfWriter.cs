@@ -28,8 +28,10 @@ public sealed class PdfWriter
 
     // Per-page resource tracking
     private readonly Dictionary<PdfName, PdfIndirectReference> _pageFonts = new();
+    private readonly Dictionary<PdfName, PdfIndirectReference> _pageXObjects = new();
     // Document-level font cache: font PostScript name → indirect reference
     private readonly Dictionary<string, PdfIndirectReference> _fontObjects = new();
+    private int _imageCounter;
 
     /// <summary>The document this writer is associated with.</summary>
     public Document.Document? Document { get; internal set; }
@@ -80,12 +82,18 @@ public sealed class PdfWriter
         if (!_firstPage)
         {
             FlushCurrentPage(Document!.PreviousPageSize ?? pageSize);
-        }
-        _firstPage = false;
 
-        // Reset DirectContent for the new page
-        DirectContent.Reset();
-        _pageFonts.Clear();
+            // Reset DirectContent for the new page
+            DirectContent.Reset();
+            _pageFonts.Clear();
+            _pageXObjects.Clear();
+        }
+        else
+        {
+            // First page: don't reset — content may have been written to DirectContent
+            // before the first NewPage() call (common for single-page documents).
+            _firstPage = false;
+        }
     }
 
     /// <summary>
@@ -142,6 +150,22 @@ public sealed class PdfWriter
     }
 
     /// <summary>
+    /// Adds an image XObject as an indirect object and registers it for the current page.
+    /// Returns the resource name (e.g., /Im1) used to reference the image in content streams.
+    /// </summary>
+    internal PdfName AddPageImage(Image.Image image, PdfWriter writer)
+    {
+        // Create the PDF image XObject (handles soft mask if needed)
+        var pdfImage = Image.PdfImage.Create(image, writer);
+        var imageRef = _body.Add(pdfImage, _outputStream);
+
+        _imageCounter++;
+        var resourceName = new PdfName($"Im{_imageCounter}");
+        _pageXObjects[resourceName] = imageRef;
+        return resourceName;
+    }
+
+    /// <summary>
     /// Finalizes the PDF: writes the last page, pages tree, catalog, info dictionary,
     /// cross-reference table, and trailer.
     /// </summary>
@@ -189,16 +213,31 @@ public sealed class PdfWriter
         var page = new PdfPage(pageSize, _pagesRef);
         page.SetContents(contentRef);
 
-        // Add font resources if any were used
-        if (_pageFonts.Count > 0)
+        // Build resource dictionary
+        if (_pageFonts.Count > 0 || _pageXObjects.Count > 0)
         {
-            var fontDict = new PdfDictionary();
-            foreach (var (name, fontRef) in _pageFonts)
-            {
-                fontDict.Put(name, fontRef);
-            }
             var resources = page.GetAsDictionary(PdfName.Resources) ?? new PdfDictionary();
-            resources.Put(PdfName.Font, fontDict);
+
+            if (_pageFonts.Count > 0)
+            {
+                var fontDict = new PdfDictionary();
+                foreach (var (name, fontRef) in _pageFonts)
+                {
+                    fontDict.Put(name, fontRef);
+                }
+                resources.Put(PdfName.Font, fontDict);
+            }
+
+            if (_pageXObjects.Count > 0)
+            {
+                var xObjectDict = new PdfDictionary();
+                foreach (var (name, xRef) in _pageXObjects)
+                {
+                    xObjectDict.Put(name, xRef);
+                }
+                resources.Put(PdfName.XObject, xObjectDict);
+            }
+
             page.Put(PdfName.Resources, resources);
         }
 

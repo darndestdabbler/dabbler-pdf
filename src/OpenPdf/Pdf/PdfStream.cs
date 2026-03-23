@@ -31,6 +31,15 @@ public class PdfStream : PdfDictionary
     }
 
     /// <summary>
+    /// Sets the raw byte content of the stream. Used by subclasses (e.g., PdfImage)
+    /// that build their content after construction.
+    /// </summary>
+    protected void SetRawBytes(byte[] bytes)
+    {
+        _rawBytes = bytes;
+    }
+
+    /// <summary>
     /// Compresses the stream content using Flate (zlib/deflate).
     /// Sets the /Filter to /FlateDecode.
     /// </summary>
