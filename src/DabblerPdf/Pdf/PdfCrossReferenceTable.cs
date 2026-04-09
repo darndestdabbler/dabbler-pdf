@@ -15,6 +15,9 @@ namespace DabblerPdf.Pdf;
 /// </summary>
 public static class PdfCrossReferenceTable
 {
+    private static readonly byte[] FreeListHead = "0000000000 65535 f \n"u8.ToArray();
+    private static readonly byte[] FreeEntry = "0000000000 00000 f \n"u8.ToArray();
+
     /// <summary>
     /// Writes the xref table to the output stream and returns the byte offset
     /// where the xref section started (for the <c>startxref</c> pointer).
@@ -28,8 +31,7 @@ public static class PdfCrossReferenceTable
         outputStream.Write(header);
 
         // Object 0: head of free list (always present)
-        var freeEntry = Encoding.ASCII.GetBytes("0000000000 65535 f \r\n");
-        outputStream.Write(freeEntry);
+        outputStream.Write(FreeListHead);
 
         // Sort entries by object number to write in order
         var sorted = entries.OrderBy(e => e.ObjectNumber).ToArray();
@@ -40,11 +42,11 @@ public static class PdfCrossReferenceTable
             // Fill gaps with free entries if any object numbers were skipped
             while (nextExpected < entry.ObjectNumber)
             {
-                outputStream.Write(Encoding.ASCII.GetBytes("0000000000 00000 f \r\n"));
+                outputStream.Write(FreeEntry);
                 nextExpected++;
             }
 
-            var line = string.Format("{0:D10} {1:D5} n \r\n", entry.Offset, 0);
+            var line = string.Format("{0:D10} {1:D5} n \n", entry.Offset, 0);
             outputStream.Write(Encoding.ASCII.GetBytes(line));
             nextExpected++;
         }

@@ -13,6 +13,7 @@ namespace DabblerPdf.Pdf;
 public sealed class PdfPages : PdfDictionary
 {
     private readonly PdfArray _kids = new();
+    private bool _isComplete;
 
     public PdfPages() : base(PdfName.Pages)
     {
@@ -21,6 +22,8 @@ public sealed class PdfPages : PdfDictionary
     /// <summary>Adds a page reference to the /Kids array.</summary>
     public void AddPage(PdfIndirectReference pageRef)
     {
+        if (_isComplete)
+            throw new InvalidOperationException("Cannot add pages after Complete() has been called.");
         _kids.Add(pageRef);
     }
 
@@ -29,11 +32,14 @@ public sealed class PdfPages : PdfDictionary
 
     /// <summary>
     /// Finalizes the /Kids and /Count entries before writing.
-    /// Call this after all pages have been added.
+    /// Call this after all pages have been added. Idempotent — safe to call multiple times.
     /// </summary>
     public void Complete()
     {
+        if (_isComplete)
+            return;
         Put(PdfName.Kids, _kids);
         Put(PdfName.Count, new PdfNumber(_kids.Count));
+        _isComplete = true;
     }
 }

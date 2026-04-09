@@ -205,9 +205,9 @@ public class PdfCrossReferenceTableTests
         var output = Encoding.ASCII.GetString(ms.ToArray());
 
         Assert.StartsWith("xref\n0 3\n", output);
-        Assert.Contains("0000000000 65535 f \r\n", output);
-        Assert.Contains("0000000100 00000 n \r\n", output);
-        Assert.Contains("0000000250 00000 n \r\n", output);
+        Assert.Contains("0000000000 65535 f \n", output);
+        Assert.Contains("0000000100 00000 n \n", output);
+        Assert.Contains("0000000250 00000 n \n", output);
     }
 
     [Fact]
