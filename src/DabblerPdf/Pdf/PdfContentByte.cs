@@ -20,6 +20,7 @@ public sealed class PdfContentByte
 {
     private readonly MemoryStream _buffer = new();
     private readonly PdfWriter _writer;
+    private readonly PdfTemplate? _template;
 
     // Graphics state stack depth tracking
     private int _stateDepth;
@@ -31,6 +32,12 @@ public sealed class PdfContentByte
     internal PdfContentByte(PdfWriter writer)
     {
         _writer = writer;
+    }
+
+    internal PdfContentByte(PdfWriter writer, PdfTemplate template)
+    {
+        _writer = writer;
+        _template = template;
     }
 
     /// <summary>
@@ -440,7 +447,10 @@ public sealed class PdfContentByte
             fontRef = _writer.AddFontObject(fontDict);
         }
 
-        var resourceName = _writer.AddPageFont(new PdfName(font.PostscriptName), fontRef);
+        // Route font registration to template or page resources
+        var resourceName = _template != null
+            ? _template.AddFont(new PdfName(font.PostscriptName), fontRef)
+            : _writer.AddPageFont(new PdfName(font.PostscriptName), fontRef);
 
         Append("/");
         Append(resourceName.Value);
@@ -538,6 +548,28 @@ public sealed class PdfContentByte
         Append(FormatDouble(e));
         Append(" ");
         Append(FormatDouble(f));
+        Append(" cm\n");
+        Append("/");
+        Append(resourceName.Value);
+        Append(" Do\n");
+        Append("Q\n");
+    }
+
+    // ─── Templates ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Places a PdfTemplate at the given position on the current page.
+    /// The template content can be written at any time before document close.
+    /// </summary>
+    public void AddTemplate(PdfTemplate template, double x, double y)
+    {
+        var resourceName = _writer.AddPageTemplate(template);
+
+        Append("q\n");
+        Append("1 0 0 1 ");
+        Append(FormatDouble(x));
+        Append(" ");
+        Append(FormatDouble(y));
         Append(" cm\n");
         Append("/");
         Append(resourceName.Value);

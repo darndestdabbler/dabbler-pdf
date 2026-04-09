@@ -222,6 +222,103 @@
           "costUsd": 0.19635
         }
       ]
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 1,
+      "stepKey": "session-4/pdftemplate-implementation",
+      "dateTime": "2026-04-09T20:52:50.533336+00:00",
+      "description": "Created src/DabblerPdf/Pdf/PdfTemplate.cs with Width, Height, Content properties. PdfTemplate is backed by a PDF Form XObject with BBox, /Type /XObject, /Subtype /Form. Tracks its own font resources for the resource dictionary.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 2,
+      "stepKey": "session-4/writer-create-template",
+      "dateTime": "2026-04-09T20:52:50.533336+00:00",
+      "description": "Added CreateTemplate(width, height) and AddPageTemplate(template) to PdfWriter. Templates are serialized as Form XObjects in Close() after all content is finalized. Added template tracking list and counter.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 3,
+      "stepKey": "session-4/add-template-contentbyte",
+      "dateTime": "2026-04-09T20:52:50.534365+00:00",
+      "description": "Added AddTemplate(PdfTemplate, x, y) to PdfContentByte. Emits q/cm/Do/Q operators. Modified SetFontAndSize to route font registration through template when Content belongs to a PdfTemplate.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 4,
+      "stepKey": "session-4/encoding-docs",
+      "dateTime": "2026-04-09T20:52:50.535680+00:00",
+      "description": "Added CanEncode(char) method to BaseFont. Added comprehensive XML docs to WinAnsiEncoding, IdentityH, and CreateFont explaining encoding limitations and the CanEncode helper.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 5,
+      "stepKey": "session-4/unit-tests",
+      "dateTime": "2026-04-09T20:52:50.535984+00:00",
+      "description": "Created PdfTemplateTests.cs with 10 tests: template creation (2), content writing (2), AddTemplate operators (3), Form XObject structure (2), Page X of Y integration (1). Added 4 CanEncode test methods with 16 cases to BaseFontTests.cs.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 6,
+      "stepKey": "session-4/sample-updates",
+      "dateTime": "2026-04-09T20:52:50.537011+00:00",
+      "description": "S07_MultiPage: Replaced pre-calculated SetTotalPages with PdfTemplate pattern. HeaderFooterPageEvent now places a template for total page count, filled in after all pages. S01_BasicText: Added encoding section showing CanEncode results for ASCII, accented, Euro, and em dash characters.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 7,
+      "stepKey": "session-4/build",
+      "dateTime": "2026-04-09T20:52:50.537011+00:00",
+      "description": "dotnet build succeeded with 0 warnings, 0 errors. dotnet test: Passed 562, Failed 0. All 10 samples passed.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 8,
+      "stepKey": "session-4/verification",
+      "dateTime": "2026-04-09T20:54:03.671424+00:00",
+      "description": "Cross-provider verification with opus (1 round). Verdict: ISSUES FOUND. Session review saved to session-reviews/session-004.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "opus",
+          "taskType": "session-verification",
+          "inputTokens": 24463,
+          "outputTokens": 1204,
+          "costUsd": 0.45724499999999996
+        }
+      ]
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 9,
+      "stepKey": "session-4/verification-round-2",
+      "dateTime": "2026-04-09T20:55:45.579688+00:00",
+      "description": "Cross-provider re-verification with opus after addressing false positive Y-coordinate issue. Verdict from first line: ## Verification Analysis. Session review appended to session-reviews/session-004.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "opus",
+          "taskType": "session-verification",
+          "inputTokens": 799,
+          "outputTokens": 660,
+          "costUsd": 0.061485000000000005
+        }
+      ]
     }
   ]
 }

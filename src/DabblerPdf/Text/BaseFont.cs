@@ -12,8 +12,20 @@ namespace DabblerPdf.Text;
 /// </summary>
 public abstract class BaseFont
 {
-    // Encoding constants
+    /// <summary>
+    /// Windows-1252 encoding. Supports ASCII plus Western European characters
+    /// including accented letters (e, n, u), the Euro sign, em/en dashes,
+    /// and typographic quotes. Characters outside this range are replaced with '?'.
+    ///
+    /// For full Unicode support, use <see cref="IdentityH"/> encoding with an
+    /// embedded TrueType font. (Note: Identity-H support is planned for a future release.)
+    /// </summary>
     public const string WinAnsiEncoding = "Cp1252";
+
+    /// <summary>
+    /// Identity-H encoding for full Unicode CIDFont support.
+    /// Requires an embedded TrueType font. Not yet implemented — planned for a future release.
+    /// </summary>
     public const string IdentityH = "Identity-H";
 
     // Font descriptor constants (used with GetFontDescriptor)
@@ -56,9 +68,12 @@ public abstract class BaseFont
     /// Creates a BaseFont for the given font name and encoding.
     /// For the 14 standard PDF fonts, no external font file is needed.
     /// For TrueType fonts, pass the .ttf file path as <paramref name="name"/>.
+    /// Use <see cref="CanEncode"/> to check whether a specific character is supported
+    /// by the font's encoding before rendering.
     /// </summary>
     /// <param name="name">Font name (e.g., "Helvetica") or a .ttf file path.</param>
-    /// <param name="encoding">Encoding (e.g., <see cref="WinAnsiEncoding"/>).</param>
+    /// <param name="encoding">Encoding (e.g., <see cref="WinAnsiEncoding"/>). Currently only
+    /// WinAnsi (Windows-1252) is supported, which covers ASCII and Western European characters.</param>
     /// <param name="embedded">Whether to embed the font (always true for TrueType).</param>
     public static BaseFont CreateFont(string name, string encoding, bool embedded)
     {
@@ -111,4 +126,13 @@ public abstract class BaseFont
     /// <param name="key">One of the descriptor constants (ASCENT, DESCENT, etc.).</param>
     /// <param name="fontSize">The font size in points.</param>
     public abstract double GetFontDescriptor(int key, double fontSize);
+
+    /// <summary>
+    /// Returns whether the given character can be represented in the current encoding.
+    /// For WinAnsi fonts, returns true for characters in the Windows-1252 range.
+    /// </summary>
+    public bool CanEncode(char c)
+    {
+        return PdfEncodings.CharToWinAnsi(c) >= 0;
+    }
 }

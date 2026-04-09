@@ -113,6 +113,54 @@ public class BaseFontTests
         }
     }
 
+    public class CanEncodeTests
+    {
+        [Theory]
+        [InlineData('A', true)]   // ASCII uppercase
+        [InlineData('z', true)]   // ASCII lowercase
+        [InlineData('0', true)]   // ASCII digit
+        [InlineData(' ', true)]   // Space
+        [InlineData('!', true)]   // ASCII punctuation
+        public void CanEncode_AsciiCharacters_ReturnsTrue(char c, bool expected)
+        {
+            var font = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
+            Assert.Equal(expected, font.CanEncode(c));
+        }
+
+        [Theory]
+        [InlineData('\u00e9', true)]  // e with accent (Latin-1)
+        [InlineData('\u00f1', true)]  // n with tilde (Latin-1)
+        [InlineData('\u00fc', true)]  // u with diaeresis (Latin-1)
+        [InlineData('\u00a9', true)]  // Copyright symbol
+        public void CanEncode_AccentedAndLatin1_ReturnsTrue(char c, bool expected)
+        {
+            var font = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
+            Assert.Equal(expected, font.CanEncode(c));
+        }
+
+        [Theory]
+        [InlineData('\u20AC', true)]  // Euro sign (Windows-1252 special mapping)
+        [InlineData('\u2014', true)]  // Em dash (Windows-1252 special mapping)
+        [InlineData('\u2013', true)]  // En dash (Windows-1252 special mapping)
+        [InlineData('\u201C', true)]  // Left double quotation mark
+        [InlineData('\u201D', true)]  // Right double quotation mark
+        public void CanEncode_WinAnsiSpecialMappings_ReturnsTrue(char c, bool expected)
+        {
+            var font = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
+            Assert.Equal(expected, font.CanEncode(c));
+        }
+
+        [Theory]
+        [InlineData('\u4E2D')]  // CJK character (Chinese "middle")
+        [InlineData('\u3042')]  // Hiragana "a"
+        [InlineData('\uD83D')]  // High surrogate (part of emoji)
+        public void CanEncode_NonWinAnsiCharacters_ReturnsFalse(char c)
+        {
+            var font = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
+            Assert.False(font.CanEncode(c));
+        }
+    }
+
     public class FontDescriptorTests
     {
         [Fact]

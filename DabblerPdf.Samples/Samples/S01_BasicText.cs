@@ -96,11 +96,37 @@ public class S01_BasicText : SampleBase
         y += 8;
 
         // ── Section 4: Special Characters ──
-        y = DrawSectionTitle(cb, "4. Special Characters", helveticaBold, y);
-        // Note: some characters may not be available in WinAnsi encoding
+        y = DrawSectionTitle(cb, "4. Special Characters (WinAnsi Encoding)", helveticaBold, y);
+
         DrawText(cb, "Ampersand: & | Angle brackets: < > | Quotes: \"double\" and 'single'", helvetica, 11, Margin, y);
         y += 16;
         DrawText(cb, "Em dash: \u2014 | Accented: \u00e9 \u00f1 \u00fc | Currency: \u20ac", helvetica, 11, Margin, y);
+        y += 20;
+
+        // Encoding limits note — demonstrates CanEncode
+        DrawLabel(cb, "Encoding support (BaseFont.CanEncode):", helvetica, Margin, y);
+        y += 14;
+
+        var testChars = new (char Ch, string Name)[]
+        {
+            ('A', "A (ASCII)"),
+            ('\u00e9', "\u00e9 (accented)"),
+            ('\u20AC', "\u20ac (Euro)"),
+            ('\u2014', "\u2014 (em dash)"),
+        };
+
+        double xPos = Margin;
+        foreach (var (ch, name) in testChars)
+        {
+            bool supported = helvetica.CanEncode(ch);
+            string label = $"{name}: {(supported ? "Yes" : "No")}";
+            DrawText(cb, label, helvetica, 9, xPos, y);
+            xPos += 120;
+        }
+
+        y += 16;
+        DrawText(cb, "Note: WinAnsi (Cp1252) covers ASCII + Western European. CJK and emoji are not supported.",
+            helvetica, 8, Margin, y, new BaseColor(128, 128, 128));
 
         SaveAndClose(doc, ms, OutputPath(outputDir));
     }

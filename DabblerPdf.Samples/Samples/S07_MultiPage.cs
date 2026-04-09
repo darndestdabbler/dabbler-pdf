@@ -7,7 +7,7 @@ namespace DabblerPdf.Samples.Samples;
 public class S07_MultiPage : SampleBase
 {
     public override string Name => "Multi-Page";
-    public override string Description => "Pagination, headers/footers via page events, page numbers";
+    public override string Description => "Pagination, headers/footers via page events, page numbers with PdfTemplate";
     public override string FileName => "07-multi-page.pdf";
 
     private const int TotalRows = 50;
@@ -17,21 +17,21 @@ public class S07_MultiPage : SampleBase
 
     /// <summary>
     /// Page event handler that draws headers and footers on each page.
-    /// Demonstrates the IPdfPageEvent interface for repeating page elements.
+    /// Uses a PdfTemplate for "Page X of Y" so the total page count
+    /// is filled in after all pages are generated.
     /// </summary>
     private class HeaderFooterPageEvent : IPdfPageEvent
     {
         private readonly BaseFont _boldFont;
         private readonly BaseFont _font;
-        private int _totalPages;
+        private readonly PdfTemplate _totalPagesTemplate;
 
-        public HeaderFooterPageEvent(BaseFont boldFont, BaseFont font)
+        public HeaderFooterPageEvent(BaseFont boldFont, BaseFont font, PdfTemplate totalPagesTemplate)
         {
             _boldFont = boldFont;
             _font = font;
+            _totalPagesTemplate = totalPagesTemplate;
         }
-
-        public void SetTotalPages(int totalPages) => _totalPages = totalPages;
 
         public void OnStartPage(PdfWriter writer, Document.Document document)
         {
@@ -67,10 +67,17 @@ public class S07_MultiPage : SampleBase
             cb.SetLineDash([], 0);
             DrawHLine(cb, Margin, y - FooterHeight + 4, ContentWidth);
 
-            // Centered page number
-            string pageText = $"Page {document.PageNumber} of {_totalPages}";
-            double textWidth = _font.GetWidthPoint(pageText, 9);
-            DrawText(cb, pageText, _font, 9, Margin + (ContentWidth - textWidth) / 2, y - 10);
+            // "Page N of " text followed by the template for the total
+            string pagePrefix = $"Page {document.PageNumber} of ";
+            double prefixWidth = _font.GetWidthPoint(pagePrefix, 9);
+            double totalWidth = prefixWidth + _totalPagesTemplate.Width;
+            double startX = Margin + (ContentWidth - totalWidth) / 2;
+
+            // Draw "Page N of "
+            DrawText(cb, pagePrefix, _font, 9, startX, y - 10);
+
+            // Place the template for the total page count
+            cb.AddTemplate(_totalPagesTemplate, startX + prefixWidth, PdfY(y - 10));
         }
     }
 
@@ -81,7 +88,10 @@ public class S07_MultiPage : SampleBase
         var font = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
         var boldFont = BaseFont.CreateFont(BaseFont.HelveticaBold, BaseFont.WinAnsiEncoding, false);
 
-        // Calculate total pages upfront for "Page X of Y"
+        // Create a template for the total page count — content filled in after all pages
+        var totalPagesTemplate = writer.CreateTemplate(30, 12);
+
+        // Calculate pagination layout
         double contentTop = Margin + HeaderHeight;
         double contentBottom = PageHeight - Margin - FooterHeight;
         double availableHeight = contentBottom - contentTop;
@@ -99,9 +109,8 @@ public class S07_MultiPage : SampleBase
             rowsRemaining -= (int)otherPageRows;
         }
 
-        // Set up the page event handler
-        var pageEvent = new HeaderFooterPageEvent(boldFont, font);
-        pageEvent.SetTotalPages(totalPages);
+        // Set up the page event handler with the template
+        var pageEvent = new HeaderFooterPageEvent(boldFont, font, totalPagesTemplate);
         writer.PageEvent = pageEvent;
 
         // Generate pages — headers and footers are handled by the page event
@@ -144,6 +153,13 @@ public class S07_MultiPage : SampleBase
                 DrawText(cb, $"End of Report \u2014 {TotalRows} rows printed", boldFont, 10, Margin, y + 10);
             }
         }
+
+        // Fill in the total page count template AFTER all pages are generated
+        totalPagesTemplate.Content.BeginText();
+        totalPagesTemplate.Content.SetFontAndSize(font, 9);
+        totalPagesTemplate.Content.SetTextMatrix(0, 0);
+        totalPagesTemplate.Content.ShowText(doc.PageNumber.ToString());
+        totalPagesTemplate.Content.EndText();
 
         SaveAndClose(doc, ms, OutputPath(outputDir));
     }

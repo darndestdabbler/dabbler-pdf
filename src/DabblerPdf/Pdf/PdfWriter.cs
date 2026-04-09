@@ -34,6 +34,9 @@ public sealed class PdfWriter
     // Document-level image cache: Image instance → indirect reference
     private readonly Dictionary<Image.Image, PdfIndirectReference> _imageObjects = new();
     private int _imageCounter;
+    // Template tracking
+    private readonly List<PdfTemplate> _templates = [];
+    private int _templateCounter;
 
     /// <summary>The document this writer is associated with.</summary>
     public Document.Document? Document { get; internal set; }
@@ -197,6 +200,37 @@ public sealed class PdfWriter
     }
 
     /// <summary>
+    /// Creates a new PdfTemplate (Form XObject) that can be placed on pages
+    /// and filled in later.
+    /// </summary>
+    public PdfTemplate CreateTemplate(double width, double height)
+    {
+        var reference = _body.ReserveReference();
+        var template = new PdfTemplate(this, width, height, reference);
+        _templates.Add(template);
+        return template;
+    }
+
+    /// <summary>
+    /// Registers a template as an XObject resource for the current page.
+    /// Returns the resource name (e.g., /Tpl1) used in the content stream.
+    /// </summary>
+    internal PdfName AddPageTemplate(PdfTemplate template)
+    {
+        // Check if already registered on this page
+        foreach (var (name, existingRef) in _pageXObjects)
+        {
+            if (existingRef.Number == template.Reference.Number)
+                return name;
+        }
+
+        _templateCounter++;
+        var resourceName = new PdfName($"Tpl{_templateCounter}");
+        _pageXObjects[resourceName] = template.Reference;
+        return resourceName;
+    }
+
+    /// <summary>
     /// Finalizes the PDF: writes the last page, pages tree, catalog, info dictionary,
     /// cross-reference table, and trailer.
     /// </summary>
@@ -210,6 +244,13 @@ public sealed class PdfWriter
         }
 
         PageEvent?.OnCloseDocument(this, Document!);
+
+        // Serialize templates (Form XObjects) — content may have been written after placement
+        foreach (var template in _templates)
+        {
+            var formXObject = template.ToFormXObject();
+            _body.Add(formXObject, template.Reference, _outputStream);
+        }
 
         // Write info dictionary
         var info = new PdfDictionary();
