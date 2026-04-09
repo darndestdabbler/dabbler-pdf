@@ -1,0 +1,41 @@
+# Build outputs
+bin/
+obj/
+publish/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# IDE
+.vs/
+.vscode/settings.json
+.idea/
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment / secrets
+.env
+*.key
+*.pem
+
+# Test results
+TestResults/
+*.trx
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# AI Router state
+router-state.db
+
+# Temp files
+*.tmp
+*.log
