@@ -65,6 +65,8 @@ public sealed class Jpeg : Image
                 break;
 
             int segmentLength = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(offset + 2));
+            if (segmentLength < 2)
+                throw new ArgumentException($"Invalid JPEG segment length {segmentLength} at offset {offset}.");
 
             // Check for SOF markers (Start of Frame) — these contain image dimensions
             if (marker is SOF0 or SOF1 or SOF2 or SOF3

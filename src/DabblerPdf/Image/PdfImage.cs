@@ -54,8 +54,9 @@ public sealed class PdfImage : PdfStream
             SetRawBytes(png.DecompressedPixels);
             FlateCompress();
 
-            // If the PNG has an alpha channel, create a soft mask
-            if (png.AlphaChannel != null)
+            // If the PNG has an alpha channel and no external soft mask ref was provided,
+            // create a soft mask for callers using the constructor directly
+            if (png.AlphaChannel != null && softMaskRef == null)
             {
                 SoftMask = CreateSoftMask(png);
             }

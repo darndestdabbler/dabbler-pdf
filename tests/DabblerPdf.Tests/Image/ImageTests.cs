@@ -122,6 +122,60 @@ public class ImageTests
         Assert.Throws<ArgumentException>(() => PngImage.GetImage([0x00, 0x00]));
     }
 
+    [Fact]
+    public void Png_TruncatedChunk_Throws()
+    {
+        // Create a PNG with valid signature + IHDR but truncated IDAT chunk
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        // PNG signature
+        bw.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        // Valid IHDR
+        var ihdr = new byte[13];
+        ihdr[3] = 2; // Width = 2
+        ihdr[7] = 2; // Height = 2
+        ihdr[8] = 8; // Bit depth
+        ihdr[9] = 2; // RGB
+
+        // Write IHDR chunk (length + type + data + CRC)
+        WriteUInt32BE(bw, 13);
+        bw.Write(System.Text.Encoding.ASCII.GetBytes("IHDR"));
+        bw.Write(ihdr);
+        WriteUInt32BE(bw, 0); // CRC placeholder
+
+        // Truncated IDAT: declare 100 bytes but only write 5
+        WriteUInt32BE(bw, 100);
+        bw.Write(System.Text.Encoding.ASCII.GetBytes("IDAT"));
+        bw.Write(new byte[] { 0x78, 0x01, 0x00, 0x00, 0x00 });
+        // Missing data and CRC — chunk is truncated
+
+        Assert.Throws<ArgumentException>(() => PngImage.GetImage(ms.ToArray()));
+    }
+
+    [Fact]
+    public void Png_4BitGrayscale_ParsesCorrectly()
+    {
+        // 4-bit grayscale: 2 pixels per byte
+        var pngBytes = ImageTestHelpers.CreateSubBytePng(4, 2, bitDepth: 4, colorType: 0);
+        var image = PngImage.GetImage(pngBytes);
+
+        Assert.Equal(4, image.PixelWidth);
+        Assert.Equal(2, image.PixelHeight);
+        Assert.Equal(1, image.ColorComponents);
+        Assert.Equal(8, image.BitsPerComponent); // Expanded from 4 to 8
+        Assert.Equal(8, image.DecompressedPixels.Length); // 4x2 = 8 pixels
+    }
+
+    private static void WriteUInt32BE(BinaryWriter bw, uint value)
+    {
+        bw.Write((byte)(value >> 24));
+        bw.Write((byte)(value >> 16));
+        bw.Write((byte)(value >> 8));
+        bw.Write((byte)value);
+    }
+
     // ─── Image.GetInstance (format detection) ──────────────────────
 
     [Fact]
@@ -162,6 +216,19 @@ public class ImageTests
         // 400:200 = 2:1 aspect ratio. Fitting into 200x200, width is limiting.
         Assert.Equal(200.0, image.ScaledWidth, precision: 1);
         Assert.Equal(100.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFit_ImageAlreadySmaller_DoesNotScaleUp()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(100, 50);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFit(200, 200);
+
+        // Image is already smaller than target — should not scale up
+        Assert.Equal(100.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(50.0, image.ScaledHeight, precision: 1);
     }
 
     [Fact]

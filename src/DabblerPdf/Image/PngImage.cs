@@ -73,8 +73,8 @@ public sealed class PngImage : Image
             string chunkType = System.Text.Encoding.ASCII.GetString(data, offset + 4, 4);
             int chunkDataStart = offset + 8;
 
-            if (chunkDataStart + chunkLength > data.Length)
-                break;
+            if (chunkDataStart + chunkLength + 4 > data.Length) // +4 for CRC
+                throw new ArgumentException($"PNG chunk '{chunkType}' is truncated.");
 
             switch (chunkType)
             {
@@ -155,8 +155,9 @@ public sealed class PngImage : Image
 
     private void ProcessPixelData(byte[] rawPixels)
     {
-        int bytesPerPixel = GetBytesPerPixel();
-        int stride = 1 + PixelWidth * bytesPerPixel; // 1 byte filter type + pixel data
+        int bytesPerPixel = GetBytesPerPixel(); // For filter distance (min 1 per PNG spec)
+        int rowBytes = (PixelWidth * GetBitsPerPixel() + 7) / 8; // Actual data bytes per row
+        int stride = 1 + rowBytes; // 1 byte filter type + pixel data
 
         if (rawPixels.Length < PixelHeight * stride)
             throw new ArgumentException(
@@ -190,19 +191,17 @@ public sealed class PngImage : Image
         }
     }
 
-    private int GetBytesPerPixel()
+    private int GetBitsPerPixel() => _colorType switch
     {
-        int bitsPerPixel = _colorType switch
-        {
-            ColorTypeGrayscale => _bitDepth,
-            ColorTypeRgb => _bitDepth * 3,
-            ColorTypePalette => _bitDepth,
-            ColorTypeGrayscaleAlpha => _bitDepth * 2,
-            ColorTypeRgba => _bitDepth * 4,
-            _ => throw new NotSupportedException()
-        };
-        return Math.Max(1, bitsPerPixel / 8);
-    }
+        ColorTypeGrayscale => _bitDepth,
+        ColorTypeRgb => _bitDepth * 3,
+        ColorTypePalette => _bitDepth,
+        ColorTypeGrayscaleAlpha => _bitDepth * 2,
+        ColorTypeRgba => _bitDepth * 4,
+        _ => throw new NotSupportedException()
+    };
+
+    private int GetBytesPerPixel() => Math.Max(1, GetBitsPerPixel() / 8);
 
     private byte[] Unfilter(byte[] rawPixels, int bytesPerPixel, int stride)
     {

@@ -65,8 +65,11 @@ public abstract class Image
         double widthRatio = maxWidth / ScaledWidth;
         double heightRatio = maxHeight / ScaledHeight;
         double ratio = Math.Min(widthRatio, heightRatio);
-        ScaledWidth *= ratio;
-        ScaledHeight *= ratio;
+        if (ratio < 1.0)
+        {
+            ScaledWidth *= ratio;
+            ScaledHeight *= ratio;
+        }
     }
 
     /// <summary>

@@ -236,6 +236,67 @@ internal static class ImageTestHelpers
         return ms.ToArray();
     }
 
+    /// <summary>
+    /// Creates a minimal PNG with sub-byte bit depths (1, 2, or 4 bits per pixel).
+    /// Supports grayscale (colorType=0) and palette (colorType=3).
+    /// </summary>
+    public static byte[] CreateSubBytePng(int width, int height, int bitDepth, byte colorType)
+    {
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        bw.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        // IHDR
+        var ihdr = new byte[13];
+        WriteUInt32BEToArray(ihdr, 0, (uint)width);
+        WriteUInt32BEToArray(ihdr, 4, (uint)height);
+        ihdr[8] = (byte)bitDepth;
+        ihdr[9] = colorType;
+        WritePngChunk(bw, "IHDR", ihdr);
+
+        // PLTE chunk (required for colorType 3)
+        if (colorType == 3)
+        {
+            int paletteEntries = 1 << bitDepth;
+            var palette = new byte[paletteEntries * 3];
+            for (int i = 0; i < paletteEntries; i++)
+            {
+                byte val = (byte)(i * 255 / Math.Max(1, paletteEntries - 1));
+                palette[i * 3] = val;
+                palette[i * 3 + 1] = val;
+                palette[i * 3 + 2] = val;
+            }
+            WritePngChunk(bw, "PLTE", palette);
+        }
+
+        // Build raw pixel data with proper sub-byte packing
+        int pixelsPerByte = 8 / bitDepth;
+        int rowBytes = (width * bitDepth + 7) / 8;
+
+        var rawPixels = new byte[height * (1 + rowBytes)];
+        for (int y = 0; y < height; y++)
+        {
+            int rowStart = y * (1 + rowBytes);
+            rawPixels[rowStart] = 0; // Filter: None
+
+            for (int x = 0; x < width; x++)
+            {
+                // Use alternating pixel values for variety
+                int val = (x + y) % (1 << bitDepth);
+                int byteIdx = rowStart + 1 + (x * bitDepth) / 8;
+                int bitOffset = 8 - bitDepth - ((x * bitDepth) % 8);
+                rawPixels[byteIdx] |= (byte)(val << bitOffset);
+            }
+        }
+
+        var compressedIdat = ZlibCompress(rawPixels);
+        WritePngChunk(bw, "IDAT", compressedIdat);
+        WritePngChunk(bw, "IEND", []);
+
+        return ms.ToArray();
+    }
+
     private static void WritePngChunk(BinaryWriter bw, string type, byte[] data)
     {
         WriteUInt32BE(bw, (uint)data.Length);

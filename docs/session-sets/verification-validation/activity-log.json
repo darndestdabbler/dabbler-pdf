@@ -398,6 +398,76 @@
           "costUsd": 0.05431
         }
       ]
+    },
+    {
+      "sessionNumber": 6,
+      "stepNumber": 1,
+      "stepKey": "session-6/code-review",
+      "dateTime": "2026-04-09T09:52:04.787650+00:00",
+      "description": "Routed all 4 image source files (Image.cs, Jpeg.cs, PngImage.cs, PdfImage.cs) to Gemini for code review. Cross-provider verification identified 5 genuine issues and 3 false positives.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "code-review",
+          "inputTokens": 7825,
+          "outputTokens": 1932,
+          "costUsd": 0.0291
+        }
+      ]
+    },
+    {
+      "sessionNumber": 6,
+      "stepNumber": 2,
+      "stepKey": "session-6/address-findings",
+      "dateTime": "2026-04-09T09:52:04.788650+00:00",
+      "description": "Fixed 5 issues: (1) Image.ScaleToFit now respects 'never up' constraint, (2) Jpeg adds segment length >= 2 validation, (3) PngImage throws on truncated chunks instead of silent break, (4) PngImage sub-byte stride calculation fixed with GetBitsPerPixel(), (5) PdfImage no longer creates redundant SoftMask when softMaskRef provided.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 6,
+      "stepNumber": 3,
+      "stepKey": "session-6/test-gap-analysis",
+      "dateTime": "2026-04-09T09:52:04.789649+00:00",
+      "description": "Identified missing coverage: no dedicated Jpeg tests, no tests for ScaleToFit 'never up' behavior, no PNG sub-byte depth tests, no truncated chunk error tests.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 6,
+      "stepNumber": 4,
+      "stepKey": "session-6/add-tests",
+      "dateTime": "2026-04-09T09:52:04.790650+00:00",
+      "description": "Created JpegTests.cs (22 tests: SOF variants, color spaces, marker navigation, padding, error handling, edge cases). Extended ImageTests.cs with ScaleToFit no-scale-up, PNG truncated chunk, 4-bit grayscale tests. Added CreateSubBytePng helper to ImageTestHelpers.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 6,
+      "stepNumber": 5,
+      "stepKey": "session-6/build",
+      "dateTime": "2026-04-09T09:52:04.791650+00:00",
+      "description": "dotnet build succeeded with 0 warnings, 0 errors. dotnet test: Passed 488, Failed 0.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 6,
+      "stepNumber": 6,
+      "stepKey": "session-6/verification",
+      "dateTime": "2026-04-09T09:53:42.544271+00:00",
+      "description": "Cross-provider verification with Gemini (1 round). Session review saved to session-reviews/session-006.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "opus",
+          "taskType": "session-verification",
+          "inputTokens": 22097,
+          "outputTokens": 2043,
+          "costUsd": 0.48468
+        }
+      ]
     }
   ]
 }
