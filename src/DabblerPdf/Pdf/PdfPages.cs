@@ -15,11 +15,13 @@ public sealed class PdfPages : PdfDictionary
     private readonly PdfArray _kids = new();
     private bool _isComplete;
 
+    /// <summary>Creates an empty pages tree node.</summary>
     public PdfPages() : base(PdfName.Pages)
     {
     }
 
     /// <summary>Adds a page reference to the /Kids array.</summary>
+    /// <param name="pageRef">An indirect reference to the page to add.</param>
     public void AddPage(PdfIndirectReference pageRef)
     {
         if (_isComplete)

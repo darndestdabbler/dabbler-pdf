@@ -20,11 +20,14 @@ public class PdfStream : PdfDictionary
     private byte[] _rawBytes;
     private bool _compressed;
 
+    /// <summary>Creates a stream with the given byte content.</summary>
+    /// <param name="content">The raw stream bytes (before any compression).</param>
     public PdfStream(byte[] content) : base()
     {
         _rawBytes = content;
     }
 
+    /// <summary>Creates an empty stream. Subclasses should call <see cref="SetRawBytes"/> to set content.</summary>
     protected PdfStream() : base()
     {
         _rawBytes = [];
@@ -61,6 +64,7 @@ public class PdfStream : PdfDictionary
         Put(PdfName.Filter, PdfName.FlateDecode);
     }
 
+    /// <inheritdoc/>
     public override void WriteTo(Stream outputStream)
     {
         Put(PdfName.Length, new PdfNumber(_rawBytes.Length));

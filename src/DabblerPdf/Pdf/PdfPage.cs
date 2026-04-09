@@ -14,6 +14,9 @@ namespace DabblerPdf.Pdf;
 /// </summary>
 public sealed class PdfPage : PdfDictionary
 {
+    /// <summary>Creates a page dictionary with the specified size and parent reference.</summary>
+    /// <param name="pageSize">The page dimensions.</param>
+    /// <param name="parentRef">An indirect reference to the parent <see cref="PdfPages"/> node.</param>
     public PdfPage(Rectangle pageSize, PdfIndirectReference parentRef)
         : base(PdfName.Page)
     {
@@ -24,6 +27,7 @@ public sealed class PdfPage : PdfDictionary
     }
 
     /// <summary>Sets the content stream reference for this page.</summary>
+    /// <param name="contentsRef">An indirect reference to the content stream.</param>
     public void SetContents(PdfIndirectReference contentsRef)
     {
         Put(PdfName.Contents, contentsRef);

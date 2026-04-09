@@ -24,6 +24,8 @@ public sealed class Jpeg : Image
     private const byte SOF3 = 0xC3; // Lossless
     private const byte SOS = 0xDA;  // Start of Scan (end of headers)
 
+    /// <summary>Creates a JPEG image by parsing the given byte data for dimensions and color info.</summary>
+    /// <param name="data">The raw JPEG file bytes.</param>
     public Jpeg(byte[] data)
     {
         RawData = data;

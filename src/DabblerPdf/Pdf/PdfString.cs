@@ -20,22 +20,29 @@ public sealed class PdfString : PdfObject
     /// <summary>Whether this string should be serialized as hex.</summary>
     public bool HexWriting { get; set; }
 
+    /// <summary>Creates a PDF string from a .NET string.</summary>
+    /// <param name="value">The string content.</param>
     public PdfString(string value) : base(STRING)
     {
         _value = value;
         _originalBytes = Encoding.GetEncoding("iso-8859-1").GetBytes(value);
     }
 
+    /// <summary>Creates a PDF string from raw bytes (ISO-8859-1 encoded).</summary>
+    /// <param name="bytes">The raw byte content.</param>
     public PdfString(byte[] bytes) : base(STRING)
     {
         _originalBytes = bytes;
         _value = Encoding.GetEncoding("iso-8859-1").GetString(bytes);
     }
 
+    /// <summary>The string content as a .NET string.</summary>
     public string Value => _value;
 
+    /// <summary>A copy of the original raw bytes.</summary>
     public byte[] OriginalBytes => (byte[])_originalBytes.Clone();
 
+    /// <inheritdoc/>
     public override void WriteTo(Stream outputStream)
     {
         if (HexWriting)
@@ -90,5 +97,6 @@ public sealed class PdfString : PdfObject
         outputStream.WriteByte((byte)'>');
     }
 
+    /// <inheritdoc/>
     public override string ToString() => _value;
 }

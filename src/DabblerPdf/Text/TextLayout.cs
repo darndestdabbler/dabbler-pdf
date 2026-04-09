@@ -15,12 +15,26 @@ namespace DabblerPdf.Text;
 public static class TextLayout
 {
     /// <summary>Text alignment options for multi-line rendering.</summary>
-    public enum Alignment { Left, Right, Center }
+    public enum Alignment
+    {
+        /// <summary>Left-aligned text (default).</summary>
+        Left,
+
+        /// <summary>Right-aligned text.</summary>
+        Right,
+
+        /// <summary>Center-aligned text.</summary>
+        Center
+    }
 
     /// <summary>
     /// Breaks text into lines that fit within the given width.
     /// Handles explicit line breaks (\n) and word-wrapping at word boundaries.
     /// </summary>
+    /// <param name="text">The text to wrap.</param>
+    /// <param name="font">The font used for measurement.</param>
+    /// <param name="fontSize">The font size in points.</param>
+    /// <param name="maxWidth">The maximum width for each line in points.</param>
     /// <returns>A list of lines, each fitting within <paramref name="maxWidth"/> points.</returns>
     public static List<string> WrapText(string text, BaseFont font, double fontSize, double maxWidth)
     {
@@ -138,6 +152,11 @@ public static class TextLayout
     /// <summary>
     /// Counts the number of wrapped lines.
     /// </summary>
+    /// <param name="text">The text to measure.</param>
+    /// <param name="font">The font used for measurement.</param>
+    /// <param name="fontSize">The font size in points.</param>
+    /// <param name="maxWidth">The maximum width for wrapping in points.</param>
+    /// <returns>The number of lines after wrapping.</returns>
     public static int CountLines(string text, BaseFont font, double fontSize, double maxWidth)
     {
         return WrapText(text, font, fontSize, maxWidth).Count;

@@ -31,8 +31,15 @@ public class Document : IDisposable
     /// <summary>Whether the document is currently open.</summary>
     public bool IsOpen => _open;
 
+    /// <summary>
+    /// Creates a new document with US Letter page size (8.5 x 11 inches).
+    /// </summary>
     public Document() : this(DabblerPdf.Document.PageSize.Letter) { }
 
+    /// <summary>
+    /// Creates a new document with the specified page size.
+    /// </summary>
+    /// <param name="pageSize">The default page size for new pages.</param>
     public Document(Rectangle pageSize)
     {
         PageSize = pageSize;
@@ -98,6 +105,7 @@ public class Document : IDisposable
         _closed = true;
     }
 
+    /// <summary>Closes the document if still open and releases resources.</summary>
     public void Dispose()
     {
         Close();

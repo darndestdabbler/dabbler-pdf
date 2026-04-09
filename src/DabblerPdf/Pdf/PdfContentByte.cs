@@ -78,6 +78,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the line width (PDF <c>w</c> operator).</summary>
+    /// <param name="width">The line width in points.</param>
     public void SetLineWidth(double width)
     {
         Append(FormatDouble(width));
@@ -85,6 +86,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the line cap style (PDF <c>J</c> operator).</summary>
+    /// <param name="style">0 = butt, 1 = round, 2 = projecting square.</param>
     public void SetLineCap(int style)
     {
         Append(style.ToString(CultureInfo.InvariantCulture));
@@ -92,6 +94,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the line join style (PDF <c>j</c> operator).</summary>
+    /// <param name="style">0 = miter, 1 = round, 2 = bevel.</param>
     public void SetLineJoin(int style)
     {
         Append(style.ToString(CultureInfo.InvariantCulture));
@@ -99,6 +102,8 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the line dash pattern (PDF <c>d</c> operator).</summary>
+    /// <param name="pattern">Array of dash/gap lengths in points.</param>
+    /// <param name="phase">The dash phase offset in points.</param>
     public void SetLineDash(double[] pattern, double phase)
     {
         Append("[");
@@ -113,6 +118,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the miter limit (PDF <c>M</c> operator).</summary>
+    /// <param name="limit">The miter limit value.</param>
     public void SetMiterLimit(double limit)
     {
         Append(FormatDouble(limit));
@@ -122,6 +128,7 @@ public sealed class PdfContentByte
     // ─── Color ─────────────────────────────────────────────────────
 
     /// <summary>Sets the stroke color (PDF <c>RG</c> or <c>G</c> operator).</summary>
+    /// <param name="color">The stroke color.</param>
     public void SetColorStroke(BaseColor color)
     {
         if (color == _currentStrokeColor)
@@ -145,6 +152,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the fill color (PDF <c>rg</c> or <c>g</c> operator).</summary>
+    /// <param name="color">The fill color.</param>
     public void SetColorFill(BaseColor color)
     {
         if (color == _currentFillColor)
@@ -182,6 +190,8 @@ public sealed class PdfContentByte
     // ─── Path Construction ─────────────────────────────────────────
 
     /// <summary>Begins a new subpath at the given point (PDF <c>m</c> operator).</summary>
+    /// <param name="x">X coordinate in points.</param>
+    /// <param name="y">Y coordinate in points.</param>
     public void MoveTo(double x, double y)
     {
         Append(FormatDouble(x));
@@ -191,6 +201,8 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Appends a straight line to the current path (PDF <c>l</c> operator).</summary>
+    /// <param name="x">End-point X coordinate in points.</param>
+    /// <param name="y">End-point Y coordinate in points.</param>
     public void LineTo(double x, double y)
     {
         Append(FormatDouble(x));
@@ -202,6 +214,12 @@ public sealed class PdfContentByte
     /// <summary>
     /// Appends a cubic Bézier curve to the current path (PDF <c>c</c> operator).
     /// </summary>
+    /// <param name="x1">First control point X.</param>
+    /// <param name="y1">First control point Y.</param>
+    /// <param name="x2">Second control point X.</param>
+    /// <param name="y2">Second control point Y.</param>
+    /// <param name="x3">End point X.</param>
+    /// <param name="y3">End point Y.</param>
     public void CurveTo(double x1, double y1, double x2, double y2, double x3, double y3)
     {
         Append(FormatDouble(x1));
@@ -221,6 +239,10 @@ public sealed class PdfContentByte
     /// <summary>
     /// Appends a rectangle to the current path (PDF <c>re</c> operator).
     /// </summary>
+    /// <param name="x">Lower-left X coordinate in points.</param>
+    /// <param name="y">Lower-left Y coordinate in points.</param>
+    /// <param name="width">Width in points.</param>
+    /// <param name="height">Height in points.</param>
     public void Rectangle(double x, double y, double width, double height)
     {
         Append(FormatDouble(x));
@@ -361,6 +383,12 @@ public sealed class PdfContentByte
     /// Applies a transformation matrix (PDF <c>cm</c> operator).
     /// The matrix is [a b c d e f] as in the PDF spec.
     /// </summary>
+    /// <param name="a">Scale X / rotate component.</param>
+    /// <param name="b">Skew Y component.</param>
+    /// <param name="c">Skew X component.</param>
+    /// <param name="d">Scale Y / rotate component.</param>
+    /// <param name="e">Translate X in points.</param>
+    /// <param name="f">Translate Y in points.</param>
     public void ConcatCtm(double a, double b, double c, double d, double e, double f)
     {
         Append(FormatDouble(a));
@@ -395,6 +423,12 @@ public sealed class PdfContentByte
     /// Sets the text matrix (PDF <c>Tm</c> operator).
     /// For simple positioning, use <c>SetTextMatrix(x, y)</c>.
     /// </summary>
+    /// <param name="a">Scale X / rotate component.</param>
+    /// <param name="b">Skew Y component.</param>
+    /// <param name="c">Skew X component.</param>
+    /// <param name="d">Scale Y / rotate component.</param>
+    /// <param name="x">Translate X in points.</param>
+    /// <param name="y">Translate Y in points.</param>
     public void SetTextMatrix(double a, double b, double c, double d, double x, double y)
     {
         Append(FormatDouble(a));
@@ -414,6 +448,8 @@ public sealed class PdfContentByte
     /// <summary>
     /// Sets the text position (identity matrix with translation).
     /// </summary>
+    /// <param name="x">X position in points.</param>
+    /// <param name="y">Y position in points.</param>
     public void SetTextMatrix(double x, double y)
     {
         SetTextMatrix(1, 0, 0, 1, x, y);
@@ -473,6 +509,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Shows a text string (PDF <c>Tj</c> operator).</summary>
+    /// <param name="text">The text to display.</param>
     public void ShowText(string text)
     {
         Append("(");
@@ -481,6 +518,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the character spacing (PDF <c>Tc</c> operator).</summary>
+    /// <param name="spacing">Extra spacing between characters in points.</param>
     public void SetCharacterSpacing(double spacing)
     {
         Append(FormatDouble(spacing));
@@ -488,6 +526,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the word spacing (PDF <c>Tw</c> operator).</summary>
+    /// <param name="spacing">Extra spacing between words in points.</param>
     public void SetWordSpacing(double spacing)
     {
         Append(FormatDouble(spacing));
@@ -495,6 +534,7 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Sets the text leading (PDF <c>TL</c> operator).</summary>
+    /// <param name="leading">Line spacing in points.</param>
     public void SetLeading(double leading)
     {
         Append(FormatDouble(leading));
@@ -561,6 +601,9 @@ public sealed class PdfContentByte
     /// Places a PdfTemplate at the given position on the current page.
     /// The template content can be written at any time before document close.
     /// </summary>
+    /// <param name="template">The template to place.</param>
+    /// <param name="x">X position in points.</param>
+    /// <param name="y">Y position in points.</param>
     public void AddTemplate(PdfTemplate template, double x, double y)
     {
         var resourceName = _writer.AddPageTemplate(template);

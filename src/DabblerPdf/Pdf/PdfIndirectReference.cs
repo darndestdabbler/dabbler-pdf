@@ -20,6 +20,9 @@ public sealed class PdfIndirectReference : PdfObject
     /// <summary>The generation number (usually 0 for new documents).</summary>
     public int Generation { get; }
 
+    /// <summary>Creates an indirect reference to the specified object number.</summary>
+    /// <param name="number">The object number.</param>
+    /// <param name="generation">The generation number (usually 0).</param>
     public PdfIndirectReference(int number, int generation = 0) : base(INDIRECT)
     {
         Number = number;
@@ -27,5 +30,6 @@ public sealed class PdfIndirectReference : PdfObject
         Bytes = Encoding.ASCII.GetBytes($"{number} {generation} R");
     }
 
+    /// <inheritdoc/>
     public override string ToString() => $"{Number} {Generation} R";
 }

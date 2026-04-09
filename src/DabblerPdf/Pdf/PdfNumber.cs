@@ -16,27 +16,37 @@ public sealed class PdfNumber : PdfObject
 {
     private double _value;
 
+    /// <summary>Creates a PDF number from an integer.</summary>
+    /// <param name="value">The integer value.</param>
     public PdfNumber(int value) : base(NUMBER)
     {
         _value = value;
         Bytes = Encoding.ASCII.GetBytes(value.ToString(CultureInfo.InvariantCulture));
     }
 
+    /// <summary>Creates a PDF number from a double.</summary>
+    /// <param name="value">The numeric value.</param>
     public PdfNumber(double value) : base(NUMBER)
     {
         _value = value;
         Bytes = Encoding.ASCII.GetBytes(FormatDouble(value));
     }
 
+    /// <summary>Creates a PDF number by parsing a string.</summary>
+    /// <param name="content">A string representation of a number (e.g., "3.14").</param>
     public PdfNumber(string content) : base(NUMBER)
     {
         _value = double.Parse(content, CultureInfo.InvariantCulture);
         Bytes = Encoding.ASCII.GetBytes(FormatDouble(_value));
     }
 
+    /// <summary>The value truncated to an integer.</summary>
     public int IntValue => (int)_value;
+
+    /// <summary>The value as a double.</summary>
     public double DoubleValue => _value;
 
+    /// <inheritdoc/>
     public override string ToString() => FormatDouble(_value);
 
     private static string FormatDouble(double value)

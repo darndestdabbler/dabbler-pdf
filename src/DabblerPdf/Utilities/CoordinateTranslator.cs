@@ -31,10 +31,14 @@ public static class CoordinateTranslator
     /// <summary>
     /// Converts inches to PDF points (1 inch = 72 points).
     /// </summary>
+    /// <param name="inches">The value in inches.</param>
+    /// <returns>The equivalent value in points.</returns>
     public static double InchesToPoints(double inches) => inches * PointsPerInch;
 
     /// <summary>
     /// Converts PDF points to inches (72 points = 1 inch).
     /// </summary>
+    /// <param name="points">The value in points.</param>
+    /// <returns>The equivalent value in inches.</returns>
     public static double PointsToInches(double points) => points / PointsPerInch;
 }

@@ -47,6 +47,8 @@ public sealed class PngImage : Image
     /// <summary>
     /// Parses a PNG image from raw bytes.
     /// </summary>
+    /// <param name="data">The raw PNG file bytes.</param>
+    /// <returns>A new <see cref="PngImage"/> instance.</returns>
     public static PngImage GetImage(byte[] data)
     {
         var png = new PngImage { RawData = data };

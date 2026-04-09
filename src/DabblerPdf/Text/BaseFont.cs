@@ -28,30 +28,70 @@ public abstract class BaseFont
     /// </summary>
     public const string IdentityH = "Identity-H";
 
-    // Font descriptor constants (used with GetFontDescriptor)
+    /// <summary>Font descriptor key for the ascent (distance above baseline).</summary>
     public const int ASCENT = 1;
+
+    /// <summary>Font descriptor key for the cap height.</summary>
     public const int CAPHEIGHT = 2;
+
+    /// <summary>Font descriptor key for the descent (distance below baseline, typically negative).</summary>
     public const int DESCENT = 3;
+
+    /// <summary>Font descriptor key for the italic angle in degrees.</summary>
     public const int ITALICANGLE = 4;
+
+    /// <summary>Font descriptor key for the bounding box lower-left X.</summary>
     public const int BBOXLLX = 5;
+
+    /// <summary>Font descriptor key for the bounding box lower-left Y.</summary>
     public const int BBOXLLY = 6;
+
+    /// <summary>Font descriptor key for the bounding box upper-right X.</summary>
     public const int BBOXURX = 7;
+
+    /// <summary>Font descriptor key for the bounding box upper-right Y.</summary>
     public const int BBOXURY = 8;
 
-    // The 14 standard PDF font names
+    /// <summary>Helvetica (regular).</summary>
     public const string Helvetica = "Helvetica";
+
+    /// <summary>Helvetica Bold.</summary>
     public const string HelveticaBold = "Helvetica-Bold";
+
+    /// <summary>Helvetica Oblique (italic).</summary>
     public const string HelveticaOblique = "Helvetica-Oblique";
+
+    /// <summary>Helvetica Bold Oblique (bold italic).</summary>
     public const string HelveticaBoldOblique = "Helvetica-BoldOblique";
+
+    /// <summary>Times Roman (regular).</summary>
     public const string TimesRoman = "Times-Roman";
+
+    /// <summary>Times Bold.</summary>
     public const string TimesBold = "Times-Bold";
+
+    /// <summary>Times Italic.</summary>
     public const string TimesItalic = "Times-Italic";
+
+    /// <summary>Times Bold Italic.</summary>
     public const string TimesBoldItalic = "Times-BoldItalic";
+
+    /// <summary>Courier (regular, monospaced).</summary>
     public const string Courier = "Courier";
+
+    /// <summary>Courier Bold.</summary>
     public const string CourierBold = "Courier-Bold";
+
+    /// <summary>Courier Oblique (italic).</summary>
     public const string CourierOblique = "Courier-Oblique";
+
+    /// <summary>Courier Bold Oblique (bold italic).</summary>
     public const string CourierBoldOblique = "Courier-BoldOblique";
+
+    /// <summary>Symbol font (Greek letters and mathematical symbols).</summary>
     public const string Symbol = "Symbol";
+
+    /// <summary>ZapfDingbats font (decorative symbols and icons).</summary>
     public const string ZapfDingbats = "ZapfDingbats";
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, BaseFont> _fontCache = new();
@@ -59,6 +99,8 @@ public abstract class BaseFont
     /// <summary>The PostScript name of this font.</summary>
     public string PostscriptName { get; }
 
+    /// <summary>Initializes the base font with the given PostScript name.</summary>
+    /// <param name="postscriptName">The PostScript name of the font.</param>
     protected BaseFont(string postscriptName)
     {
         PostscriptName = postscriptName;
@@ -105,6 +147,9 @@ public abstract class BaseFont
     /// Measures the width of a string at the given font size, in points.
     /// This is the key method for the reporting engine's text measurement.
     /// </summary>
+    /// <param name="text">The text to measure.</param>
+    /// <param name="fontSize">The font size in points.</param>
+    /// <returns>The width of the text in points.</returns>
     public double GetWidthPoint(string text, double fontSize)
     {
         double totalWidth = 0;
@@ -118,6 +163,8 @@ public abstract class BaseFont
     /// <summary>
     /// Gets the width of a single character in 1/1000 of a unit (unscaled).
     /// </summary>
+    /// <param name="c">The character code.</param>
+    /// <returns>The character width in thousandths of a unit.</returns>
     public abstract int GetCharWidth(int c);
 
     /// <summary>
@@ -131,6 +178,8 @@ public abstract class BaseFont
     /// Returns whether the given character can be represented in the current encoding.
     /// For WinAnsi fonts, returns true for characters in the Windows-1252 range.
     /// </summary>
+    /// <param name="c">The character to test.</param>
+    /// <returns><c>true</c> if the character can be encoded; otherwise, <c>false</c>.</returns>
     public bool CanEncode(char c)
     {
         return PdfEncodings.CharToWinAnsi(c) >= 0;

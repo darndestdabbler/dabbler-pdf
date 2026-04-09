@@ -30,6 +30,7 @@ public sealed class PdfBody
     /// Reserves the next object number and returns an indirect reference to it.
     /// The object has not been written yet.
     /// </summary>
+    /// <returns>A new <see cref="PdfIndirectReference"/> for the reserved object number.</returns>
     public PdfIndirectReference ReserveReference()
     {
         return new PdfIndirectReference(_nextObjectNumber++);
@@ -39,6 +40,9 @@ public sealed class PdfBody
     /// Writes a PDF object to the output stream as an indirect object.
     /// Returns the indirect reference for the newly written object.
     /// </summary>
+    /// <param name="obj">The <see cref="PdfObject"/> to write.</param>
+    /// <param name="outputStream">The stream to write to.</param>
+    /// <returns>An indirect reference to the newly written object.</returns>
     public PdfIndirectReference Add(PdfObject obj, Stream outputStream)
     {
         int number = _nextObjectNumber++;
@@ -51,6 +55,9 @@ public sealed class PdfBody
     /// <summary>
     /// Writes a PDF object with a pre-reserved object number.
     /// </summary>
+    /// <param name="obj">The <see cref="PdfObject"/> to write.</param>
+    /// <param name="reference">The pre-reserved reference containing the object number.</param>
+    /// <param name="outputStream">The stream to write to.</param>
     public void Add(PdfObject obj, PdfIndirectReference reference, Stream outputStream)
     {
         var indirectObj = new PdfIndirectObject(reference.Number, obj);
@@ -62,4 +69,6 @@ public sealed class PdfBody
 /// <summary>
 /// An entry in the cross-reference table: object number and byte offset.
 /// </summary>
+/// <param name="ObjectNumber">The object number in the PDF file.</param>
+/// <param name="Offset">The byte offset of the object from the start of the file.</param>
 public readonly record struct XrefEntry(int ObjectNumber, long Offset);

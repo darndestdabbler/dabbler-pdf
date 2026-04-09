@@ -27,6 +27,10 @@ public sealed class PdfIndirectObject
     /// <summary>The wrapped PDF object.</summary>
     public PdfObject Object { get; }
 
+    /// <summary>Creates an indirect object wrapper.</summary>
+    /// <param name="number">The object number.</param>
+    /// <param name="obj">The PDF object to wrap.</param>
+    /// <param name="generation">The generation number (usually 0).</param>
     public PdfIndirectObject(int number, PdfObject obj, int generation = 0)
     {
         Number = number;
@@ -38,6 +42,8 @@ public sealed class PdfIndirectObject
     /// Writes the indirect object to the stream and returns the byte offset
     /// at which the object started (for the xref table).
     /// </summary>
+    /// <param name="outputStream">The stream to write to.</param>
+    /// <returns>The byte offset of the start of the object.</returns>
     public long WriteTo(Stream outputStream)
     {
         long offset = outputStream.Position;

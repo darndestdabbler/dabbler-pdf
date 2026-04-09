@@ -20,6 +20,8 @@ public sealed class PdfImage : PdfStream
     /// </summary>
     public PdfStream? SoftMask { get; }
 
+    /// <summary>Creates a PDF image XObject from an image without a soft mask reference.</summary>
+    /// <param name="image">The source image (JPEG or PNG).</param>
     public PdfImage(Image image) : this(image, null)
     {
     }
@@ -85,6 +87,9 @@ public sealed class PdfImage : PdfStream
     /// Creates a PdfImage with soft mask handling. If the image has alpha,
     /// the soft mask is written as a separate indirect object first.
     /// </summary>
+    /// <param name="image">The source image.</param>
+    /// <param name="writer">The writer to use for adding indirect objects.</param>
+    /// <returns>A new <see cref="PdfImage"/> instance.</returns>
     public static PdfImage Create(Image image, Pdf.PdfWriter writer)
     {
         if (image is PngImage png && png.AlphaChannel != null)

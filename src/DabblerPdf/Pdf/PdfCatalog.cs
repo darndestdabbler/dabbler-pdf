@@ -12,6 +12,8 @@ namespace DabblerPdf.Pdf;
 /// </summary>
 public sealed class PdfCatalog : PdfDictionary
 {
+    /// <summary>Creates a document catalog pointing to the given pages tree.</summary>
+    /// <param name="pagesRef">An indirect reference to the root <see cref="PdfPages"/> node.</param>
     public PdfCatalog(PdfIndirectReference pagesRef) : base(PdfName.Catalog)
     {
         Put(PdfName.Pages, pagesRef);

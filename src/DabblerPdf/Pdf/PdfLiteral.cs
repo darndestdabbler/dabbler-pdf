@@ -14,13 +14,18 @@ namespace DabblerPdf.Pdf;
 /// </summary>
 public sealed class PdfLiteral : PdfObject
 {
+    /// <summary>Creates a literal from an ASCII text string.</summary>
+    /// <param name="text">The raw PDF content.</param>
     public PdfLiteral(string text) : base(0, Encoding.ASCII.GetBytes(text))
     {
     }
 
+    /// <summary>Creates a literal from raw bytes.</summary>
+    /// <param name="bytes">The raw PDF content bytes.</param>
     public PdfLiteral(byte[] bytes) : base(0, bytes)
     {
     }
 
+    /// <inheritdoc/>
     public override string ToString() => Bytes != null ? Encoding.ASCII.GetString(Bytes) : "";
 }

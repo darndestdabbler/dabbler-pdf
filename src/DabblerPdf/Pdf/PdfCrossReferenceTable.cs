@@ -22,6 +22,10 @@ public static class PdfCrossReferenceTable
     /// Writes the xref table to the output stream and returns the byte offset
     /// where the xref section started (for the <c>startxref</c> pointer).
     /// </summary>
+    /// <param name="outputStream">The PDF output stream.</param>
+    /// <param name="entries">The list of object numbers and their byte offsets.</param>
+    /// <param name="size">The total number of objects (including object 0).</param>
+    /// <returns>The byte offset of the start of the xref section.</returns>
     public static long WriteTo(Stream outputStream, IReadOnlyList<XrefEntry> entries, int size)
     {
         long startXref = outputStream.Position;

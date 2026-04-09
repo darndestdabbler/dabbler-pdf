@@ -17,9 +17,13 @@ public sealed class PdfBoolean : PdfObject
     private static readonly byte[] TrueBytes = "true"u8.ToArray();
     private static readonly byte[] FalseBytes = "false"u8.ToArray();
 
+    /// <summary>The singleton <c>true</c> value.</summary>
     public static readonly PdfBoolean True = new(true);
+
+    /// <summary>The singleton <c>false</c> value.</summary>
     public static readonly PdfBoolean False = new(false);
 
+    /// <summary>The boolean value.</summary>
     public bool Value { get; }
 
     private PdfBoolean(bool value) : base(BOOLEAN)
@@ -28,5 +32,6 @@ public sealed class PdfBoolean : PdfObject
         Bytes = value ? TrueBytes : FalseBytes;
     }
 
+    /// <inheritdoc/>
     public override string ToString() => Value ? "true" : "false";
 }

@@ -13,11 +13,13 @@ public sealed class PdfNull : PdfObject
 {
     private static readonly byte[] NullBytes = "null"u8.ToArray();
 
+    /// <summary>The singleton null instance.</summary>
     public static readonly PdfNull Instance = new();
 
     private PdfNull() : base(NULL, NullBytes)
     {
     }
 
+    /// <inheritdoc/>
     public override string ToString() => "null";
 }

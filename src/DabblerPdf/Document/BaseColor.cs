@@ -12,8 +12,13 @@ namespace DabblerPdf.Document;
 /// </summary>
 public sealed class BaseColor : IEquatable<BaseColor>
 {
+    /// <summary>Red component as an integer (0–255).</summary>
     public int Red { get; }
+
+    /// <summary>Green component as an integer (0–255).</summary>
     public int Green { get; }
+
+    /// <summary>Blue component as an integer (0–255).</summary>
     public int Blue { get; }
 
     /// <summary>Red component normalized to 0.0–1.0.</summary>
@@ -25,6 +30,12 @@ public sealed class BaseColor : IEquatable<BaseColor>
     /// <summary>Blue component normalized to 0.0–1.0.</summary>
     public double BlueNormalized => Blue / 255.0;
 
+    /// <summary>
+    /// Creates a color from integer RGB components (0–255). Values outside that range are clamped.
+    /// </summary>
+    /// <param name="red">Red component (0–255).</param>
+    /// <param name="green">Green component (0–255).</param>
+    /// <param name="blue">Blue component (0–255).</param>
     public BaseColor(int red, int green, int blue)
     {
         Red = Clamp(red);
@@ -32,6 +43,12 @@ public sealed class BaseColor : IEquatable<BaseColor>
         Blue = Clamp(blue);
     }
 
+    /// <summary>
+    /// Creates a color from normalized RGB components (0.0–1.0). Values outside that range are clamped.
+    /// </summary>
+    /// <param name="red">Red component (0.0–1.0).</param>
+    /// <param name="green">Green component (0.0–1.0).</param>
+    /// <param name="blue">Blue component (0.0–1.0).</param>
     public BaseColor(double red, double green, double blue)
         : this(
             (int)(SanitizeComponent(red) * 255 + 0.5),
@@ -46,24 +63,49 @@ public sealed class BaseColor : IEquatable<BaseColor>
     /// <summary>Whether this is a grayscale color (R == G == B).</summary>
     public bool IsGray => Red == Green && Green == Blue;
 
-    // Common colors
+    /// <summary>Black (0, 0, 0).</summary>
     public static readonly BaseColor Black = new(0, 0, 0);
+
+    /// <summary>White (255, 255, 255).</summary>
     public static readonly BaseColor White = new(255, 255, 255);
+
+    /// <summary>Red (255, 0, 0).</summary>
     public static readonly BaseColor Red_ = new(255, 0, 0);
+
+    /// <summary>Green (0, 255, 0).</summary>
     public static readonly BaseColor Green_ = new(0, 255, 0);
+
+    /// <summary>Blue (0, 0, 255).</summary>
     public static readonly BaseColor Blue_ = new(0, 0, 255);
+
+    /// <summary>Light gray (192, 192, 192).</summary>
     public static readonly BaseColor LightGray = new(192, 192, 192);
+
+    /// <summary>Dark gray (64, 64, 64).</summary>
     public static readonly BaseColor DarkGray = new(64, 64, 64);
 
+    /// <inheritdoc/>
     public bool Equals(BaseColor? other) =>
         other is not null && Red == other.Red && Green == other.Green && Blue == other.Blue;
 
+    /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is BaseColor other && Equals(other);
+
+    /// <inheritdoc/>
     public override int GetHashCode() => HashCode.Combine(Red, Green, Blue);
+
+    /// <inheritdoc/>
     public override string ToString() => $"BaseColor({Red}, {Green}, {Blue})";
 
+    /// <summary>Determines whether two colors have equal RGB values.</summary>
+    /// <param name="left">The first color to compare.</param>
+    /// <param name="right">The second color to compare.</param>
     public static bool operator ==(BaseColor? left, BaseColor? right) =>
         left is null ? right is null : left.Equals(right);
+
+    /// <summary>Determines whether two colors have different RGB values.</summary>
+    /// <param name="left">The first color to compare.</param>
+    /// <param name="right">The second color to compare.</param>
     public static bool operator !=(BaseColor? left, BaseColor? right) => !(left == right);
 
     private static int Clamp(int value) => Math.Clamp(value, 0, 255);

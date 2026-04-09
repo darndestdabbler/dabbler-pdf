@@ -64,6 +64,9 @@ public sealed class PdfWriter
     /// Creates a PdfWriter that writes to the given stream, associated with the document.
     /// This is the main factory method, matching OpenPDF's <c>PdfWriter.getInstance()</c>.
     /// </summary>
+    /// <param name="document">The document to associate with this writer.</param>
+    /// <param name="outputStream">The stream that will receive the PDF output.</param>
+    /// <returns>A new <see cref="PdfWriter"/> instance.</returns>
     public static PdfWriter GetInstance(Document.Document document, Stream outputStream)
     {
         var writer = new PdfWriter(outputStream);
@@ -203,6 +206,9 @@ public sealed class PdfWriter
     /// Creates a new PdfTemplate (Form XObject) that can be placed on pages
     /// and filled in later.
     /// </summary>
+    /// <param name="width">Width of the template bounding box in points.</param>
+    /// <param name="height">Height of the template bounding box in points.</param>
+    /// <returns>A new <see cref="PdfTemplate"/> instance.</returns>
     public PdfTemplate CreateTemplate(double width, double height)
     {
         var reference = _body.ReserveReference();

@@ -49,6 +49,8 @@ public abstract class Image
     /// <summary>
     /// Sets the absolute position where this image will be placed on the page.
     /// </summary>
+    /// <param name="x">X position in points from the left edge.</param>
+    /// <param name="y">Y position in points from the bottom edge.</param>
     public void SetAbsolutePosition(double x, double y)
     {
         AbsoluteX = x;
@@ -60,6 +62,8 @@ public abstract class Image
     /// Scales the image to fit within the given dimensions while preserving
     /// the aspect ratio. The image will be scaled down (never up) to fit.
     /// </summary>
+    /// <param name="maxWidth">Maximum width in points.</param>
+    /// <param name="maxHeight">Maximum height in points.</param>
     public void ScaleToFit(double maxWidth, double maxHeight)
     {
         double widthRatio = maxWidth / ScaledWidth;
@@ -78,6 +82,8 @@ public abstract class Image
     /// than the target area. The image fills the entire target area — one dimension
     /// matches exactly, the other may exceed the target bounds.
     /// </summary>
+    /// <param name="targetWidth">Target width in points.</param>
+    /// <param name="targetHeight">Target height in points.</param>
     public void ScaleToFill(double targetWidth, double targetHeight)
     {
         double widthRatio = targetWidth / ScaledWidth;
@@ -90,6 +96,8 @@ public abstract class Image
     /// <summary>
     /// Scales the image to exact dimensions (ignoring aspect ratio).
     /// </summary>
+    /// <param name="width">Exact width in points.</param>
+    /// <param name="height">Exact height in points.</param>
     public void ScaleAbsolute(double width, double height)
     {
         ScaledWidth = width;
@@ -99,6 +107,7 @@ public abstract class Image
     /// <summary>
     /// Scales the image by a percentage (100 = original size).
     /// </summary>
+    /// <param name="percent">Scale percentage (100 = original size).</param>
     public void ScalePercent(double percent)
     {
         double factor = percent / 100.0;
@@ -109,6 +118,8 @@ public abstract class Image
     /// <summary>
     /// Loads an image from a file path. Detects the format from the file extension.
     /// </summary>
+    /// <param name="path">The full path to the image file (.jpg, .jpeg, or .png).</param>
+    /// <returns>A new <see cref="Image"/> instance.</returns>
     public static Image GetInstance(string path)
     {
         var extension = Path.GetExtension(path).ToLowerInvariant();
@@ -125,6 +136,8 @@ public abstract class Image
     /// <summary>
     /// Loads an image from a byte array. Detects the format from the file signature.
     /// </summary>
+    /// <param name="data">The raw image file bytes.</param>
+    /// <returns>A new <see cref="Image"/> instance.</returns>
     public static Image GetInstance(byte[] data)
     {
         if (data.Length >= 2 && data[0] == 0xFF && data[1] == 0xD8)
