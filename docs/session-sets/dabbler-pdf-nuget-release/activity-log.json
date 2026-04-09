@@ -178,6 +178,121 @@
           "costUsd": 0.017565
         }
       ]
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 1,
+      "stepKey": "session-3/csproj-metadata",
+      "dateTime": "2026-04-09T22:56:54.988643+00:00",
+      "description": "Added NuGet metadata to DabblerPdf.csproj: PackageId, Version (1.0.0), Authors, Description, PackageTags, PackageProjectUrl, RepositoryUrl, PackageReadmeFile, PackageReleaseNotes, Copyright, Deterministic, IncludeSymbols/snupkg. Kept existing LGPL-2.1/MPL-2.0 license.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 2,
+      "stepKey": "session-3/readme-inclusion",
+      "dateTime": "2026-04-09T22:56:54.989743+00:00",
+      "description": "Added ItemGroup to include ../../README.md in the NuGet package with Pack=true.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 3,
+      "stepKey": "session-3/pack-build",
+      "dateTime": "2026-04-09T22:56:54.990747+00:00",
+      "description": "dotnet pack -c Release produced DabblerPdf.1.0.0.nupkg (60KB) and DabblerPdf.1.0.0.snupkg.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 4,
+      "stepKey": "session-3/package-inspection",
+      "dateTime": "2026-04-09T22:56:54.990747+00:00",
+      "description": "Inspected .nupkg contents: lib/net10.0/DabblerPdf.dll, lib/net10.0/DabblerPdf.xml, README.md at root. .nuspec has correct metadata, no unwanted dependencies, no test/sample assemblies. 60KB total.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 5,
+      "stepKey": "session-3/local-install-test",
+      "dateTime": "2026-04-09T22:56:54.991892+00:00",
+      "description": "Created throwaway console project, installed DabblerPdf 1.0.0 from local source, wrote smoke test creating a one-page PDF with Helvetica and Times Roman text. Package installed, compiled, and produced valid 929-byte PDF.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 6,
+      "stepKey": "session-3/test-suite",
+      "dateTime": "2026-04-09T22:56:54.991892+00:00",
+      "description": "dotnet test: Passed 565, Failed 0, Skipped 0.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 7,
+      "stepKey": "session-3/samples",
+      "dateTime": "2026-04-09T22:56:54.992913+00:00",
+      "description": "All 10 samples generated successfully: basic-text, text-wrapping, lines-and-shapes, colors, images, table-layout, multi-page, padding, invoice, stress-test. 0 failures.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 8,
+      "stepKey": "session-3/changelog",
+      "dateTime": "2026-04-09T22:56:54.992913+00:00",
+      "description": "Created CHANGELOG.md at repo root documenting v1.0.0 features: text rendering, font styles, wrapping, measurement API, images, lines, rectangles, colors, padding, headers/footers, page numbering.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 9,
+      "stepKey": "session-3/build",
+      "dateTime": "2026-04-09T22:56:54.994283+00:00",
+      "description": "dotnet build DabblerPdf.slnx succeeded with 0 warnings, 0 errors. dotnet test: Passed 565, Failed 0.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 10,
+      "stepKey": "session-3/verification",
+      "dateTime": "2026-04-09T22:58:03.399715+00:00",
+      "description": "Cross-provider verification with gemini-pro (1 round). Session review saved to session-reviews/session-003.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 2218,
+          "outputTokens": 204,
+          "costUsd": 0.0048125
+        }
+      ]
+    },
+    {
+      "sessionNumber": 3,
+      "stepNumber": 11,
+      "stepKey": "session-3/re-verification",
+      "dateTime": "2026-04-09T22:59:05.145567+00:00",
+      "description": "Cross-provider re-verification with gemini-pro (round 2). Em dash issue confirmed false positive. Session review appended.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 500,
+          "outputTokens": 149,
+          "costUsd": 0.002115
+        }
+      ]
     }
   ]
 }

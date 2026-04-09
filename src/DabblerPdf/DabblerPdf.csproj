@@ -6,15 +6,50 @@
     <Nullable>enable</Nullable>
     <RootNamespace>DabblerPdf</RootNamespace>
     <AssemblyName>DabblerPdf</AssemblyName>
-    <Description>Text measurement and coordinate-based PDF generation for .NET. Ported from OpenPDF (https://github.com/LibrePDF/OpenPDF).</Description>
+
+    <!-- Package identity -->
+    <PackageId>DabblerPdf</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>darndestdabbler</Authors>
+
+    <!-- Description shown on NuGet.org -->
+    <Description>A lightweight .NET library for generating PDF documents with text, images, lines, rectangles, and styled content. Ported from OpenPDF with a clean, code-first API — no heavy dependencies, no design surface.</Description>
+
+    <!-- NuGet.org metadata -->
+    <PackageTags>pdf;pdf-generation;document;report;dotnet;openpdf</PackageTags>
+    <PackageProjectUrl>https://github.com/darndestdabbler/dabbler-pdf</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/darndestdabbler/dabbler-pdf</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- License -->
     <PackageLicenseExpression>LGPL-2.1-only AND MPL-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/LibrePDF/OpenPDF</PackageProjectUrl>
-    <Copyright>Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares. C# port Copyright (C) 2026.</Copyright>
+
+    <!-- README on NuGet.org -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- XML docs included in package for IntelliSense -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Release notes for this version -->
+    <PackageReleaseNotes>Initial public release. Core PDF generation: text (Helvetica, Times, Courier with bold/italic), images (Stretch, ScaleToFit, ActualSize), lines, rectangles, borders, colors, padding, multi-page documents with headers and footers. Text measurement API for layout composition.</PackageReleaseNotes>
+
+    <!-- Copyright -->
+    <Copyright>Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares. C# port Copyright (C) 2025-2026 darndestdabbler.</Copyright>
+
+    <!-- Deterministic builds for reproducibility -->
+    <Deterministic>true</Deterministic>
+
+    <!-- Include symbols for debugging -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="DabblerPdf.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
