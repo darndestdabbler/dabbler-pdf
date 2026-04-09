@@ -33,9 +33,15 @@ public sealed class BaseColor : IEquatable<BaseColor>
     }
 
     public BaseColor(double red, double green, double blue)
-        : this((int)(red * 255 + 0.5), (int)(green * 255 + 0.5), (int)(blue * 255 + 0.5))
+        : this(
+            (int)(SanitizeComponent(red) * 255 + 0.5),
+            (int)(SanitizeComponent(green) * 255 + 0.5),
+            (int)(SanitizeComponent(blue) * 255 + 0.5))
     {
     }
+
+    private static double SanitizeComponent(double value) =>
+        double.IsFinite(value) ? Math.Clamp(value, 0.0, 1.0) : 0.0;
 
     /// <summary>Whether this is a grayscale color (R == G == B).</summary>
     public bool IsGray => Red == Green && Green == Blue;

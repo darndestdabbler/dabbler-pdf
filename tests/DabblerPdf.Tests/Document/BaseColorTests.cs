@@ -119,4 +119,27 @@ public class BaseColorTests
         Assert.Equal(192, BaseColor.LightGray.Red);
         Assert.Equal(64, BaseColor.DarkGray.Red);
     }
+
+    [Theory]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    [InlineData(double.NaN)]
+    public void DoubleConstructor_NonFiniteValues_DoNotThrow(double badValue)
+    {
+        var color = new BaseColor(badValue, badValue, badValue);
+        // Non-finite values should be sanitized to 0
+        Assert.Equal(0, color.Red);
+        Assert.Equal(0, color.Green);
+        Assert.Equal(0, color.Blue);
+    }
+
+    [Fact]
+    public void DoubleConstructor_OutOfRange_ClampedByBothLayers()
+    {
+        // Values > 1.0 are clamped to 1.0 by SanitizeComponent, then * 255 = 255
+        var color = new BaseColor(2.0, -1.0, 0.5);
+        Assert.Equal(255, color.Red);
+        Assert.Equal(0, color.Green);
+        Assert.Equal(128, color.Blue);
+    }
 }

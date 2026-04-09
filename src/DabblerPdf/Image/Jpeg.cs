@@ -88,8 +88,11 @@ public sealed class Jpeg : Image
             if (marker == SOS)
                 break;
 
-            // Skip to next segment
-            offset += 2 + segmentLength;
+            // Skip to next segment, validating bounds
+            int nextOffset = offset + 2 + segmentLength;
+            if (nextOffset > data.Length)
+                throw new ArgumentException($"JPEG segment at offset {offset} extends beyond end of file.");
+            offset = nextOffset;
         }
 
         throw new ArgumentException("Could not find JPEG SOF marker — unable to determine image dimensions.");

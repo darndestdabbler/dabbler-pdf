@@ -176,6 +176,90 @@ public class ImageTests
         bw.Write((byte)value);
     }
 
+    // ─── Security: PNG Dimension Limits ─────────────────────────────
+
+    [Fact]
+    public void Png_ExcessiveDimensions_Throws()
+    {
+        // Create a PNG with dimensions exceeding the 32767 limit
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        bw.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        var ihdr = new byte[13];
+        // Width = 40000 (exceeds 32767 limit)
+        WriteBEUInt32ToArray(ihdr, 0, 40000);
+        WriteBEUInt32ToArray(ihdr, 4, 100);
+        ihdr[8] = 8;
+        ihdr[9] = 2; // RGB
+
+        WritePngChunkHelper(bw, "IHDR", ihdr);
+        WritePngChunkHelper(bw, "IEND", []);
+
+        Assert.Throws<ArgumentException>(() => PngImage.GetImage(ms.ToArray()));
+    }
+
+    [Fact]
+    public void Png_ZeroDimensions_Throws()
+    {
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        bw.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        var ihdr = new byte[13];
+        WriteBEUInt32ToArray(ihdr, 0, 0); // Width = 0
+        WriteBEUInt32ToArray(ihdr, 4, 10);
+        ihdr[8] = 8;
+        ihdr[9] = 2;
+
+        WritePngChunkHelper(bw, "IHDR", ihdr);
+        WritePngChunkHelper(bw, "IEND", []);
+
+        Assert.Throws<ArgumentException>(() => PngImage.GetImage(ms.ToArray()));
+    }
+
+    // ─── Security: JPEG Bounds Checking ───────────────────────────
+
+    [Fact]
+    public void Jpeg_SegmentExceedingFileLength_Throws()
+    {
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        // SOI
+        bw.Write((byte)0xFF);
+        bw.Write((byte)0xD8);
+
+        // APP0 marker with segment length pointing beyond EOF
+        bw.Write((byte)0xFF);
+        bw.Write((byte)0xE0);
+        // Segment length = 5000 but we only have a few bytes left
+        bw.Write((byte)0x13);
+        bw.Write((byte)0x88); // 5000 in big-endian
+        bw.Write(new byte[4]); // Only 4 bytes of data
+
+        Assert.Throws<ArgumentException>(() => new Jpeg(ms.ToArray()));
+    }
+
+    private static void WriteBEUInt32ToArray(byte[] arr, int offset, uint value)
+    {
+        arr[offset] = (byte)(value >> 24);
+        arr[offset + 1] = (byte)(value >> 16);
+        arr[offset + 2] = (byte)(value >> 8);
+        arr[offset + 3] = (byte)value;
+    }
+
+    private static void WritePngChunkHelper(BinaryWriter bw, string type, byte[] data)
+    {
+        WriteUInt32BE(bw, (uint)data.Length);
+        var typeBytes = System.Text.Encoding.ASCII.GetBytes(type);
+        bw.Write(typeBytes);
+        bw.Write(data);
+        WriteUInt32BE(bw, 0); // CRC placeholder
+    }
+
     // ─── Image.GetInstance (format detection) ──────────────────────
 
     [Fact]

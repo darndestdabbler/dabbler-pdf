@@ -262,11 +262,20 @@ internal sealed class TrueTypeFont : BaseFont
         {
             // Offset table: sfVersion(4) + numTables(2) + searchRange(2) + entrySelector(2) + rangeShift(2) = 12
             int numTables = ReadUInt16(4);
+
+            // Validate numTables is reasonable relative to font data size
+            int maxPossibleTables = (_data.Length - 12) / 16;
+            if (numTables > maxPossibleTables)
+                throw new ArgumentException(
+                    $"TrueType font claims {numTables} tables but data is only large enough for {maxPossibleTables}.");
+
             var tables = new Dictionary<string, TableEntry>(numTables);
 
             for (int i = 0; i < numTables; i++)
             {
                 int recordOffset = 12 + i * 16;
+                if (!CanRead(recordOffset, 16))
+                    break;
                 string tag = System.Text.Encoding.ASCII.GetString(_data.Slice(recordOffset, 4));
                 // skip checkSum (4 bytes)
                 int tableOffset = (int)ReadUInt32(recordOffset + 8);
@@ -418,6 +427,10 @@ internal sealed class TrueTypeFont : BaseFont
                 if (startCode == 0xFFFF)
                     break;
 
+                // Guard against malformed fonts with excessively large ranges
+                if (endCode < startCode || (endCode - startCode) > 0xFFFF)
+                    continue;
+
                 for (int c = startCode; c <= endCode; c++)
                 {
                     int glyphId;
@@ -458,6 +471,10 @@ internal sealed class TrueTypeFont : BaseFont
                 uint startCharCode = ReadUInt32(go);
                 uint endCharCode = ReadUInt32(go + 4);
                 uint startGlyphId = ReadUInt32(go + 8);
+
+                // Guard against malformed fonts with excessively large ranges
+                if (endCharCode < startCharCode || (endCharCode - startCharCode) > 0x1FFFF)
+                    continue;
 
                 for (uint c = startCharCode; c <= endCharCode && c <= 0xFFFF; c++)
                 {

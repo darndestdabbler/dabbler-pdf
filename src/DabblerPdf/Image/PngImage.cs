@@ -122,6 +122,14 @@ public sealed class PngImage : Image
 
         PixelWidth = (int)BinaryPrimitives.ReadUInt32BigEndian(ihdr);
         PixelHeight = (int)BinaryPrimitives.ReadUInt32BigEndian(ihdr[4..]);
+
+        const int MaxDimension = 32767;
+        const long MaxPixels = 100_000_000L; // 100 megapixels
+        if (PixelWidth <= 0 || PixelHeight <= 0 || PixelWidth > MaxDimension || PixelHeight > MaxDimension)
+            throw new ArgumentException($"PNG dimensions are invalid or exceed the maximum of {MaxDimension}.");
+        if ((long)PixelWidth * PixelHeight > MaxPixels)
+            throw new ArgumentException($"PNG exceeds maximum allowed pixel count of {MaxPixels}.");
+
         _bitDepth = ihdr[8];
         _colorType = ihdr[9];
 
@@ -146,22 +154,48 @@ public sealed class PngImage : Image
         if (compressedData.Length < 2)
             throw new ArgumentException("PNG IDAT data is too short.");
 
+        const int MaxDecompressedSize = 50 * 1024 * 1024; // 50 MB limit to prevent decompression bombs
+
         using var input = new MemoryStream(compressedData, 2, compressedData.Length - 2);
         using var deflate = new DeflateStream(input, CompressionMode.Decompress);
         using var output = new MemoryStream();
-        deflate.CopyTo(output);
+        byte[] buffer = new byte[8192];
+        int bytesRead;
+        long totalBytesRead = 0;
+        while ((bytesRead = deflate.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            totalBytesRead += bytesRead;
+            if (totalBytesRead > MaxDecompressedSize)
+                throw new InvalidOperationException("PNG decompressed data exceeds the maximum size limit.");
+            output.Write(buffer, 0, bytesRead);
+        }
         return output.ToArray();
     }
 
     private void ProcessPixelData(byte[] rawPixels)
     {
         int bytesPerPixel = GetBytesPerPixel(); // For filter distance (min 1 per PNG spec)
-        int rowBytes = (PixelWidth * GetBitsPerPixel() + 7) / 8; // Actual data bytes per row
-        int stride = 1 + rowBytes; // 1 byte filter type + pixel data
 
-        if (rawPixels.Length < PixelHeight * stride)
+        // Use checked arithmetic to prevent integer overflow with large dimensions
+        int stride;
+        long expectedSize;
+        try
+        {
+            checked
+            {
+                long rowBytes = ((long)PixelWidth * GetBitsPerPixel() + 7) / 8;
+                stride = 1 + (int)rowBytes; // 1 byte filter type + pixel data
+                expectedSize = (long)PixelHeight * stride;
+            }
+        }
+        catch (OverflowException)
+        {
+            throw new ArgumentException("PNG dimensions are too large and cause integer overflow.");
+        }
+
+        if (rawPixels.Length < expectedSize)
             throw new ArgumentException(
-                $"PNG pixel data too short: expected {PixelHeight * stride}, got {rawPixels.Length}.");
+                $"PNG pixel data too short: expected {expectedSize}, got {rawPixels.Length}.");
 
         // Reverse PNG filters
         var unfiltered = Unfilter(rawPixels, bytesPerPixel, stride);
