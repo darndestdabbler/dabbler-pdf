@@ -76,13 +76,14 @@ public abstract class SampleBase
     /// <summary>Draw text with a specific fill color.</summary>
     protected static void DrawText(PdfContentByte cb, string text, BaseFont font, double size, double x, double y, BaseColor color)
     {
+        cb.SaveState();
         cb.BeginText();
         cb.SetFontAndSize(font, size);
         cb.SetColorFill(color);
         cb.SetTextMatrix(x, PdfY(y));
         cb.ShowText(text);
         cb.EndText();
-        cb.SetColorFill(BaseColor.Black);
+        cb.RestoreState();
     }
 
     /// <summary>
@@ -171,20 +172,24 @@ public abstract class SampleBase
     /// <summary>Draw a filled rectangle at (x, y) in top-down coords.</summary>
     protected static void DrawRectFilled(PdfContentByte cb, double x, double y, double width, double height, BaseColor fillColor)
     {
+        cb.SaveState();
         cb.SetColorFill(fillColor);
         cb.Rectangle(x, PdfY(y + height), width, height);
         cb.Fill();
+        cb.RestoreState();
     }
 
     /// <summary>Draw a rectangle with both fill and stroke in top-down coords.</summary>
     protected static void DrawRectFilledAndStroked(PdfContentByte cb, double x, double y, double width, double height,
         BaseColor fillColor, BaseColor strokeColor, double lineWidth = 0.5)
     {
+        cb.SaveState();
         cb.SetColorFill(fillColor);
         cb.SetColorStroke(strokeColor);
         cb.SetLineWidth(lineWidth);
         cb.Rectangle(x, PdfY(y + height), width, height);
         cb.FillStroke();
+        cb.RestoreState();
     }
 
     // ─── Section Helpers ───────────────────────────────────────────

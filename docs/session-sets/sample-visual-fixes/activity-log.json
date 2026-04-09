@@ -1,0 +1,95 @@
+{
+  "sessionSetName": "sample-visual-fixes",
+  "createdDate": "2026-04-09T21:46:53.671191+00:00",
+  "totalSessions": 2,
+  "entries": [
+    {
+      "sessionNumber": 1,
+      "stepNumber": 1,
+      "stepKey": "session-1/fix-drawrectfilled",
+      "dateTime": "2026-04-09T21:48:49.572719+00:00",
+      "description": "Wrapped DrawRectFilled() and DrawRectFilledAndStroked() in SaveState()/RestoreState() to prevent fill color bleeding into subsequent drawing operations.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 2,
+      "stepKey": "session-1/audit-drawtext",
+      "dateTime": "2026-04-09T21:48:49.573719+00:00",
+      "description": "Audited no-color DrawText overload. All SetColorFill calls are in SampleBase.cs only. SaveState/RestoreState fully protects state; no safety net needed.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 3,
+      "stepKey": "session-1/audit-samples",
+      "dateTime": "2026-04-09T21:48:49.573719+00:00",
+      "description": "Searched all 10 sample files for direct SetColorFill()/Fill() calls. Found zero \u2014 all fill operations go through DrawRectFilled or DrawRectFilledAndStroked helpers. No sample-level changes needed.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 4,
+      "stepKey": "session-1/build-and-run",
+      "dateTime": "2026-04-09T21:48:49.573719+00:00",
+      "description": "dotnet build succeeded with 0 warnings, 0 errors. dotnet run generated all 10 sample PDFs successfully (10 passed, 0 failed).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 5,
+      "stepKey": "session-1/build",
+      "dateTime": "2026-04-09T21:48:49.573719+00:00",
+      "description": "dotnet build succeeded with 0 warnings, 0 errors. dotnet test: Passed 562, Failed 0.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 6,
+      "stepKey": "session-1/verification",
+      "dateTime": "2026-04-09T21:50:06.263723+00:00",
+      "description": "Cross-provider verification with gemini-pro (1 round). Session review saved to session-reviews/session-001.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 3205,
+          "outputTokens": 381,
+          "costUsd": 0.00781625
+        }
+      ]
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 7,
+      "stepKey": "session-1/issue-fix",
+      "dateTime": "2026-04-09T21:51:04.319904+00:00",
+      "description": "Fixed colored DrawText overload: replaced manual SetColorFill(BaseColor.Black) reset with SaveState()/RestoreState() for consistent state management. Rebuild: 0 warnings, 0 errors. Tests: 562 passed. Samples: 10/10 generated.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 8,
+      "stepKey": "session-1/verification-round2",
+      "dateTime": "2026-04-09T21:51:26.691580+00:00",
+      "description": "Cross-provider re-verification with opus (round 2, escalated due to Major severity). Session review appended to session-reviews/session-001.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "opus",
+          "taskType": "session-verification",
+          "inputTokens": 3145,
+          "outputTokens": 261,
+          "costUsd": 0.06674999999999999
+        }
+      ]
+    }
+  ]
+}
