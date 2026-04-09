@@ -44,6 +44,11 @@ public sealed class PdfWriter
     /// </summary>
     public PdfContentByte DirectContent { get; }
 
+    /// <summary>
+    /// Gets or sets the page event handler. Set before calling <see cref="Document.Document.Open"/>.
+    /// </summary>
+    public IPdfPageEvent? PageEvent { get; set; }
+
     private PdfWriter(Stream outputStream)
     {
         _outputStream = outputStream;
@@ -72,17 +77,19 @@ public sealed class PdfWriter
             return;
         _outputStream.Write(PdfHeader);
         _headerWritten = true;
+        PageEvent?.OnOpenDocument(this, Document!);
     }
 
     /// <summary>
-    /// Adds a page to the PDF output. If there is content in DirectContent,
-    /// it is flushed as the page's content stream.
+    /// Ends the current page: fires OnEndPage, flushes content, and resets state.
+    /// On the first call, simply marks the first page as started (no flush needed).
+    /// Called by <see cref="Document.Document.NewPage"/> before the page number advances.
     /// </summary>
-    internal void AddPage(Rectangle pageSize)
+    internal void EndCurrentPage(Rectangle pageSize)
     {
-        // On non-first pages, flush the previous page's content first
         if (!_firstPage)
         {
+            PageEvent?.OnEndPage(this, Document!);
             FlushCurrentPage(Document!.PreviousPageSize ?? pageSize);
 
             // Reset DirectContent for the new page
@@ -96,6 +103,15 @@ public sealed class PdfWriter
             // before the first NewPage() call (common for single-page documents).
             _firstPage = false;
         }
+    }
+
+    /// <summary>
+    /// Starts the new page: fires OnStartPage after the page number has been incremented.
+    /// Called by <see cref="Document.Document.NewPage"/> after advancing the page number.
+    /// </summary>
+    internal void StartNewPage()
+    {
+        PageEvent?.OnStartPage(this, Document!);
     }
 
     /// <summary>
@@ -189,8 +205,11 @@ public sealed class PdfWriter
         // Flush the last page
         if (!_firstPage)
         {
+            PageEvent?.OnEndPage(this, Document!);
             FlushCurrentPage(Document!.PageSize);
         }
+
+        PageEvent?.OnCloseDocument(this, Document!);
 
         // Write info dictionary
         var info = new PdfDictionary();

@@ -69,8 +69,9 @@ public class Document : IDisposable
     public void NewPage()
     {
         EnsureOpen();
+        _writer!.EndCurrentPage(PageSize);
         _pageNumber++;
-        _writer!.AddPage(PageSize);
+        _writer!.StartNewPage();
         PreviousPageSize = PageSize;
     }
 
