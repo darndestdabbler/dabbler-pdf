@@ -36,6 +36,9 @@ __pycache__/
 # AI Router state
 router-state.db
 
+# Samples output
+DabblerPdf.Samples/Output/
+
 # Temp files
 *.tmp
 *.log
