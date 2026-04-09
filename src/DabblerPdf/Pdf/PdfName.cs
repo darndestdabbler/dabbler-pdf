@@ -37,18 +37,24 @@ public sealed class PdfName : PdfObject, IEquatable<PdfName>, IComparable<PdfNam
     private static byte[] EncodeName(string name)
     {
         var sb = new StringBuilder("/");
+        // Encode each character to its UTF-8 bytes, then hex-escape as needed per PDF spec
         foreach (char c in name)
         {
-            if (c < 33 || c > 126 || c == '#' || c == '/' || c == '%'
-                || c == '(' || c == ')' || c == '<' || c == '>'
-                || c == '[' || c == ']' || c == '{' || c == '}')
+            if (c >= 33 && c <= 126 && c != '#' && c != '/' && c != '%'
+                && c != '(' && c != ')' && c != '<' && c != '>'
+                && c != '[' && c != ']' && c != '{' && c != '}')
             {
-                sb.Append('#');
-                sb.Append(((int)c).ToString("X2"));
+                sb.Append(c);
             }
             else
             {
-                sb.Append(c);
+                // Encode the character as UTF-8 bytes, then hex-escape each byte
+                byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(new[] { c });
+                foreach (byte b in utf8Bytes)
+                {
+                    sb.Append('#');
+                    sb.Append(b.ToString("X2"));
+                }
             }
         }
         return System.Text.Encoding.ASCII.GetBytes(sb.ToString());

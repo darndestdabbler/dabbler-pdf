@@ -41,12 +41,24 @@ public class PdfArray : PdfObject
     public PdfObject this[int index]
     {
         get => _elements[index];
-        set => _elements[index] = value;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _elements[index] = value;
+        }
     }
 
-    public void Add(PdfObject obj) => _elements.Add(obj);
+    public void Add(PdfObject obj)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+        _elements.Add(obj);
+    }
 
-    public void Insert(int index, PdfObject obj) => _elements.Insert(index, obj);
+    public void Insert(int index, PdfObject obj)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+        _elements.Insert(index, obj);
+    }
 
     public void RemoveAt(int index) => _elements.RemoveAt(index);
 

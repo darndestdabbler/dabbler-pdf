@@ -15,13 +15,8 @@ public sealed class PdfNull : PdfObject
 
     public static readonly PdfNull Instance = new();
 
-    public PdfNull() : base(NULL, "null"u8.ToArray())
+    private PdfNull() : base(NULL, NullBytes)
     {
-    }
-
-    public override void WriteTo(Stream outputStream)
-    {
-        outputStream.Write(NullBytes);
     }
 
     public override string ToString() => "null";

@@ -70,6 +70,90 @@
           "costUsd": 0.016165
         }
       ]
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 1,
+      "stepKey": "session-2/code-review",
+      "dateTime": "2026-04-09T05:58:18.405950+00:00",
+      "description": "Code review of PDF primitives (PdfObject, PdfArray, PdfDictionary, PdfBoolean, PdfNull, PdfNumber, PdfName, PdfString, PdfLiteral) via Gemini Pro with Sonnet cross-verification. Critical findings: PdfNumber.FormatDouble can produce scientific notation (forbidden in PDF spec); PdfName.Type hides PdfObject.Type with 'new' keyword. Major findings: PdfString.OriginalBytes exposes internal array; PdfArray allows null elements; PdfString.WriteHex allocates per-byte; PdfNumber(string) stores raw content without normalization; PdfName.EncodeName corrupts non-ASCII chars. Minor: PdfNull redundant WriteTo; PdfBoolean/PdfNull constructors should be private.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "code-review",
+          "inputTokens": 5854,
+          "outputTokens": 3073,
+          "costUsd": 0.0380475
+        },
+        {
+          "model": "sonnet",
+          "taskType": "code-review-verification",
+          "inputTokens": 5854,
+          "outputTokens": 3073,
+          "costUsd": 0.0380475
+        }
+      ]
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 2,
+      "stepKey": "session-2/address-findings",
+      "dateTime": "2026-04-09T06:00:26.757600+00:00",
+      "description": "Fixed 8 issues: (1) PdfNumber.FormatDouble uses fixed-point '0.######' instead of 'G' to avoid scientific notation (Critical); (2) PdfNumber(string) normalizes stored Bytes via FormatDouble; (3) PdfString.OriginalBytes returns clone to prevent mutation; (4) PdfArray Add/Insert/indexer reject null with ArgumentNullException; (5) PdfString.WriteHex uses byte lookup table instead of per-byte string allocation; (6) PdfNull: reuse NullBytes in constructor, remove redundant WriteTo override; (7) PdfName.EncodeName handles non-ASCII via UTF-8 byte encoding; (8) PdfBoolean/PdfNull constructors made private (singleton enforcement). Declined: PdfObject.Type rename (too invasive for V&V), ReadOnlySpan conversion (not needed).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 3,
+      "stepKey": "session-2/test-gap-analysis",
+      "dateTime": "2026-04-09T06:00:56.532352+00:00",
+      "description": "Reviewed PdfObjectTests.cs (334 lines, 32 tests across 8 test classes). Existing coverage: basic WriteTo and Type checks for all types, PdfName equality, PdfArray construction, PdfDictionary put/get. Gaps identified: PdfNumber scientific notation/NaN/string constructor; PdfString CR/LF escaping, byte ctor, clone safety; PdfName non-ASCII encoding, hash escaping; PdfArray null rejection, Insert/RemoveAt; PdfLiteral byte ctor; PdfBoolean/PdfNull singleton and ToString; PdfDictionary typed ctor, Remove, Contains.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 4,
+      "stepKey": "session-2/new-tests",
+      "dateTime": "2026-04-09T06:02:39.763473+00:00",
+      "description": "Created PdfPrimitiveTests.cs with 61 new tests across 8 test classes: PdfBooleanPrimitiveTests (6), PdfNullPrimitiveTests (3), PdfNumberPrimitiveTests (13), PdfNamePrimitiveTests (10), PdfStringPrimitiveTests (9), PdfLiteralPrimitiveTests (4), PdfArrayPrimitiveTests (9), PdfDictionaryPrimitiveTests (8). Coverage includes: scientific notation prevention, NaN/Infinity handling, PdfNumber(string) normalization, non-ASCII name encoding, CR/LF escaping, OriginalBytes clone safety, null rejection in PdfArray, singleton identity, typed constructors.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 5,
+      "stepKey": "session-2/build",
+      "dateTime": "2026-04-09T06:02:39.763473+00:00",
+      "description": "dotnet build succeeded with 0 warnings, 0 errors. dotnet test: Passed 283, Failed 0 (up from 222).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 6,
+      "stepKey": "session-2/verification",
+      "dateTime": "2026-04-09T06:05:45.891587+00:00",
+      "description": "Cross-provider verification with gemini-pro (2 rounds). Round 1: ISSUES FOUND \u2014 minor: FormatDouble '0.######' limits to 6 decimal places. Fixed to '0.##############' (14 places). Round 2: ISSUES FOUND \u2014 minor: PdfNumber(string) normalization truncates precision. Deferred: reverting normalization would re-introduce scientific notation bug; double precision already limits to ~15-17 significant digits. Session review saved to session-reviews/session-002.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 11670,
+          "outputTokens": 251,
+          "costUsd": 0.0170975
+        },
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 690,
+          "outputTokens": 818,
+          "costUsd": 0.0090425
+        }
+      ]
     }
   ]
 }

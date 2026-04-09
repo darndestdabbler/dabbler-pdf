@@ -22,7 +22,7 @@ public sealed class PdfBoolean : PdfObject
 
     public bool Value { get; }
 
-    public PdfBoolean(bool value) : base(BOOLEAN)
+    private PdfBoolean(bool value) : base(BOOLEAN)
     {
         Value = value;
         Bytes = value ? TrueBytes : FalseBytes;

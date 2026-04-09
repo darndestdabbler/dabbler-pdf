@@ -34,7 +34,7 @@ public sealed class PdfString : PdfObject
 
     public string Value => _value;
 
-    public byte[] OriginalBytes => _originalBytes;
+    public byte[] OriginalBytes => (byte[])_originalBytes.Clone();
 
     public override void WriteTo(Stream outputStream)
     {
@@ -77,14 +77,15 @@ public sealed class PdfString : PdfObject
         outputStream.WriteByte((byte)')');
     }
 
+    private static readonly byte[] HexChars = "0123456789ABCDEF"u8.ToArray();
+
     private void WriteHex(Stream outputStream)
     {
         outputStream.WriteByte((byte)'<');
         foreach (byte b in _originalBytes)
         {
-            var hex = b.ToString("X2");
-            outputStream.WriteByte((byte)hex[0]);
-            outputStream.WriteByte((byte)hex[1]);
+            outputStream.WriteByte(HexChars[b >> 4]);
+            outputStream.WriteByte(HexChars[b & 0x0F]);
         }
         outputStream.WriteByte((byte)'>');
     }

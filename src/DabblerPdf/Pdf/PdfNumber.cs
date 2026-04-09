@@ -31,7 +31,7 @@ public sealed class PdfNumber : PdfObject
     public PdfNumber(string content) : base(NUMBER)
     {
         _value = double.Parse(content, CultureInfo.InvariantCulture);
-        Bytes = Encoding.ASCII.GetBytes(content);
+        Bytes = Encoding.ASCII.GetBytes(FormatDouble(_value));
     }
 
     public int IntValue => (int)_value;
@@ -41,12 +41,19 @@ public sealed class PdfNumber : PdfObject
 
     private static string FormatDouble(double value)
     {
+        if (double.IsNaN(value) || double.IsInfinity(value))
+        {
+            return "0"; // NaN and Infinity are not valid in PDF; emit zero as safe fallback
+        }
+
         // If the value is a whole number, format as integer
-        if (value == Math.Floor(value) && !double.IsInfinity(value))
+        if (value == Math.Floor(value))
         {
             return ((long)value).ToString(CultureInfo.InvariantCulture);
         }
 
-        return value.ToString("G", CultureInfo.InvariantCulture);
+        // PDF spec forbids scientific notation — use fixed-point and trim trailing zeros
+        string s = value.ToString("0.##############", CultureInfo.InvariantCulture);
+        return s;
     }
 }

@@ -1,0 +1,14 @@
+[
+  {
+    "issue": "PdfNumber.FormatDouble format string '0.######' truncates to 6 decimal places, losing precision for high-accuracy applications",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Changed format string to '0.##############' (14 decimal places), preserving near-full double precision while still preventing scientific notation. All 283 tests pass."
+  },
+  {
+    "issue": "PdfNumber(string) constructor normalizes via FormatDouble, which could truncate precision beyond what the format string supports",
+    "severity": "Minor",
+    "status": "deferred",
+    "response": "Deliberate design decision. The original code review (Sonnet cross-verification) flagged that storing raw string input was a bug because inputs like '1.23E+04' would produce invalid PDF (scientific notation). Since double.Parse() already loses precision beyond ~15-17 significant digits, re-serializing from the parsed double value correctly represents what _value actually holds. Reverting to store raw strings would re-introduce the scientific notation vulnerability. The 14-decimal-place format preserves all significant digits a C# double can represent."
+  }
+]

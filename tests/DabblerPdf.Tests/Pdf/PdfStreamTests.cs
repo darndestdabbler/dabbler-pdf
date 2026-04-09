@@ -115,7 +115,7 @@ public class PdfIndirectObjectTests
     [Fact]
     public void Reference_MatchesObjectNumber()
     {
-        var indObj = new PdfIndirectObject(7, new PdfNull());
+        var indObj = new PdfIndirectObject(7, PdfNull.Instance);
         var reference = indObj.Reference;
 
         Assert.Equal(7, reference.Number);
