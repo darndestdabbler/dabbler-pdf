@@ -33,18 +33,23 @@ public class S02_TextWrapping : SampleBase
         y += 30;
 
         // ── Section 1: Controlled wrapping at different widths ──
-        y = DrawSectionTitle(cb, "1. Controlled Wrapping Comparison", boldFont, y);
+        y = DrawSectionTitle(cb, "1. Controlled Wrapping Comparison (TextLayout API)", boldFont, y);
 
         double[] widths = [108, 216, 468]; // 1.5", 3.0", 6.5" in points
         string[] labels = ["1.5\" wide", "3.0\" wide", "6.5\" wide"];
-        double[] xPositions = [Margin, Margin, Margin];
 
-        // Draw them vertically since horizontal space is limited
         for (int i = 0; i < widths.Length; i++)
         {
             y = DrawLabel(cb, labels[i], font, Margin, y);
             double startY = y;
-            double endY = DrawWrappedText(cb, SampleParagraph, font, 9, Margin + 4, y + 4, widths[i] - 8);
+            double leading = 9 * 1.2;
+
+            // Use TextLayout.DrawText (PDF coordinates: PdfY converts top-down to bottom-up)
+            double pdfEndY = TextLayout.DrawText(cb, SampleParagraph, font, 9,
+                Margin + 4, PdfY(y + 4), widths[i] - 8, leading: leading);
+
+            // Convert the returned PDF Y back to top-down Y
+            double endY = PageHeight - pdfEndY;
 
             // Draw border around the text block
             cb.SetColorStroke(BaseColor.Black);
@@ -59,7 +64,9 @@ public class S02_TextWrapping : SampleBase
         // ── Section 2: Single very long word ──
         y = DrawSectionTitle(cb, "2. Single Long Word (1\" wide box)", boldFont, y);
         double longWordY = y;
-        double longWordEndY = DrawWrappedText(cb, "Supercalifragilisticexpialidocious", font, 10, Margin + 4, y + 4, 68); // ~1" minus padding
+        double pdfY2 = TextLayout.DrawText(cb, "Supercalifragilisticexpialidocious", font, 10,
+            Margin + 4, PdfY(y + 4), 68);
+        double longWordEndY = PageHeight - pdfY2;
         cb.SetColorStroke(BaseColor.Black);
         cb.SetLineWidth(0.5);
         DrawRectOutline(cb, Margin, longWordY - 2, 72, longWordEndY - longWordY + 6);
@@ -69,48 +76,52 @@ public class S02_TextWrapping : SampleBase
         y = DrawSectionTitle(cb, "3. Hard Line Breaks", boldFont, y);
         y = DrawLabel(cb, "Text with \\n and \\n\\n:", font, Margin, y);
         string hardBreakText = "Line one\nLine two\nLine three\n\nAfter blank line\nFinal line";
-        y = DrawWrappedText(cb, hardBreakText, font, 10, Margin, y, ContentWidth);
-        y += 14;
+        double pdfY3 = TextLayout.DrawText(cb, hardBreakText, font, 10,
+            Margin, PdfY(y), ContentWidth, leading: 12);
+        y = PageHeight - pdfY3 + 14;
 
-        // ── Section 4: CanGrow demonstration ──
-        y = DrawSectionTitle(cb, "4. CanGrow Demonstration", boldFont, y);
+        // ── Section 4: Alignment demonstration ──
+        y = DrawSectionTitle(cb, "4. Alignment: Left / Center / Right", boldFont, y);
+
+        string alignText = "This text demonstrates alignment modes provided by the TextLayout API.";
+        double alignWidth = 300;
+        var alignments = new[] { TextLayout.Alignment.Left, TextLayout.Alignment.Center, TextLayout.Alignment.Right };
+        string[] alignLabels = ["Left aligned", "Center aligned", "Right aligned"];
+
+        for (int i = 0; i < alignments.Length; i++)
+        {
+            y = DrawLabel(cb, alignLabels[i], font, Margin, y);
+            double blockStart = y;
+
+            double pdfEnd = TextLayout.DrawText(cb, alignText, font, 10,
+                Margin + 4, PdfY(y + 4), alignWidth - 8, alignments[i], 12);
+            double blockEnd = PageHeight - pdfEnd;
+
+            cb.SetColorStroke(new BaseColor(150, 150, 150));
+            cb.SetLineWidth(0.5);
+            DrawRectOutline(cb, Margin, blockStart - 2, alignWidth, blockEnd - blockStart + 6);
+            y = blockEnd + 14;
+        }
+
+        // ── Section 5: CanGrow / MeasureHeight demonstration ──
+        y = DrawSectionTitle(cb, "5. CanGrow via MeasureHeight", boldFont, y);
         y = DrawLabel(cb, "Both boxes declared at 0.25\" height (18pt). Left: short text. Right: long text (CanGrow).", font, Margin, y);
 
-        double boxHeight = 18; // 0.25"
+        double boxHeight = 18;
         double boxWidth = 200;
 
         // Short text box
         DrawRectOutline(cb, Margin, y, boxWidth, boxHeight);
         DrawText(cb, "Hello", font, 10, Margin + 4, y + 12);
 
-        // Long text box (CanGrow)
+        // Long text box (CanGrow via MeasureHeight)
         double rightX = Margin + boxWidth + 20;
         string longText = "This text is much longer and should cause the CanGrow element to expand beyond its declared 0.25 inch height to fit all content.";
-        var wrappedLines = WrapText(longText, font, 10, boxWidth - 8);
-        double actualHeight = Math.Max(boxHeight, wrappedLines.Count * 12 + 4);
+        double measuredHeight = TextLayout.MeasureHeight(longText, font, 10, boxWidth - 8, 12);
+        double actualHeight = Math.Max(boxHeight, measuredHeight + 4);
         DrawRectOutline(cb, rightX, y, boxWidth, actualHeight);
-        double ty = y + 12;
-        foreach (var line in wrappedLines)
-        {
-            DrawText(cb, line, font, 10, rightX + 4, ty);
-            ty += 12;
-        }
-        y += actualHeight + 20;
-
-        // ── Section 5: CanShrink demonstration ──
-        y = DrawSectionTitle(cb, "5. CanShrink Demonstration", boldFont, y);
-        y = DrawLabel(cb, "Both declared at 1.0\" height (72pt). Left: without CanShrink. Right: with CanShrink.", font, Margin, y);
-
-        double tallHeight = 72;
-
-        // Without CanShrink — uses full declared height
-        DrawRectOutline(cb, Margin, y, boxWidth, tallHeight);
-        DrawText(cb, "Hi", font, 10, Margin + 4, y + 12);
-
-        // With CanShrink — shrinks to content
-        double shrunkHeight = 16; // single line
-        DrawRectOutline(cb, rightX, y, boxWidth, shrunkHeight);
-        DrawText(cb, "Hi", font, 10, rightX + 4, y + 12);
+        TextLayout.DrawText(cb, longText, font, 10,
+            rightX + 4, PdfY(y + 12), boxWidth - 8, leading: 12);
 
         SaveAndClose(doc, ms, OutputPath(outputDir));
     }
