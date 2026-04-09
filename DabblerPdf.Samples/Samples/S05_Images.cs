@@ -80,9 +80,14 @@ public class S05_Images : SampleBase
                     cb.RestoreState();
                     break;
 
-                case 3: // ActualSize — native pixel dimensions at top-left
-                    image.SetAbsolutePosition(ex, PdfY(y) - image.ScaledHeight);
+                case 3: // ActualSize — native pixel dimensions, clipped to element boundary
+                    cb.SaveState();
+                    cb.Rectangle(ex, PdfY(y + elemSize), elemSize, elemSize);
+                    cb.Clip();
+                    cb.NewPath();
+                    image.SetAbsolutePosition(ex, PdfY(y + image.ScaledHeight));
                     cb.AddImage(image);
+                    cb.RestoreState();
                     break;
             }
 

@@ -59,7 +59,7 @@ public class S06_TableLayout : SampleBase
         double cx = tableX;
         foreach (var (header, width, _) in columns)
         {
-            DrawText(cb, header, boldFont, 10, cx + cellPadding, y + 14);
+            DrawText(cb, header, boldFont, 10, cx + cellPadding, y + 5);
             cx += width;
         }
 
@@ -94,7 +94,7 @@ public class S06_TableLayout : SampleBase
                     _ => cx + cellPadding,                       // left
                 };
 
-                DrawText(cb, text, font, 10, tx, y + 14);
+                DrawText(cb, text, font, 10, tx, y + 5);
                 cx += width;
             }
 

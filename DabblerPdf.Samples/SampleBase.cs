@@ -63,24 +63,26 @@ public abstract class SampleBase
 
     // ─── Text Drawing Helpers ──────────────────────────────────────
 
-    /// <summary>Draw a single line of text at (x, y) in top-down coords.</summary>
+    /// <summary>Draw a single line of text at (x, y) in top-down coords, where y is the visual top of the text.</summary>
     protected static void DrawText(PdfContentByte cb, string text, BaseFont font, double size, double x, double y)
     {
         cb.BeginText();
         cb.SetFontAndSize(font, size);
-        cb.SetTextMatrix(x, PdfY(y));
+        double baseline = PdfY(y) - font.GetFontDescriptor(BaseFont.ASCENT, size);
+        cb.SetTextMatrix(x, baseline);
         cb.ShowText(text);
         cb.EndText();
     }
 
-    /// <summary>Draw text with a specific fill color.</summary>
+    /// <summary>Draw text with a specific fill color, where y is the visual top of the text.</summary>
     protected static void DrawText(PdfContentByte cb, string text, BaseFont font, double size, double x, double y, BaseColor color)
     {
         cb.SaveState();
         cb.BeginText();
         cb.SetFontAndSize(font, size);
         cb.SetColorFill(color);
-        cb.SetTextMatrix(x, PdfY(y));
+        double baseline = PdfY(y) - font.GetFontDescriptor(BaseFont.ASCENT, size);
+        cb.SetTextMatrix(x, baseline);
         cb.ShowText(text);
         cb.EndText();
         cb.RestoreState();
@@ -124,26 +126,65 @@ public abstract class SampleBase
                 continue;
             }
 
-            var currentLine = words[0];
-            for (int i = 1; i < words.Length; i++)
+            var currentLine = "";
+            for (int i = 0; i < words.Length; i++)
             {
-                var testLine = currentLine + " " + words[i];
-                var width = font.GetWidthPoint(testLine, size);
-                if (width <= maxWidth)
+                var word = words[i];
+                if (currentLine.Length == 0)
                 {
-                    currentLine = testLine;
+                    if (font.GetWidthPoint(word, size) > maxWidth)
+                    {
+                        currentLine = BreakWord(word, font, size, maxWidth, lines);
+                    }
+                    else
+                    {
+                        currentLine = word;
+                    }
                 }
                 else
                 {
-                    lines.Add(currentLine);
-                    currentLine = words[i];
-
-                    // If a single word exceeds maxWidth, just add it as its own line
+                    var testLine = currentLine + " " + word;
+                    if (font.GetWidthPoint(testLine, size) <= maxWidth)
+                    {
+                        currentLine = testLine;
+                    }
+                    else
+                    {
+                        lines.Add(currentLine);
+                        if (font.GetWidthPoint(word, size) > maxWidth)
+                        {
+                            currentLine = BreakWord(word, font, size, maxWidth, lines);
+                        }
+                        else
+                        {
+                            currentLine = word;
+                        }
+                    }
                 }
             }
             lines.Add(currentLine);
         }
         return lines;
+    }
+
+    /// <summary>Break a single oversized word at character boundaries.</summary>
+    private static string BreakWord(string word, BaseFont font, double size, double maxWidth, List<string> lines)
+    {
+        var fragment = "";
+        foreach (var c in word)
+        {
+            var test = fragment + c;
+            if (font.GetWidthPoint(test, size) > maxWidth && fragment.Length > 0)
+            {
+                lines.Add(fragment);
+                fragment = c.ToString();
+            }
+            else
+            {
+                fragment = test;
+            }
+        }
+        return fragment;
     }
 
     /// <summary>Measure the number of wrapped lines for text in the given width.</summary>

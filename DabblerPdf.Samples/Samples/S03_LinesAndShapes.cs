@@ -159,7 +159,7 @@ public class S03_LinesAndShapes : SampleBase
         cb.SetColorStroke(new BaseColor(0, 0, 255));
         DrawRectOutline(cb, innerX, innerY, innerW, innerH);
 
-        DrawText(cb, "Centered inner rectangle", font, 9, innerX + 20, innerY + 28);
+        DrawText(cb, "Centered inner rectangle", font, 9, innerX + 20, innerY + 20);
 
         SaveAndClose(doc, ms, OutputPath(outputDir));
     }

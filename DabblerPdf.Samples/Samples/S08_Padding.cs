@@ -33,14 +33,14 @@ public class S08_Padding : SampleBase
         cb.SetLineWidth(1);
         cb.SetLineDash([], 0);
         DrawRectOutline(cb, Margin, y, boxWidth, boxHeight);
-        DrawText(cb, sampleText, font, 10, Margin, y + 14);
+        DrawText(cb, sampleText, font, 10, Margin, y);
         y += boxHeight + 20;
 
         // ── 2. Uniform Padding (0.1" = 7.2pt on all sides) ──
         y = DrawSectionTitle(cb, "2. Uniform Padding (0.1\" all sides)", boldFont, y);
         double pad = 7.2;
         DrawRectOutline(cb, Margin, y, boxWidth, boxHeight);
-        DrawText(cb, sampleText, font, 10, Margin + pad, y + 14 + pad);
+        DrawText(cb, sampleText, font, 10, Margin + pad, y + pad);
         // Draw inner padding boundary as dashed line
         cb.SaveState();
         cb.SetColorStroke(new BaseColor(200, 200, 200));
@@ -55,7 +55,7 @@ public class S08_Padding : SampleBase
         double padT = 3.6, padB = 10.8, padL = 14.4, padR = 3.6;
         double asymHeight = 50;
         DrawRectOutline(cb, Margin, y, boxWidth, asymHeight);
-        DrawText(cb, sampleText, font, 10, Margin + padL, y + 14 + padT);
+        DrawText(cb, sampleText, font, 10, Margin + padL, y + padT);
         // Inner boundary
         cb.SaveState();
         cb.SetColorStroke(new BaseColor(200, 200, 200));
@@ -82,7 +82,7 @@ public class S08_Padding : SampleBase
         double wrapHeight = lines.Count * 14 + 2 * wrapPad;
 
         DrawRectOutline(cb, Margin, y, wrapWidth, wrapHeight);
-        double textY = y + wrapPad + 12;
+        double textY = y + wrapPad;
         foreach (var line in lines)
         {
             DrawText(cb, line, font, 10, Margin + wrapPad, textY);
@@ -102,7 +102,7 @@ public class S08_Padding : SampleBase
         var linesNoPad = WrapText(compText, font, 9, compWidth);
         double compHeight = Math.Max(linesNoPad.Count * 12 + 8, 60);
         DrawRectOutline(cb, Margin, y, compWidth, compHeight);
-        double ty = y + 12;
+        double ty = y;
         foreach (var line in linesNoPad)
         {
             DrawText(cb, line, font, 9, Margin + 2, ty);
@@ -115,7 +115,7 @@ public class S08_Padding : SampleBase
         var linesWithPad = WrapText(compText, font, 9, compWidth - 2 * compPad);
         double compHeightR = Math.Max(linesWithPad.Count * 12 + 2 * compPad, 60);
         DrawRectOutline(cb, rx, y, compWidth, compHeightR);
-        ty = y + compPad + 12;
+        ty = y + compPad;
         foreach (var line in linesWithPad)
         {
             DrawText(cb, line, font, 9, rx + compPad, ty);

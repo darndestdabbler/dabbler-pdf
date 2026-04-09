@@ -50,10 +50,10 @@ public class S10_StressTest : SampleBase
 
             // ── Page Header ──
             DrawRectFilled(cb, Margin, Margin, ContentWidth, HeaderHeight - 4, new BaseColor(230, 230, 230));
-            DrawText(cb, "DabblerPdf Stress Test \u2014 1,000 Rows", boldFont, 9, Margin + 4, Margin + 12);
+            DrawText(cb, "DabblerPdf Stress Test \u2014 1,000 Rows", boldFont, 9, Margin + 4, Margin + 4);
             string pageInfo = $"Page {page} of {totalPages}";
             double piw = font.GetWidthPoint(pageInfo, 8);
-            DrawText(cb, pageInfo, font, 8, Margin + ContentWidth - piw - 4, Margin + 12);
+            DrawText(cb, pageInfo, font, 8, Margin + ContentWidth - piw - 4, Margin + 5);
 
             // Column headers
             double hy = Margin + HeaderHeight;
@@ -62,10 +62,10 @@ public class S10_StressTest : SampleBase
             cb.SetLineDash([], 0);
             DrawHLine(cb, Margin, hy, ContentWidth);
 
-            DrawText(cb, "#", boldFont, 8, colRow, hy + 10);
-            DrawText(cb, "Name", boldFont, 8, colName, hy + 10);
-            DrawText(cb, "Amount", boldFont, 8, colAmount, hy + 10);
-            DrawText(cb, "Running", boldFont, 8, colRunning, hy + 10);
+            DrawText(cb, "#", boldFont, 8, colRow, hy + 2);
+            DrawText(cb, "Name", boldFont, 8, colName, hy + 2);
+            DrawText(cb, "Amount", boldFont, 8, colAmount, hy + 2);
+            DrawText(cb, "Running", boldFont, 8, colRunning, hy + 2);
 
             double y = hy + RowHeight + 2;
 
@@ -82,16 +82,16 @@ public class S10_StressTest : SampleBase
                 double amount = Math.Round(rng.NextDouble() * 999.99 + 0.01, 2);
                 runningTotal += amount;
 
-                DrawText(cb, (rowIndex + 1).ToString(), font, 7, colRow, y + 9);
-                DrawText(cb, name, font, 7, colName, y + 9);
+                DrawText(cb, (rowIndex + 1).ToString(), font, 7, colRow, y + 2);
+                DrawText(cb, name, font, 7, colName, y + 2);
 
                 string amountStr = $"${amount:F2}";
                 double aw = font.GetWidthPoint(amountStr, 7);
-                DrawText(cb, amountStr, font, 7, colAmount + 60 - aw, y + 9);
+                DrawText(cb, amountStr, font, 7, colAmount + 60 - aw, y + 2);
 
                 string runStr = $"${runningTotal:F2}";
                 double rw = font.GetWidthPoint(runStr, 7);
-                DrawText(cb, runStr, font, 7, colRunning + 50 - rw, y + 9);
+                DrawText(cb, runStr, font, 7, colRunning + 50 - rw, y + 2);
 
                 y += RowHeight;
                 rowIndex++;
@@ -104,7 +104,7 @@ public class S10_StressTest : SampleBase
             DrawHLine(cb, Margin, footerY, ContentWidth);
             string footerText = $"Page {page} of {totalPages} | Rows {rowIndex - rowsThisPage + 1}\u2013{rowIndex} of {TotalRows}";
             double ftw = font.GetWidthPoint(footerText, 7);
-            DrawText(cb, footerText, font, 7, Margin + (ContentWidth - ftw) / 2, footerY + 10);
+            DrawText(cb, footerText, font, 7, Margin + (ContentWidth - ftw) / 2, footerY + 3);
         }
 
         SaveAndClose(doc, ms, OutputPath(outputDir));

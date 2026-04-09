@@ -49,25 +49,72 @@ public static class TextLayout
                 continue;
             }
 
-            var currentLine = words[0];
-            for (int i = 1; i < words.Length; i++)
+            var currentLine = "";
+            for (int i = 0; i < words.Length; i++)
             {
-                var testLine = currentLine + " " + words[i];
-                var width = font.GetWidthPoint(testLine, fontSize);
-                if (width <= maxWidth)
+                var word = words[i];
+                if (currentLine.Length == 0)
                 {
-                    currentLine = testLine;
+                    // First word on the line — check if it exceeds maxWidth
+                    if (font.GetWidthPoint(word, fontSize) > maxWidth)
+                    {
+                        // Character-level breaking for oversized word
+                        currentLine = BreakWord(word, font, fontSize, maxWidth, lines);
+                    }
+                    else
+                    {
+                        currentLine = word;
+                    }
                 }
                 else
                 {
-                    lines.Add(currentLine);
-                    currentLine = words[i];
+                    var testLine = currentLine + " " + word;
+                    if (font.GetWidthPoint(testLine, fontSize) <= maxWidth)
+                    {
+                        currentLine = testLine;
+                    }
+                    else
+                    {
+                        lines.Add(currentLine);
+                        // Check if the new word itself exceeds maxWidth
+                        if (font.GetWidthPoint(word, fontSize) > maxWidth)
+                        {
+                            currentLine = BreakWord(word, font, fontSize, maxWidth, lines);
+                        }
+                        else
+                        {
+                            currentLine = word;
+                        }
+                    }
                 }
             }
             lines.Add(currentLine);
         }
 
         return lines;
+    }
+
+    /// <summary>
+    /// Breaks a single word at character boundaries when it exceeds maxWidth.
+    /// Completed lines are added to <paramref name="lines"/>; the remaining fragment is returned.
+    /// </summary>
+    private static string BreakWord(string word, BaseFont font, double fontSize, double maxWidth, List<string> lines)
+    {
+        var fragment = "";
+        foreach (var c in word)
+        {
+            var test = fragment + c;
+            if (font.GetWidthPoint(test, fontSize) > maxWidth && fragment.Length > 0)
+            {
+                lines.Add(fragment);
+                fragment = c.ToString();
+            }
+            else
+            {
+                fragment = test;
+            }
+        }
+        return fragment;
     }
 
     /// <summary>
@@ -117,6 +164,9 @@ public static class TextLayout
         if (leading == 0) leading = fontSize * 1.2;
         var lines = WrapText(text, font, fontSize, maxWidth);
         if (lines.Count == 0) return y;
+
+        // Adjust y from top-of-text-area to first line baseline
+        y -= font.GetFontDescriptor(BaseFont.ASCENT, fontSize);
 
         cb.BeginText();
         cb.SetFontAndSize(font, fontSize);

@@ -22,9 +22,9 @@ public class S09_InvoiceSample : SampleBase
         double y = Margin;
 
         // ── Company Header ──
-        DrawText(cb, "Acme Corporation", boldFont, 24, Margin, y + 20);
-        DrawText(cb, "123 Business Avenue, Suite 400", font, 9, Margin, y + 34);
-        DrawText(cb, "Portland, OR 97201 | (503) 555-0142", font, 9, Margin, y + 46);
+        DrawText(cb, "Acme Corporation", boldFont, 24, Margin, y + 3);
+        DrawText(cb, "123 Business Avenue, Suite 400", font, 9, Margin, y + 28);
+        DrawText(cb, "Portland, OR 97201 | (503) 555-0142", font, 9, Margin, y + 40);
 
         // Logo in top-right
         var logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "sample-logo.png");
@@ -38,7 +38,7 @@ public class S09_InvoiceSample : SampleBase
         }
         catch { /* skip if logo not available */ }
 
-        y += 54;
+        y += 50;
 
         // Horizontal rule
         cb.SetColorStroke(BaseColor.Black);
@@ -103,7 +103,7 @@ public class S09_InvoiceSample : SampleBase
         double cx = tableX;
         foreach (var (header, width, _) in columns)
         {
-            DrawText(cb, header, boldFont, 9, cx + cellPad, y + 13);
+            DrawText(cb, header, boldFont, 9, cx + cellPad, y + 5);
             cx += width;
         }
 
@@ -131,7 +131,7 @@ public class S09_InvoiceSample : SampleBase
                 var (_, width, align) = columns[col];
                 double tw = font.GetWidthPoint(cells[col], 9);
                 double tx = align == 1 ? cx + width - tw - cellPad : cx + cellPad;
-                DrawText(cb, cells[col], font, 9, tx, y + 13);
+                DrawText(cb, cells[col], font, 9, tx, y + 5);
                 cx += width;
             }
 

@@ -90,7 +90,7 @@ public class S04_Colors : SampleBase
 
         // White text on dark background
         DrawRectFilled(cb, Margin, y - 2, 200, 18, new BaseColor(51, 51, 51));
-        DrawText(cb, "White text on #333333 background", font, 11, Margin + 4, y + 11, BaseColor.White);
+        DrawText(cb, "White text on #333333 background", font, 11, Margin + 4, y + 3, BaseColor.White);
         y += 26;
 
         // ── Section 3: Background Fills ──
@@ -107,7 +107,7 @@ public class S04_Colors : SampleBase
         foreach (var (label, bg) in bgColors)
         {
             DrawRectFilled(cb, Margin, y - 2, ContentWidth, 20, bg);
-            DrawText(cb, $"Readable black text on {label}", font, 10, Margin + 4, y + 11);
+            DrawText(cb, $"Readable black text on {label}", font, 10, Margin + 4, y + 3);
             y += 24;
         }
         y += 8;
@@ -122,7 +122,7 @@ public class S04_Colors : SampleBase
         {
             var rowBg = i % 2 == 0 ? white : altGray;
             DrawRectFilled(cb, Margin, y - 2, ContentWidth, 18, rowBg);
-            DrawText(cb, $"Row {i + 1}: This is a sample data row with alternating background colors.", font, 10, Margin + 4, y + 11);
+            DrawText(cb, $"Row {i + 1}: This is a sample data row with alternating background colors.", font, 10, Margin + 4, y + 3);
             y += 18;
         }
 

@@ -54,13 +54,51 @@ public class TextLayoutTests
         }
 
         [Fact]
-        public void SingleLongWord_OwnLine()
+        public void SingleLongWord_CharacterBroken()
         {
             var font = Helvetica;
-            // Very narrow width — a long word can't fit
+            // Very narrow width — long word is broken at character boundaries
             var lines = TextLayout.WrapText("Supercalifragilisticexpialidocious", font, 10, 30);
+            Assert.True(lines.Count > 1, "Long word should be broken at character boundaries");
+            string rejoined = string.Join("", lines);
+            Assert.Equal("Supercalifragilisticexpialidocious", rejoined);
+        }
+
+        [Fact]
+        public void SingleLongWord_ExactFit_NotBroken()
+        {
+            var font = Helvetica;
+            string word = "Hello";
+            double width = font.GetWidthPoint(word, 10);
+            var lines = TextLayout.WrapText(word, font, 10, width);
             Assert.Single(lines);
-            Assert.Equal("Supercalifragilisticexpialidocious", lines[0]);
+            Assert.Equal(word, lines[0]);
+        }
+
+        [Fact]
+        public void SingleCharacter_ExceedsWidth_StillAppears()
+        {
+            var font = Helvetica;
+            // Width of 1pt — even a single character exceeds it
+            var lines = TextLayout.WrapText("W", font, 10, 1);
+            Assert.Single(lines);
+            Assert.Equal("W", lines[0]);
+        }
+
+        [Fact]
+        public void MixedContent_WithOversizedWord()
+        {
+            var font = Helvetica;
+            // Normal words plus one oversized word in the middle
+            var lines = TextLayout.WrapText("Hi Supercalifragilisticexpialidocious bye", font, 10, 50);
+            // All characters should be preserved
+            string rejoined = string.Join(" ", lines);
+            // The oversized word gets broken, so spaces won't rejoin perfectly
+            // Instead, verify no characters are lost
+            string allChars = string.Concat(lines);
+            Assert.Contains("Hi", allChars);
+            Assert.Contains("Supercalifragilisticexpialidocious", allChars);
+            Assert.Contains("bye", allChars);
         }
 
         [Fact]
@@ -186,16 +224,18 @@ public class TextLayoutTests
         {
             var (cb, writer, ms) = CreateContentByte();
             var font = Helvetica;
+            double fontSize = 12;
 
-            double returnedY = TextLayout.DrawText(cb, "Hello", font, 12, 72, 720, 200,
+            double returnedY = TextLayout.DrawText(cb, "Hello", font, fontSize, 72, 720, 200,
                 TextLayout.Alignment.Left, 14);
 
             var content = Encoding.ASCII.GetString(cb.ToByteArray());
             Assert.Contains("BT", content);
             Assert.Contains("Tj", content);
             Assert.Contains("ET", content);
-            // Y should decrease by leading
-            Assert.Equal(720 - 14, returnedY, 0.001);
+            // Y should decrease by ascent + leading (ascent adjusts first line baseline)
+            double ascent = font.GetFontDescriptor(BaseFont.ASCENT, fontSize);
+            Assert.Equal(720 - ascent - 14, returnedY, 0.001);
         }
 
         [Fact]
@@ -231,13 +271,15 @@ public class TextLayoutTests
         {
             var (cb, writer, ms) = CreateContentByte();
             var font = Helvetica;
+            double fontSize = 12;
             double leading = 14;
 
             double returnedY = TextLayout.DrawText(cb, "Line one\nLine two\nLine three",
-                font, 12, 72, 720, 500, leading: leading);
+                font, fontSize, 72, 720, 500, leading: leading);
 
-            // 3 lines × 14 leading = 42 total descent
-            Assert.Equal(720 - 3 * leading, returnedY, 0.001);
+            // 3 lines × 14 leading + ascent offset
+            double ascent = font.GetFontDescriptor(BaseFont.ASCENT, fontSize);
+            Assert.Equal(720 - ascent - 3 * leading, returnedY, 0.001);
         }
 
         [Fact]
@@ -249,7 +291,8 @@ public class TextLayoutTests
 
             double returnedY = TextLayout.DrawText(cb, "Hello", font, fontSize, 72, 720, 500);
 
-            Assert.Equal(720 - fontSize * 1.2, returnedY, 0.001);
+            double ascent = font.GetFontDescriptor(BaseFont.ASCENT, fontSize);
+            Assert.Equal(720 - ascent - fontSize * 1.2, returnedY, 0.001);
         }
     }
 }

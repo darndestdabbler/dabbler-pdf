@@ -112,7 +112,7 @@ public class S02_TextWrapping : SampleBase
 
         // Short text box
         DrawRectOutline(cb, Margin, y, boxWidth, boxHeight);
-        DrawText(cb, "Hello", font, 10, Margin + 4, y + 12);
+        DrawText(cb, "Hello", font, 10, Margin + 4, y + 4);
 
         // Long text box (CanGrow via MeasureHeight)
         double rightX = Margin + boxWidth + 20;
@@ -121,7 +121,7 @@ public class S02_TextWrapping : SampleBase
         double actualHeight = Math.Max(boxHeight, measuredHeight + 4);
         DrawRectOutline(cb, rightX, y, boxWidth, actualHeight);
         TextLayout.DrawText(cb, longText, font, 10,
-            rightX + 4, PdfY(y + 12), boxWidth - 8, leading: 12);
+            rightX + 4, PdfY(y + 4), boxWidth - 8, leading: 12);
 
         SaveAndClose(doc, ms, OutputPath(outputDir));
     }

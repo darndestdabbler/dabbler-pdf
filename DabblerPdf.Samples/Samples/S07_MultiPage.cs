@@ -42,12 +42,12 @@ public class S07_MultiPage : SampleBase
             DrawRectFilled(cb, Margin, y, ContentWidth, HeaderHeight - 4, new BaseColor(240, 240, 240));
 
             // Left: title
-            DrawText(cb, "DabblerPdf Multi-Page Sample", _boldFont, 10, Margin + 4, y + 14);
+            DrawText(cb, "DabblerPdf Multi-Page Sample", _boldFont, 10, Margin + 4, y + 10);
 
             // Right: date
             string date = "March 15, 2025";
             double dateWidth = _font.GetWidthPoint(date, 9);
-            DrawText(cb, date, _font, 9, Margin + ContentWidth - dateWidth - 4, y + 14);
+            DrawText(cb, date, _font, 9, Margin + ContentWidth - dateWidth - 4, y + 10);
 
             // Header underline
             cb.SetColorStroke(BaseColor.Black);
@@ -76,8 +76,9 @@ public class S07_MultiPage : SampleBase
             // Draw "Page N of "
             DrawText(cb, pagePrefix, _font, 9, startX, y - 10);
 
-            // Place the template for the total page count
-            cb.AddTemplate(_totalPagesTemplate, startX + prefixWidth, PdfY(y - 10));
+            // Place the template for the total page count — align with baseline
+            double footerAscent = _font.GetFontDescriptor(BaseFont.ASCENT, 9);
+            cb.AddTemplate(_totalPagesTemplate, startX + prefixWidth, PdfY(y - 10) - footerAscent);
         }
     }
 
@@ -125,7 +126,7 @@ public class S07_MultiPage : SampleBase
             // Report header (page 1 only)
             if (page == 1)
             {
-                DrawText(cb, "Multi-Page Document Sample", boldFont, 20, Margin, y + 20);
+                DrawText(cb, "Multi-Page Document Sample", boldFont, 20, Margin, y + 5);
                 y += reportHeaderHeight;
             }
 
@@ -136,7 +137,7 @@ public class S07_MultiPage : SampleBase
             while (rowIndex < TotalRows && rowsThisPage < maxRows)
             {
                 DrawText(cb, $"Row {rowIndex + 1}: This is detail row content for testing multi-page pagination and row flow across page boundaries.",
-                    font, 9, Margin, y + 10);
+                    font, 9, Margin, y + 3);
                 y += RowHeight;
                 rowIndex++;
                 rowsThisPage++;
@@ -150,7 +151,7 @@ public class S07_MultiPage : SampleBase
                 cb.SetLineWidth(1);
                 DrawHLine(cb, Margin, y, ContentWidth);
                 y += 6;
-                DrawText(cb, $"End of Report \u2014 {TotalRows} rows printed", boldFont, 10, Margin, y + 10);
+                DrawText(cb, $"End of Report \u2014 {TotalRows} rows printed", boldFont, 10, Margin, y + 3);
             }
         }
 
