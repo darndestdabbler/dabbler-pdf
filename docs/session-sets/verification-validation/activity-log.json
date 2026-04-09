@@ -224,6 +224,110 @@
           "costUsd": 0.27043500000000004
         }
       ]
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 1,
+      "stepKey": "session-4/code-review",
+      "dateTime": "2026-04-09T07:25:10.570195+00:00",
+      "description": "Code review via ai-router for PdfContentByte, PdfStream, PdfWriter. Found issues: missing control char escaping in AppendEscapedPdfString, raw DEFLATE instead of zlib in FlateCompress, no image deduplication in AddPageImage, unreliable hash fallback in AddFontObject.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "code-review",
+          "inputTokens": 7846,
+          "outputTokens": 2399,
+          "costUsd": 0.0337975
+        }
+      ]
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 2,
+      "stepKey": "session-4/address-findings",
+      "dateTime": "2026-04-09T07:26:32.905518+00:00",
+      "description": "Fixed 4 issues: (1) Added control char escaping (\n,\r,\t,\b,\f) to AppendEscapedPdfString, (2) Switched FlateCompress from DeflateStream to ZLibStream for PDF-spec-compliant zlib format, (3) Added image deduplication in AddPageImage with document-level cache, (4) Replaced unreliable GetHashCode fallback in AddFontObject with ArgumentException.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 3,
+      "stepKey": "session-4/test-gap-analysis",
+      "dateTime": "2026-04-09T07:26:56.419524+00:00",
+      "description": "Test gap analysis: PdfContentByteTests missing control char escaping, clipping, several text operators, full text matrix. PdfStreamTests missing round-trip decompression. PdfWriter has no unit tests \u2014 needs font registration, image handling, page lifecycle, error cases.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 4,
+      "stepKey": "session-4/add-tests",
+      "dateTime": "2026-04-09T07:29:28.407975+00:00",
+      "description": "Created PdfWriterTests.cs (21 tests covering factory, page lifecycle, font registration, resource dictionary, info dictionary, structural integrity, compression threshold). Extended PdfContentByteTests with 18 tests for control char escaping, clipping, additional text operators, additional graphics state ops. Extended PdfStreamTests with 2 tests for round-trip decompression and empty content compression.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 5,
+      "stepKey": "session-4/build",
+      "dateTime": "2026-04-09T07:29:28.409021+00:00",
+      "description": "dotnet build succeeded with 0 warnings, 0 errors. dotnet test: Passed 341, Failed 0.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 6,
+      "stepKey": "session-4/verification",
+      "dateTime": "2026-04-09T07:30:39.123600+00:00",
+      "description": "Cross-provider verification with gemini-pro (1 round). Session review saved to session-reviews/session-004.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 17630,
+          "outputTokens": 507,
+          "costUsd": 0.0271075
+        }
+      ]
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 7,
+      "stepKey": "session-4/re-verification",
+      "dateTime": "2026-04-09T07:32:00.065603+00:00",
+      "description": "Cross-provider re-verification with gemini-pro (round 2). Verdict in session-reviews/session-004.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 17012,
+          "outputTokens": 810,
+          "costUsd": 0.029365
+        }
+      ]
+    },
+    {
+      "sessionNumber": 4,
+      "stepNumber": 8,
+      "stepKey": "session-4/final-verification",
+      "dateTime": "2026-04-09T07:33:31.142088+00:00",
+      "description": "Cross-provider final verification with gemini-pro (round 3). Verdict: ISSUES FOUND\n\n### Issue: Inconsistent Image Resource Naming\nImage XObject resource names (e.g., `/Im. Session review saved.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 5575,
+          "outputTokens": 577,
+          "costUsd": 0.01273875
+        }
+      ]
     }
   ]
 }

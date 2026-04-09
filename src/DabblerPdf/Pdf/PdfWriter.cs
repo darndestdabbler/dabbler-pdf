@@ -31,6 +31,8 @@ public sealed class PdfWriter
     private readonly Dictionary<PdfName, PdfIndirectReference> _pageXObjects = new();
     // Document-level font cache: font PostScript name → indirect reference
     private readonly Dictionary<string, PdfIndirectReference> _fontObjects = new();
+    // Document-level image cache: Image instance → indirect reference
+    private readonly Dictionary<Image.Image, PdfIndirectReference> _imageObjects = new();
     private int _imageCounter;
 
     /// <summary>The document this writer is associated with.</summary>
@@ -120,8 +122,10 @@ public sealed class PdfWriter
     /// </summary>
     internal PdfIndirectReference AddFontObject(PdfDictionary fontDict)
     {
-        var baseFontName = fontDict.GetAsName(PdfName.BaseFont);
-        string key = baseFontName?.Value ?? fontDict.GetHashCode().ToString();
+        var baseFontName = fontDict.GetAsName(PdfName.BaseFont)
+            ?? throw new ArgumentException(
+                "Font dictionary must contain a /BaseFont entry.", nameof(fontDict));
+        string key = baseFontName.Value;
 
         if (_fontObjects.TryGetValue(key, out var existing))
             return existing;
@@ -153,11 +157,22 @@ public sealed class PdfWriter
     /// Adds an image XObject as an indirect object and registers it for the current page.
     /// Returns the resource name (e.g., /Im1) used to reference the image in content streams.
     /// </summary>
-    internal PdfName AddPageImage(Image.Image image, PdfWriter writer)
+    internal PdfName AddPageImage(Image.Image image)
     {
-        // Create the PDF image XObject (handles soft mask if needed)
-        var pdfImage = Image.PdfImage.Create(image, writer);
-        var imageRef = _body.Add(pdfImage, _outputStream);
+        if (!_imageObjects.TryGetValue(image, out var imageRef))
+        {
+            // Create the PDF image XObject (handles soft mask if needed)
+            var pdfImage = Image.PdfImage.Create(image, this);
+            imageRef = _body.Add(pdfImage, _outputStream);
+            _imageObjects[image] = imageRef;
+        }
+
+        // Check if this image is already on the current page
+        foreach (var (name, existingRef) in _pageXObjects)
+        {
+            if (existingRef.Number == imageRef.Number)
+                return name;
+        }
 
         _imageCounter++;
         var resourceName = new PdfName($"Im{_imageCounter}");

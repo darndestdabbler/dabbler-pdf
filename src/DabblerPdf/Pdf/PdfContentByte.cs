@@ -471,7 +471,7 @@ public sealed class PdfContentByte
     public void AddImage(Image.Image image, double a, double b, double c, double d, double e, double f)
     {
         // Register the image as a page XObject and get its resource name
-        var resourceName = _writer.AddPageImage(image, _writer);
+        var resourceName = _writer.AddPageImage(image);
 
         // Save state, apply transformation, invoke image, restore state
         Append("q\n");
@@ -515,6 +515,21 @@ public sealed class PdfContentByte
                     break;
                 case '\\':
                     Append("\\\\");
+                    break;
+                case '\n':
+                    Append("\\n");
+                    break;
+                case '\r':
+                    Append("\\r");
+                    break;
+                case '\t':
+                    Append("\\t");
+                    break;
+                case '\b':
+                    Append("\\b");
+                    break;
+                case '\f':
+                    Append("\\f");
                     break;
                 default:
                     if (ch < 128)

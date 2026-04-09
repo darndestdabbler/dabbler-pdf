@@ -49,11 +49,11 @@ public class PdfStream : PdfDictionary
             return;
 
         using var output = new MemoryStream();
-        // PDF FlateDecode expects raw deflate (no zlib header by default with DeflateStream),
-        // but most PDF readers accept both. We'll write a minimal zlib header for compatibility.
-        using (var deflate = new DeflateStream(output, CompressionLevel.Optimal, leaveOpen: true))
+        // PDF FlateDecode requires zlib format (RFC 1950). ZLibStream produces the
+        // correct header and ADLER32 checksum, unlike DeflateStream (raw RFC 1951).
+        using (var zlib = new ZLibStream(output, CompressionLevel.Optimal, leaveOpen: true))
         {
-            deflate.Write(_rawBytes, 0, _rawBytes.Length);
+            zlib.Write(_rawBytes, 0, _rawBytes.Length);
         }
 
         _rawBytes = output.ToArray();

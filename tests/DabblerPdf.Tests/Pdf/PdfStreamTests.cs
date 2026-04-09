@@ -64,6 +64,41 @@ public class PdfStreamTests
     }
 
     [Fact]
+    public void FlateCompress_ProducesDecompressibleContent()
+    {
+        var originalText = "Hello, this is a test of Flate compression in PdfStream.";
+        var original = Encoding.ASCII.GetBytes(originalText);
+        var stream = new PdfStream(original);
+        stream.FlateCompress();
+
+        // Extract compressed bytes from the output
+        var outputBytes = GetBytes(stream);
+        var output = Encoding.ASCII.GetString(outputBytes);
+
+        // Find the compressed data between "stream\n" and "\nendstream"
+        int streamStart = output.IndexOf("stream\n") + "stream\n".Length;
+        int streamEnd = output.LastIndexOf("\nendstream");
+        var compressedBytes = outputBytes[streamStart..streamEnd];
+
+        // Decompress using ZLibStream and verify round-trip
+        using var compressedStream = new MemoryStream(compressedBytes);
+        using var zlibStream = new ZLibStream(compressedStream, CompressionMode.Decompress);
+        using var decompressed = new MemoryStream();
+        zlibStream.CopyTo(decompressed);
+
+        Assert.Equal(originalText, Encoding.ASCII.GetString(decompressed.ToArray()));
+    }
+
+    [Fact]
+    public void EmptyContent_FlateCompress_DoesNotThrow()
+    {
+        var stream = new PdfStream([]);
+        stream.FlateCompress();
+        var output = GetOutput(stream);
+        Assert.Contains("/Filter /FlateDecode", output);
+    }
+
+    [Fact]
     public void Type_IsDictionary()
     {
         // PdfStream extends PdfDictionary, so type is DICTIONARY

@@ -288,6 +288,190 @@ public class PdfContentByteTests
         }
     }
 
+    public class ControlCharEscapingTests
+    {
+        [Fact]
+        public void ShowText_EscapesNewline()
+        {
+            var cb = CreateContentByte();
+            cb.ShowText("line1\nline2");
+            Assert.Equal("(line1\\nline2) Tj\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void ShowText_EscapesCarriageReturn()
+        {
+            var cb = CreateContentByte();
+            cb.ShowText("a\rb");
+            Assert.Equal("(a\\rb) Tj\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void ShowText_EscapesTab()
+        {
+            var cb = CreateContentByte();
+            cb.ShowText("a\tb");
+            Assert.Equal("(a\\tb) Tj\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void ShowText_EscapesBackspace()
+        {
+            var cb = CreateContentByte();
+            cb.ShowText("a\bb");
+            Assert.Equal("(a\\bb) Tj\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void ShowText_EscapesFormFeed()
+        {
+            var cb = CreateContentByte();
+            cb.ShowText("a\fb");
+            Assert.Equal("(a\\fb) Tj\n", GetContent(cb));
+        }
+    }
+
+    public class ClippingTests
+    {
+        [Fact]
+        public void Clip_EmitsW()
+        {
+            var cb = CreateContentByte();
+            cb.Clip();
+            Assert.Equal("W\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void EoClip_EmitsWStar()
+        {
+            var cb = CreateContentByte();
+            cb.EoClip();
+            Assert.Equal("W*\n", GetContent(cb));
+        }
+    }
+
+    public class AdditionalTextTests
+    {
+        [Fact]
+        public void SetCharacterSpacing_EmitsTc()
+        {
+            var cb = CreateContentByte();
+            cb.SetCharacterSpacing(0.5);
+            Assert.Equal("0.5 Tc\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void SetWordSpacing_EmitsTw()
+        {
+            var cb = CreateContentByte();
+            cb.SetWordSpacing(2);
+            Assert.Equal("2 Tw\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void SetLeading_EmitsTL()
+        {
+            var cb = CreateContentByte();
+            cb.SetLeading(14);
+            Assert.Equal("14 TL\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void NewlineShowText_EmitsTStar()
+        {
+            var cb = CreateContentByte();
+            cb.NewlineShowText();
+            Assert.Equal("T*\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void SetTextMatrix_FullParams_EmitsTm()
+        {
+            var cb = CreateContentByte();
+            cb.SetTextMatrix(2, 0, 0, 2, 72, 720);
+            Assert.Equal("2 0 0 2 72 720 Tm\n", GetContent(cb));
+        }
+    }
+
+    public class AdditionalGraphicsStateTests
+    {
+        [Fact]
+        public void SetLineCap_EmitsJ()
+        {
+            var cb = CreateContentByte();
+            cb.SetLineCap(1);
+            Assert.Equal("1 J\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void SetLineJoin_EmitsLowercaseJ()
+        {
+            var cb = CreateContentByte();
+            cb.SetLineJoin(2);
+            Assert.Equal("2 j\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void SetMiterLimit_EmitsM()
+        {
+            var cb = CreateContentByte();
+            cb.SetMiterLimit(10);
+            Assert.Equal("10 M\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void EoFillStroke_EmitsBStar()
+        {
+            var cb = CreateContentByte();
+            cb.EoFillStroke();
+            Assert.Equal("B*\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void ClosePathFillStroke_EmitsLowercaseB()
+        {
+            var cb = CreateContentByte();
+            cb.ClosePathFillStroke();
+            Assert.Equal("b\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void SaveRestore_ResetsColorCache()
+        {
+            var cb = CreateContentByte();
+            var red = new BaseColor(255, 0, 0);
+            cb.SetColorStroke(red);
+            cb.SaveState();
+            cb.RestoreState();
+            // After restore, color should be emitted again since cache is cleared
+            cb.SetColorStroke(red);
+            var content = GetContent(cb);
+            // Should contain RG twice
+            var count = content.Split("1 0 0 RG").Length - 1;
+            Assert.Equal(2, count);
+        }
+
+        [Fact]
+        public void NestedSaveRestore_TracksDepthCorrectly()
+        {
+            var cb = CreateContentByte();
+            cb.SaveState();
+            cb.SaveState();
+            cb.RestoreState();
+            cb.RestoreState();
+            Assert.Equal("q\nq\nQ\nQ\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void DoubleRestore_Throws()
+        {
+            var cb = CreateContentByte();
+            cb.SaveState();
+            cb.RestoreState();
+            Assert.Throws<InvalidOperationException>(() => cb.RestoreState());
+        }
+    }
+
     public class FormatDoubleTests
     {
         [Theory]
