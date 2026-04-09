@@ -42,7 +42,7 @@ public abstract class BaseFont
     public const string Symbol = "Symbol";
     public const string ZapfDingbats = "ZapfDingbats";
 
-    private static readonly Dictionary<string, BaseFont> _fontCache = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, BaseFont> _fontCache = new();
 
     /// <summary>The PostScript name of this font.</summary>
     public string PostscriptName { get; }
@@ -63,35 +63,27 @@ public abstract class BaseFont
     public static BaseFont CreateFont(string name, string encoding, bool embedded)
     {
         string key = $"{name}-{encoding}";
-        if (_fontCache.TryGetValue(key, out var cached))
-            return cached;
-
-        if (BuiltinFonts.IsStandardFont(name))
+        return _fontCache.GetOrAdd(key, _ =>
         {
-            var font = new Type1Font(name);
-            _fontCache[key] = font;
-            return font;
-        }
+            if (BuiltinFonts.IsStandardFont(name))
+                return new Type1Font(name);
 
-        // Try loading as a TrueType font file
-        if (IsTrueTypeFontFile(name))
-        {
-            byte[] fontData = File.ReadAllBytes(name);
-            string psName = TrueTypeFont.ExtractPostscriptName(fontData);
-            var ttFont = new TrueTypeFont(psName, fontData);
-            _fontCache[key] = ttFont;
-            return ttFont;
-        }
+            if (IsTrueTypeFontFile(name))
+            {
+                byte[] fontData = File.ReadAllBytes(name);
+                string psName = TrueTypeFont.ExtractPostscriptName(fontData);
+                return new TrueTypeFont(psName, fontData);
+            }
 
-        throw new ArgumentException(
-            $"Font '{name}' is not a standard PDF font and is not a valid TrueType font file path.",
-            nameof(name));
+            throw new ArgumentException(
+                $"Font '{name}' is not a standard PDF font and is not a valid TrueType font file path.",
+                nameof(name));
+        });
     }
 
     private static bool IsTrueTypeFontFile(string name)
     {
-        return name.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
-            || name.EndsWith(".TTF", StringComparison.OrdinalIgnoreCase);
+        return name.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

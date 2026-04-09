@@ -328,6 +328,76 @@
           "costUsd": 0.01273875
         }
       ]
+    },
+    {
+      "sessionNumber": 5,
+      "stepNumber": 1,
+      "stepKey": "session-5/code-review",
+      "dateTime": "2026-04-09T07:56:21.578487+00:00",
+      "description": "Code review of Text/Font layer (BaseFont, Type1Font, TrueTypeFont, BuiltinFonts, PdfEncodings) via Gemini Pro with Sonnet cross-verification. Critical: thread-unsafe font cache. Major: Symbol/ZapfDingbats encoding hardcoded as WinAnsi, sparse width arrays in BuiltinFonts, TrueType parser lacks bounds checking. Minor: redundant .TTF check, ComputeFlags comment errors, manual UTF-16 decoding.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "code-review",
+          "inputTokens": 26501,
+          "outputTokens": 3082,
+          "costUsd": 0.06394625
+        }
+      ]
+    },
+    {
+      "sessionNumber": 5,
+      "stepNumber": 2,
+      "stepKey": "session-5/address-findings",
+      "dateTime": "2026-04-09T08:00:29.029060+00:00",
+      "description": "Fixed 7 issues: (1) BaseFont._fontCache switched to ConcurrentDictionary with GetOrAdd for thread safety (Critical); (2) Type1Font.CreateFontDictionary omits /Encoding for Symbol and ZapfDingbats per PDF spec (Major); (3) Added missing width entries 161-191 for TimesBold, TimesItalic, TimesBoldItalic from AFM data (Major); (4) TtfReader: added bounds-checking CanRead guard to all read methods (Major); (5) Removed redundant .TTF check in IsTrueTypeFontFile (Minor); (6) Fixed ComputeFlags bit-value comments (Minor); (7) DecodeUtf16Be now uses Encoding.BigEndianUnicode (Suggestion). Declined: removing unused 'embedded' parameter (API-breaking for V&V), surrogate pair handling (WinAnsi fonts only handle 0-255), Mac Roman encoding (requires new dependency).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 5,
+      "stepNumber": 3,
+      "stepKey": "session-5/test-gap-analysis",
+      "dateTime": "2026-04-09T08:00:53.243971+00:00",
+      "description": "Reviewed BaseFontTests (12 tests) and TrueTypeFontTests (14 tests). Both have good coverage of core functionality. Missing: Type1Font (0 tests \u2014 font dictionary, width lookups, descriptor values), PdfEncodings (0 tests \u2014 WinAnsi\u2194Unicode mapping, special chars 128-159, boundary values), BuiltinFonts (0 tests \u2014 standard font metrics spot-checks, extended Latin completeness). Also need tests for new fixes: Symbol/ZapfDingbats encoding omission, TimesBold/TimesItalic/TimesBoldItalic 161-191 widths.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 5,
+      "stepNumber": 4,
+      "stepKey": "session-5/add-tests",
+      "dateTime": "2026-04-09T08:02:52.192162+00:00",
+      "description": "Created 3 new test files: Type1FontTests.cs (18 tests: construction, width lookups, descriptor scaling, font dictionary including Symbol/ZapfDingbats encoding omission), PdfEncodingsTests.cs (16 tests: ASCII/Latin identity, special 128-159 mapping, undefined bytes, boundary values, round-trip for all defined bytes), BuiltinFontsTests.cs (14 tests: standard font recognition, descriptor values, width spot-checks, Courier monospace, oblique width sharing, extended Latin 161-191 completeness for all fonts, 192-255 completeness).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 5,
+      "stepNumber": 5,
+      "stepKey": "session-5/build",
+      "dateTime": "2026-04-09T08:03:26.338132+00:00",
+      "description": "dotnet build succeeded with 0 warnings, 0 errors. dotnet test: Passed 465, Failed 0 (up from 341).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 5,
+      "stepNumber": 6,
+      "stepKey": "session-5/verification",
+      "dateTime": "2026-04-09T08:05:53.959320+00:00",
+      "description": "Cross-provider verification with gemini-pro (1 round). Verdict: VERIFIED with one minor cleanup. Issues: (1) Helvetica igrave widths 236-239 = FALSE POSITIVE (values ARE 278 per AFM, not 222). (2) TrueType caching by PS name = valid suggestion, declined for V&V scope. (3) Redundant cmap bounds check = applied cleanup since CanRead guard handles it. (4) Serif flag Panose = valid refinement, declined for V&V scope. Session review saved to session-reviews/session-005.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 33360,
+          "outputTokens": 1261,
+          "costUsd": 0.05431
+        }
+      ]
     }
   ]
 }

@@ -56,7 +56,9 @@ internal sealed class Type1Font : BaseFont
         var dict = new PdfDictionary(PdfName.Font);
         dict.Put(PdfName.Subtype, PdfName.Type1);
         dict.Put(PdfName.BaseFont, new PdfName(PostscriptName));
-        dict.Put(PdfName.Encoding, PdfName.WinAnsiEncoding);
+        // Symbol and ZapfDingbats use their own built-in encodings per the PDF spec
+        if (PostscriptName != Symbol && PostscriptName != ZapfDingbats)
+            dict.Put(PdfName.Encoding, PdfName.WinAnsiEncoding);
         return dict;
     }
 }

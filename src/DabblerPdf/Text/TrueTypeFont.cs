@@ -161,10 +161,10 @@ internal sealed class TrueTypeFont : BaseFont
     private int ComputeFlags(Os2Table? os2, PostTable? post)
     {
         int flags = 0;
-        // Bit 1 (value 2): FixedPitch
+        // Bit 1 (value 1): FixedPitch
         if (os2 != null && os2.Panose is { Length: >= 4 } && os2.Panose[3] == 9)
             flags |= 1; // FixedPitch
-        // Bit 2 (value 4): Serif — check panose[1]
+        // Bit 2 (value 2): Serif — check panose[1]
         if (os2 != null && os2.Panose is { Length: >= 2 } && os2.Panose[1] >= 2 && os2.Panose[1] <= 10)
             flags |= 2; // Serif
         // Bit 6 (value 32): Nonsymbolic (uses standard Latin encoding)
@@ -246,10 +246,16 @@ internal sealed class TrueTypeFont : BaseFont
             _data = data.AsSpan();
         }
 
-        private ushort ReadUInt16(int offset) => BinaryPrimitives.ReadUInt16BigEndian(_data[offset..]);
-        private short ReadInt16(int offset) => BinaryPrimitives.ReadInt16BigEndian(_data[offset..]);
-        private uint ReadUInt32(int offset) => BinaryPrimitives.ReadUInt32BigEndian(_data[offset..]);
-        private int ReadInt32(int offset) => BinaryPrimitives.ReadInt32BigEndian(_data[offset..]);
+        private bool CanRead(int offset, int count) => offset >= 0 && offset + count <= _data.Length;
+
+        private ushort ReadUInt16(int offset) =>
+            CanRead(offset, 2) ? BinaryPrimitives.ReadUInt16BigEndian(_data[offset..]) : (ushort)0;
+        private short ReadInt16(int offset) =>
+            CanRead(offset, 2) ? BinaryPrimitives.ReadInt16BigEndian(_data[offset..]) : (short)0;
+        private uint ReadUInt32(int offset) =>
+            CanRead(offset, 4) ? BinaryPrimitives.ReadUInt32BigEndian(_data[offset..]) : 0u;
+        private int ReadInt32(int offset) =>
+            CanRead(offset, 4) ? BinaryPrimitives.ReadInt32BigEndian(_data[offset..]) : 0;
 
         /// <summary>Reads the table directory and returns a map of tag → (offset, length).</summary>
         public Dictionary<string, TableEntry> ReadTableDirectory()
@@ -424,16 +430,9 @@ internal sealed class TrueTypeFont : BaseFont
                         // glyphIdArray offset calculation:
                         // address = idRangeOffsetStart + i*2 + idRangeOffset + (c - startCode)*2
                         int glyphIdOffset = idRangeOffsetStart + i * 2 + idRangeOffset + (c - startCode) * 2;
-                        if (glyphIdOffset + 1 < _data.Length)
-                        {
-                            glyphId = ReadUInt16(glyphIdOffset);
-                            if (glyphId != 0)
-                                glyphId = (glyphId + idDelta) & 0xFFFF;
-                        }
-                        else
-                        {
-                            glyphId = 0;
-                        }
+                        glyphId = ReadUInt16(glyphIdOffset); // CanRead guard returns 0 if out of bounds
+                        if (glyphId != 0)
+                            glyphId = (glyphId + idDelta) & 0xFFFF;
                     }
 
                     if (glyphId != 0 && c <= 0xFFFF)
@@ -582,12 +581,9 @@ internal sealed class TrueTypeFont : BaseFont
 
         private string DecodeUtf16Be(int offset, int length)
         {
-            var chars = new char[length / 2];
-            for (int i = 0; i < chars.Length; i++)
-            {
-                chars[i] = (char)ReadUInt16(offset + i * 2);
-            }
-            return new string(chars);
+            if (!CanRead(offset, length))
+                return string.Empty;
+            return System.Text.Encoding.BigEndianUnicode.GetString(_data.Slice(offset, length));
         }
     }
 }
