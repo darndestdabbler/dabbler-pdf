@@ -129,6 +129,15 @@ public class S03_LinesAndShapes : SampleBase
         DrawLabel(cb, "Dotted", font, rx, rectY - 14);
         cb.SetLineDash([1, 3], 0);
         DrawRectOutline(cb, rx, rectY, rectW, rectH);
+        rx += rectW + gap;
+
+        // Rounded rectangle
+        DrawLabel(cb, "Rounded", font, rx, rectY - 14);
+        cb.SetLineDash([], 0);
+        cb.SetColorStroke(BaseColor.Black);
+        cb.SetLineWidth(1);
+        cb.RoundRectangle(rx, PdfY(rectY + rectH), rectW, rectH, 8);
+        cb.Stroke();
 
         cb.SetLineDash([], 0);
         y = rectY + rectH + 20;

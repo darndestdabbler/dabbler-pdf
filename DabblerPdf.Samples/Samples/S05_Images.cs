@@ -32,9 +32,9 @@ public class S05_Images : SampleBase
         double elemSize = 144; // 2 inches
         double gap = 20;
 
-        string[] modeLabels = ["Stretch", "ScaleToFit", "ActualSize"];
+        string[] modeLabels = ["Stretch", "ScaleToFit", "ScaleToFill", "ActualSize"];
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             double ex = Margin + i * (elemSize + gap);
 
@@ -57,16 +57,30 @@ public class S05_Images : SampleBase
                     cb.AddImage(image);
                     break;
 
-                case 1: // ScaleToFit — maintain aspect ratio
+                case 1: // ScaleToFit — maintain aspect ratio, scale down only
                     image.ScaleToFit(elemSize, elemSize);
                     // Center within element
-                    double offsetX = (elemSize - image.ScaledWidth) / 2;
-                    double offsetY = (elemSize - image.ScaledHeight) / 2;
-                    image.SetAbsolutePosition(ex + offsetX, PdfY(y + elemSize) + offsetY);
+                    double fitOffX = (elemSize - image.ScaledWidth) / 2;
+                    double fitOffY = (elemSize - image.ScaledHeight) / 2;
+                    image.SetAbsolutePosition(ex + fitOffX, PdfY(y + elemSize) + fitOffY);
                     cb.AddImage(image);
                     break;
 
-                case 2: // ActualSize — native pixel dimensions at top-left
+                case 2: // ScaleToFill — maintain aspect ratio, fill entire area
+                    image.ScaleToFill(elemSize, elemSize);
+                    // Clip to element boundary, center the overflow
+                    cb.SaveState();
+                    cb.Rectangle(ex, PdfY(y + elemSize), elemSize, elemSize);
+                    cb.Clip();
+                    cb.NewPath();
+                    double fillOffX = (elemSize - image.ScaledWidth) / 2;
+                    double fillOffY = (elemSize - image.ScaledHeight) / 2;
+                    image.SetAbsolutePosition(ex + fillOffX, PdfY(y + elemSize) + fillOffY);
+                    cb.AddImage(image);
+                    cb.RestoreState();
+                    break;
+
+                case 3: // ActualSize — native pixel dimensions at top-left
                     image.SetAbsolutePosition(ex, PdfY(y) - image.ScaledHeight);
                     cb.AddImage(image);
                     break;

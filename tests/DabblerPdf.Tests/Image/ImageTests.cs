@@ -328,6 +328,79 @@ public class ImageTests
         Assert.Equal(200.0, image.ScaledHeight, precision: 1);
     }
 
+    // ─── ScaleToFill ─────────────────────────────────────────────
+
+    [Fact]
+    public void ScaleToFill_ScalesUp_WhenImageSmaller()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(100, 50);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFill(200, 200);
+
+        // 100:50 = 2:1 aspect ratio. To fill 200x200, heightRatio=4 > widthRatio=2
+        Assert.Equal(400.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(200.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFill_ScalesDown_WhenImageLarger()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(400, 200);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFill(100, 100);
+
+        // 400:200 = 2:1. To fill 100x100, heightRatio=0.5 > widthRatio=0.25
+        Assert.Equal(200.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(100.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFill_ExactFit_NoChange()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(200, 100);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFill(200, 100);
+
+        Assert.Equal(200.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(100.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFill_PreservesAspectRatio()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(300, 200);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFill(150, 150);
+
+        // Original ratio: 300:200 = 3:2
+        // widthRatio = 150/300 = 0.5, heightRatio = 150/200 = 0.75
+        // Max = 0.75 → 300*0.75 = 225, 200*0.75 = 150
+        Assert.Equal(225.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(150.0, image.ScaledHeight, precision: 1);
+
+        // Verify aspect ratio preserved
+        double originalRatio = 300.0 / 200.0;
+        double scaledRatio = image.ScaledWidth / image.ScaledHeight;
+        Assert.Equal(originalRatio, scaledRatio, precision: 6);
+    }
+
+    [Fact]
+    public void ScaleToFill_AsymmetricTarget_WidthLimiting()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(100, 100);
+        var image = new Jpeg(jpegBytes);
+
+        // Wide target: widthRatio=3 > heightRatio=1
+        image.ScaleToFill(300, 100);
+
+        Assert.Equal(300.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(300.0, image.ScaledHeight, precision: 1);
+    }
+
     [Fact]
     public void ScaleAbsolute_SetsExactDimensions()
     {

@@ -472,6 +472,98 @@ public class PdfContentByteTests
         }
     }
 
+    public class RoundRectangleTests
+    {
+        [Fact]
+        public void RoundRectangle_EmitsExpectedOperators()
+        {
+            var cb = CreateContentByte();
+            cb.RoundRectangle(100, 200, 200, 100, 10);
+            var content = GetContent(cb);
+
+            // Should contain: moveto, lineto, curveto, closepath
+            Assert.Contains(" m\n", content);
+            Assert.Contains(" l\n", content);
+            Assert.Contains(" c\n", content);
+            Assert.Contains("h\n", content);
+        }
+
+        [Fact]
+        public void RoundRectangle_HasFourCurves()
+        {
+            var cb = CreateContentByte();
+            cb.RoundRectangle(0, 0, 100, 80, 10);
+            var content = GetContent(cb);
+
+            // Count curveto operators (4 corners = 4 curves)
+            var curveCount = content.Split(" c\n").Length - 1;
+            Assert.Equal(4, curveCount);
+        }
+
+        [Fact]
+        public void RoundRectangle_HasFourLines()
+        {
+            var cb = CreateContentByte();
+            cb.RoundRectangle(0, 0, 100, 80, 10);
+            var content = GetContent(cb);
+
+            // Count lineto operators (4 sides)
+            var lineCount = content.Split(" l\n").Length - 1;
+            Assert.Equal(4, lineCount);
+        }
+
+        [Fact]
+        public void RoundRectangle_RadiusClamped_ToHalfSmallDimension()
+        {
+            var cb = CreateContentByte();
+            // Width=40, height=20, radius=30 → clamped to 10 (half of height)
+            cb.RoundRectangle(0, 0, 40, 20, 30);
+            var content = GetContent(cb);
+
+            // Should still produce valid path (4 curves, closepath)
+            var curveCount = content.Split(" c\n").Length - 1;
+            Assert.Equal(4, curveCount);
+            Assert.Contains("h\n", content);
+        }
+
+        [Fact]
+        public void RoundRectangle_ZeroRadius_DegeneratesToRectangle()
+        {
+            var cb = CreateContentByte();
+            cb.RoundRectangle(10, 20, 100, 50, 0);
+            var content = GetContent(cb);
+
+            // With radius=0, the Bézier control offset is 0, so curves degenerate
+            // to points. The path should still contain moveto, lineto, curveto, closepath.
+            Assert.Contains(" m\n", content);
+            Assert.Contains(" l\n", content);
+            Assert.Contains("h\n", content);
+        }
+
+        [Fact]
+        public void RoundRectangle_StartPoint_IsCorrect()
+        {
+            var cb = CreateContentByte();
+            cb.RoundRectangle(50, 100, 200, 80, 15);
+            var content = GetContent(cb);
+
+            // First operator should be moveto at (x + radius, y) = (65, 100)
+            Assert.StartsWith("65 100 m\n", content);
+        }
+
+        [Fact]
+        public void RoundRectangle_NegativeRadius_ClampedToZero()
+        {
+            var cb = CreateContentByte();
+            cb.RoundRectangle(0, 0, 100, 100, -5);
+            var content = GetContent(cb);
+
+            // Should not throw; produces a valid path
+            Assert.Contains(" m\n", content);
+            Assert.Contains("h\n", content);
+        }
+    }
+
     public class FormatDoubleTests
     {
         [Theory]

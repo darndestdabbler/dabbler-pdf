@@ -73,6 +73,21 @@ public abstract class Image
     }
 
     /// <summary>
+    /// Scales the image to fill the given dimensions while preserving the aspect ratio.
+    /// Unlike <see cref="ScaleToFit"/>, this will scale up if the image is smaller
+    /// than the target area. The image fills the entire target area — one dimension
+    /// matches exactly, the other may exceed the target bounds.
+    /// </summary>
+    public void ScaleToFill(double targetWidth, double targetHeight)
+    {
+        double widthRatio = targetWidth / ScaledWidth;
+        double heightRatio = targetHeight / ScaledHeight;
+        double ratio = Math.Max(widthRatio, heightRatio);
+        ScaledWidth *= ratio;
+        ScaledHeight *= ratio;
+    }
+
+    /// <summary>
     /// Scales the image to exact dimensions (ignoring aspect ratio).
     /// </summary>
     public void ScaleAbsolute(double width, double height)

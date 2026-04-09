@@ -226,6 +226,58 @@ public sealed class PdfContentByte
         Append(" re\n");
     }
 
+    /// <summary>
+    /// Appends a rectangle with rounded corners to the current path.
+    /// Uses cubic Bézier arcs at each corner.
+    /// The path is appended but NOT painted — call <see cref="Stroke"/>,
+    /// <see cref="Fill"/>, or <see cref="FillStroke"/> afterward.
+    /// </summary>
+    /// <param name="x">Lower-left X coordinate in points.</param>
+    /// <param name="y">Lower-left Y coordinate in points.</param>
+    /// <param name="width">Width in points.</param>
+    /// <param name="height">Height in points.</param>
+    /// <param name="radius">Corner radius in points. Clamped to half the smaller dimension.</param>
+    public void RoundRectangle(double x, double y, double width, double height, double radius)
+    {
+        // Clamp radius to prevent invalid geometry
+        radius = Math.Min(radius, Math.Min(width / 2, height / 2));
+        if (radius < 0) radius = 0;
+
+        // Bézier approximation for quarter circle: control point offset
+        const double magic = 0.5523; // 4 * (sqrt(2) - 1) / 3
+
+        double b = magic * radius;
+
+        // Start at bottom-left, just above the corner arc
+        MoveTo(x + radius, y);
+
+        // Bottom edge → bottom-right corner arc
+        LineTo(x + width - radius, y);
+        CurveTo(x + width - radius + b, y,
+                x + width, y + radius - b,
+                x + width, y + radius);
+
+        // Right edge → top-right corner arc
+        LineTo(x + width, y + height - radius);
+        CurveTo(x + width, y + height - radius + b,
+                x + width - radius + b, y + height,
+                x + width - radius, y + height);
+
+        // Top edge → top-left corner arc
+        LineTo(x + radius, y + height);
+        CurveTo(x + radius - b, y + height,
+                x, y + height - radius + b,
+                x, y + height - radius);
+
+        // Left edge → bottom-left corner arc
+        LineTo(x, y + radius);
+        CurveTo(x, y + radius - b,
+                x + radius - b, y,
+                x + radius, y);
+
+        ClosePath();
+    }
+
     /// <summary>Closes the current subpath (PDF <c>h</c> operator).</summary>
     public void ClosePath()
     {

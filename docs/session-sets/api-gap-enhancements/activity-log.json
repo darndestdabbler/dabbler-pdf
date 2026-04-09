@@ -1,0 +1,69 @@
+{
+  "sessionSetName": "api-gap-enhancements",
+  "createdDate": "2026-04-09T11:01:37.403686+00:00",
+  "totalSessions": 4,
+  "entries": [
+    {
+      "sessionNumber": 1,
+      "stepNumber": 1,
+      "stepKey": "session-1/round-rectangle",
+      "dateTime": "2026-04-09T11:04:42.202248+00:00",
+      "description": "Added RoundRectangle method to PdfContentByte with Bezier corner arcs, radius clamping, and negative radius handling.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 2,
+      "stepKey": "session-1/scale-to-fill",
+      "dateTime": "2026-04-09T11:04:42.202248+00:00",
+      "description": "Added ScaleToFill method to Image class. Uses Math.Max ratio (vs ScaleToFit's Math.Min) and applies unconditionally (scales up or down).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 3,
+      "stepKey": "session-1/unit-tests",
+      "dateTime": "2026-04-09T11:04:42.202248+00:00",
+      "description": "Added 7 RoundRectangle tests (operators, curve count, line count, radius clamping, zero radius, start point, negative radius) and 5 ScaleToFill tests (scale up, scale down, exact fit, aspect ratio, asymmetric target).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 4,
+      "stepKey": "session-1/sample-updates",
+      "dateTime": "2026-04-09T11:04:42.202248+00:00",
+      "description": "S03_LinesAndShapes: Added 'Rounded' rectangle to Section 4 row. S05_Images: Added ScaleToFill mode (with clipping) alongside Stretch/ScaleToFit/ActualSize.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 5,
+      "stepKey": "session-1/build",
+      "dateTime": "2026-04-09T11:04:42.202248+00:00",
+      "description": "dotnet build succeeded with 0 warnings, 0 errors. dotnet test: Passed 507, Failed 0. All 10 samples passed.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 6,
+      "stepKey": "session-1/verification",
+      "dateTime": "2026-04-09T11:05:59.423055+00:00",
+      "description": "Cross-provider verification with gemini-pro (1 round). Session review saved to session-reviews/session-001.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 20392,
+          "outputTokens": 623,
+          "costUsd": 0.03172
+        }
+      ]
+    }
+  ]
+}
