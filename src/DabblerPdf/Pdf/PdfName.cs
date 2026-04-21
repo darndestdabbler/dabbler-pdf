@@ -218,6 +218,24 @@ public sealed class PdfName : PdfObject, IEquatable<PdfName>, IComparable<PdfNam
     /// <summary>The <c>/CreationDate</c> name.</summary>
     public static readonly PdfName CreationDate = new("CreationDate");
 
+    /// <summary>The <c>/ModDate</c> name (modification date — reserved for future use).</summary>
+    public static readonly PdfName ModDate = new("ModDate");
+
+    /// <summary>The <c>/Title</c> name.</summary>
+    public static readonly PdfName Title = new("Title");
+
+    /// <summary>The <c>/Author</c> name.</summary>
+    public static readonly PdfName Author = new("Author");
+
+    /// <summary>The <c>/Subject</c> name.</summary>
+    public static readonly PdfName Subject = new("Subject");
+
+    /// <summary>The <c>/Keywords</c> name.</summary>
+    public static readonly PdfName Keywords = new("Keywords");
+
+    /// <summary>The <c>/Creator</c> name.</summary>
+    public static readonly PdfName Creator = new("Creator");
+
     #endregion
 
     #region Procedure sets

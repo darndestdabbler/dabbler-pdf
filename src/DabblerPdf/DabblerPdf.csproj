@@ -9,7 +9,7 @@
 
     <!-- Package identity -->
     <PackageId>DabblerPdf</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>darndestdabbler</Authors>
 
     <!-- Description shown on NuGet.org -->
@@ -31,7 +31,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- Release notes for this version -->
-    <PackageReleaseNotes>Initial public release. Core PDF generation: text (Helvetica, Times, Courier with bold/italic), images (Stretch, ScaleToFit, ActualSize), lines, rectangles, borders, colors, padding, multi-page documents with headers and footers. Text measurement API for layout composition.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.1.0: Document information dictionary API. New Document methods AddTitle, AddAuthor, AddSubject, AddKeywords, AddCreator, AddCreationDate, and SuppressCreationDate stage values for the PDF /Info dictionary. CreationDate is auto-stamped at Close() unless suppressed. Backward compatible (existing 1.0.0 callers see only the new /CreationDate key; SuppressCreationDate() restores the 1.0.0 output shape exactly). Adds DabblerPdf.Utilities.PdfDate for PDF 1.7 §7.9.4 date formatting.</PackageReleaseNotes>
 
     <!-- Copyright -->
     <Copyright>Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares. C# port Copyright (C) 2025-2026 darndestdabbler.</Copyright>

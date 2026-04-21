@@ -261,6 +261,28 @@ public sealed class PdfWriter
         // Write info dictionary
         var info = new PdfDictionary();
         info.Put(PdfName.Producer, new PdfString("DabblerPdf.NET"));
+
+        var metadata = Document!.GetMetadata();
+        if (metadata.Title is { Length: > 0 } title)
+            info.Put(PdfName.Title, new PdfString(title));
+        if (metadata.Author is { Length: > 0 } author)
+            info.Put(PdfName.Author, new PdfString(author));
+        if (metadata.Subject is { Length: > 0 } subject)
+            info.Put(PdfName.Subject, new PdfString(subject));
+        if (metadata.Keywords is { Length: > 0 } keywords)
+            info.Put(PdfName.Keywords, new PdfString(keywords));
+        if (metadata.Creator is { Length: > 0 } creator)
+            info.Put(PdfName.Creator, new PdfString(creator));
+
+        // CreationDate: explicit value wins; otherwise auto-stage UtcNow at close
+        // time unless the caller opted out via SuppressCreationDate(). The auto-now
+        // path here captures the instant a hair later than AddCreationDate() would —
+        // intentional, sub-second difference, not a bug.
+        DateTime? creationDate = metadata.CreationDate
+            ?? (metadata.CreationDateSuppressed ? (DateTime?)null : DateTime.UtcNow);
+        if (creationDate is DateTime cd)
+            info.Put(PdfName.CreationDate, new PdfString(Utilities.PdfDate.Format(cd)));
+
         _infoRef = _body.Add(info, _outputStream);
 
         // Finalize and write pages tree

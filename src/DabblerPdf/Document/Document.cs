@@ -12,7 +12,7 @@ namespace DabblerPdf.Document;
 /// Represents a PDF document. Manages the document lifecycle: create, open,
 /// add pages, and close. Works with <see cref="PdfWriter"/> to produce output.
 /// </summary>
-public class Document : IDisposable
+public partial class Document : IDisposable
 {
     private PdfWriter? _writer;
     private bool _open;
@@ -118,5 +118,11 @@ public class Document : IDisposable
             throw new InvalidOperationException("Document has been closed.");
         if (!_open)
             throw new InvalidOperationException("Document is not open. Call Open() first.");
+    }
+
+    private void EnsureNotClosed()
+    {
+        if (_closed)
+            throw new InvalidOperationException("Document has been closed.");
     }
 }
