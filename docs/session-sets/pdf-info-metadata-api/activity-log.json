@@ -189,6 +189,15 @@
           "costUsd": 0.041
         }
       ]
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 10,
+      "stepKey": "session-2/consumer-smoke-test",
+      "dateTime": "2026-04-21T23:42:50.747979+00:00",
+      "description": "Post-commit belt-and-suspenders consumer smoke test. Created a throwaway console project at C:\\temp\\dabblerpdf-smoke-1.1.0 with <PackageReference Include=\"DabblerPdf\" Version=\"1.1.0\" /> resolving from the local nupkg/ folder feed (NOT a project reference). Restore pulled DabblerPdf 1.1.0 (95232-byte DLL) into ~/.nuget/packages/dabblerpdf/1.1.0/. Ran 19 end-to-end checks against the consumed package: PdfDate.Format(UTC) round-trip; default (Producer+auto-CreationDate); SuppressCreationDate restores 1.0.0 shape; all five AddXxx methods produce correct /Info entries; explicit AddCreationDate round-trips byte-exact; AddTitle(null) throws ArgumentNullException; empty/whitespace returns false; post-Close throws InvalidOperationException; produced PDF starts with %PDF- and ends with %%EOF. All 19/19 passed. Smoke project deleted after verification.",
+      "status": "complete",
+      "routedApiCalls": []
     }
   ]
 }
