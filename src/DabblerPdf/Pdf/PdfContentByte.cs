@@ -46,6 +46,13 @@ public sealed class PdfContentByte
     internal byte[] ToByteArray() => _buffer.ToArray();
 
     /// <summary>
+    /// True if any bytes have been written to the current page's buffer since the
+    /// last <see cref="Reset"/>. Used by the writer's page-boundary logic to decide
+    /// whether pending content must be flushed on a <c>NewPage()</c> transition.
+    /// </summary>
+    internal bool HasContent => _buffer.Length > 0;
+
+    /// <summary>
     /// Resets the content buffer for reuse on the next page.
     /// </summary>
     internal void Reset()

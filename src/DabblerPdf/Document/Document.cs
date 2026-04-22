@@ -76,6 +76,13 @@ public partial class Document : IDisposable
     public void NewPage()
     {
         EnsureOpen();
+        // If content was written before any explicit NewPage call, this transition
+        // flushes an implicit page 1. Advance the page counter so OnEndPage fires at
+        // PageNumber == 1 for that flush instead of 0.
+        if (_pageNumber == 0 && _writer!.DirectContent.HasContent)
+        {
+            _pageNumber = 1;
+        }
         _writer!.EndCurrentPage(PageSize);
         _pageNumber++;
         _writer!.StartNewPage();
@@ -92,10 +99,12 @@ public partial class Document : IDisposable
 
         if (_open)
         {
-            // If no pages were added, add one empty page (PDF requires at least one page)
+            // PDF requires ≥1 page; the writer enforces that on Close() and fires
+            // OnStartPage/OnEndPage for the implicit page. Advance PageNumber here
+            // so those events see PageNumber == 1.
             if (_pageNumber == 0)
             {
-                NewPage();
+                _pageNumber = 1;
             }
 
             _writer!.Close();

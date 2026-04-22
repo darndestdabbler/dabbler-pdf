@@ -306,3 +306,45 @@ Use this structure for new entries:
   Document the smoke result in the session activity log so the
   artifact's consumability is evidence on the record. Delete the
   throwaway project after the run; do not commit it.
+
+## "String In Bytes" Is Not "Rendered Visible" — Use A Rendering-Aware Parser
+
+- **Context:** The `directcontent-multipage-fix-and-tests` session set
+  was carved on 2026-04-22 after a real-world report PDF from
+  `dabbler-platform` visibly rendered composer-page 2 on physical
+  page 1 (column headers, no title), even though a consumer-side
+  regression test confidently asserted the title literal was present
+  in the PDF. The consumer test inflated the FlateDecode content
+  streams and greped for the literal `"Orders by Retail Business"`
+  — it passed because the text operator for the title WAS in
+  physical page 1's content stream, positioned correctly. The
+  bytes did not lie. But a later full-page white background fill
+  (`0 0 792 612 re f`) in the same content stream painted over
+  everything drawn before it. Adobe Reader showed a blank top half.
+- **Failure or friction:** The regression test that shipped with
+  the feature passed, human UAT caught the bug, and the team had
+  to carve a follow-up session set to fix both the library bug
+  and the testing gap. The deeper failure was design, not
+  execution: a "literal in bytes" assertion cannot catch
+  overdrawing, clipping, off-page positioning, or unavailable-font
+  substitution. It is the PDF equivalent of asserting a DOM string
+  contains a substring — which Playwright-the-community figured
+  out years ago was not a visibility check.
+- **Lesson:** For any test whose purpose is "content X is visible
+  in the PDF," assert through a rendering-aware parser that
+  models what a viewer will display per physical page —
+  [PdfPig](https://github.com/UglyToad/PdfPig) for per-page text
+  + bounding-box APIs in .NET, or an equivalent rasterize-then-
+  diff approach. Raw content-stream byte greps are structural
+  assertions (useful for "object ID N is present" or
+  "/Info dictionary contains Title"), not visibility assertions.
+  The one-sentence rule: bytes prove wiring, parsers prove
+  rendering.
+- **Action for future sessions:** When authoring or reviewing a
+  test whose failure mode is "the user sees nothing," drive the
+  assertion through PdfPig's `PdfDocument.Open(bytes).GetPage(n)`
+  text-extraction API and check per-physical-page visibility.
+  Reserve byte-level stream inspection for structural properties
+  that a parser cannot surface, and call out that distinction
+  explicitly in the test's XML doc comment so the next maintainer
+  does not regress the coverage shape.

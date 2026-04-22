@@ -24,7 +24,11 @@ public sealed class PdfWriter
     private readonly PdfIndirectReference _catalogRef;
     private PdfIndirectReference? _infoRef;
     private bool _headerWritten;
-    private bool _firstPage = true;
+    // True when StartNewPage has been called without a matching EndCurrentPage flush.
+    // Distinguishes "a page is open and awaiting content/flush" (e.g. right after the
+    // last NewPage() in a session) from "the last page was already flushed into _pages
+    // via EndCurrentPage" — important to avoid double-flushing an empty trailing page.
+    private bool _pageStarted;
 
     // Per-page resource tracking
     private readonly Dictionary<PdfName, PdfIndirectReference> _pageFonts = new();
@@ -88,26 +92,37 @@ public sealed class PdfWriter
 
     /// <summary>
     /// Ends the current page: fires OnEndPage, flushes content, and resets state.
-    /// On the first call, simply marks the first page as started (no flush needed).
     /// Called by <see cref="Document.Document.NewPage"/> before the page number advances.
     /// </summary>
+    /// <remarks>
+    /// The flush fires whenever a page is open (StartNewPage has been called since the
+    /// last flush) OR whenever <see cref="PdfContentByte.HasContent"/> shows pending
+    /// bytes. That second condition is the fix for the multi-page DirectContent
+    /// pattern — a consumer that writes to DirectContent before the first NewPage()
+    /// call expects that content to flush as physical page 1. Without the HasContent
+    /// check, the first-page branch would skip the flush and the next page's content
+    /// would accumulate in the same buffer, producing page stacking on physical page 1.
+    /// When the flush handles the implicit first page, OnStartPage is fired too so the
+    /// Start/End event pair is balanced.
+    /// </remarks>
     internal void EndCurrentPage(Rectangle pageSize)
     {
-        if (!_firstPage)
+        bool hasContent = DirectContent.HasContent;
+        if (_pageStarted || hasContent)
         {
+            if (!_pageStarted && hasContent)
+            {
+                // Implicit first page: content written before any explicit NewPage.
+                // Fire OnStartPage so the event pair is balanced.
+                PageEvent?.OnStartPage(this, Document!);
+            }
             PageEvent?.OnEndPage(this, Document!);
             FlushCurrentPage(Document!.PreviousPageSize ?? pageSize);
 
-            // Reset DirectContent for the new page
             DirectContent.Reset();
             _pageFonts.Clear();
             _pageXObjects.Clear();
-        }
-        else
-        {
-            // First page: don't reset — content may have been written to DirectContent
-            // before the first NewPage() call (common for single-page documents).
-            _firstPage = false;
+            _pageStarted = false;
         }
     }
 
@@ -118,6 +133,7 @@ public sealed class PdfWriter
     internal void StartNewPage()
     {
         PageEvent?.OnStartPage(this, Document!);
+        _pageStarted = true;
     }
 
     /// <summary>
@@ -242,9 +258,31 @@ public sealed class PdfWriter
     /// </summary>
     internal void Close()
     {
-        // Flush the last page
-        if (!_firstPage)
+        // Flush the pending page. After the EndCurrentPage fix, _firstPage is no
+        // longer a reliable "has-pending-page" signal — EndCurrentPage can flush
+        // and still leave StartNewPage queued on the next page. Use the open-page
+        // tracker plus pending-content as the discriminator.
+        bool hasContent = DirectContent.HasContent;
+        if (_pageStarted)
         {
+            PageEvent?.OnEndPage(this, Document!);
+            FlushCurrentPage(Document!.PageSize);
+            _pageStarted = false;
+        }
+        else if (hasContent)
+        {
+            // Pattern: content written without any NewPage call. Treat as an
+            // implicit page 1 and fire both events to keep the pair balanced.
+            PageEvent?.OnStartPage(this, Document!);
+            PageEvent?.OnEndPage(this, Document!);
+            FlushCurrentPage(Document!.PageSize);
+        }
+
+        // PDF requires ≥1 page. If nothing above flushed (Open → Close with no
+        // content and no NewPage), emit an empty page 1.
+        if (_pages.PageCount == 0)
+        {
+            PageEvent?.OnStartPage(this, Document!);
             PageEvent?.OnEndPage(this, Document!);
             FlushCurrentPage(Document!.PageSize);
         }
