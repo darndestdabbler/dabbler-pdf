@@ -238,3 +238,71 @@ Use this structure for new entries:
   isolation before deciding disposition. If isolated-pass ≠ suite-pass,
   it goes in a dedicated serialized collection. If isolated-fail, it
   gets `[Skip]` with a full rationale.
+
+## Cross-Repo Session Sets — Each Repo Owns Its Own Spec; Coordinate Via The Build Artifact
+
+- **Context:** A session set whose work has to land in two repos
+  (e.g., `pdf-info-metadata-api` — library code in `dabbler-pdf`,
+  consumer wiring in `dabbler-platform`). Each repo runs its own
+  orchestrator with its own activity log; the workflow is not
+  multi-repo aware.
+- **Failure or friction:** A naive approach copies the same spec into
+  both repos with identical session numbering. Then both `find_active
+  _session_set` views see the same incomplete set, both Step 9
+  reorgs run, and the activity logs disagree on what step the work
+  is at. The change-log generation fires twice with conflicting
+  views.
+- **Lesson:** Each repo gets its own spec.md with session numbering
+  scoped to the work that actually runs in that repo. The two specs
+  link to each other for context but are independently complete:
+  - `dabbler-pdf` had a 3-session imported spec, of which only
+    Session 2 (library implementation) ran here. Sessions 1 and 3
+    were referenced for context but their work and logging happened
+    elsewhere.
+  - `dabbler-platform` had a 2-session spec — Session 1 (design,
+    already done) and Session 2 (consumer wiring, still pending) —
+    matching what runs in that repo.
+  - The handoff is the build artifact: `dabbler-pdf` packs the
+    nupkg, `dabbler-platform` consumes it. The artifact's
+    reachability (local feed config, version pin in
+    `Directory.Packages.props`) is what the cross-repo dependency
+    is expressed through.
+  - Each repo's change-log describes what shipped from that repo.
+    The two together document the full feature.
+- **Action for future sessions:** When carving a session set whose
+  work spans repos, write one spec per repo, scoped to that repo's
+  sessions, with explicit pointers to the sibling spec and the
+  artifact handoff. Do not re-use the same spec wholesale across
+  both repos; if you do, treat the cross-pointing sessions as
+  read-only context and only log the sessions that actually run in
+  the local repo.
+
+## After Packing A NuGet, Smoke-Test By Consuming The Actual `.nupkg` From A Throwaway Project
+
+- **Context:** Releasing a new version of a NuGet package (here:
+  `DabblerPdf 1.1.0`). Internal `tests/DabblerPdf.Tests/` exercises
+  the same code paths but via a `<ProjectReference>`, not the packed
+  artifact.
+- **Failure or friction:** A project-reference test cannot detect:
+  package metadata problems (missing dependencies, wrong target
+  framework moniker, broken `PackageReadmeFile` reference); public
+  API surface that compiles internally but is `internal` in the
+  packed dll; `<InternalsVisibleTo>` leaks that change behavior in
+  consumer projects; stale README that nuget.org will render to
+  visitors. The first the team would learn about any of these is a
+  consumer reporting a broken install.
+- **Lesson:** After `dotnet pack`, set up a throwaway console
+  project outside the repo with a `<PackageReference>` to the new
+  version, restore from a local-folder feed pointing at `nupkg/`,
+  and run a small program that exercises every new public method
+  added in the release. Cheap (~2 minutes), independent of the
+  source tree, and would catch all the failure modes above before
+  the artifact reaches nuget.org or downstream consumers.
+- **Action for future sessions:** For any NuGet version bump, after
+  `dotnet pack` and before the public push, build a throwaway
+  consumer that installs the packed `.nupkg`, exercises the new
+  public surface, parses any output the public API produces (here:
+  the resulting PDF bytes), and asserts the new behavior end-to-end.
+  Document the smoke result in the session activity log so the
+  artifact's consumability is evidence on the record. Delete the
+  throwaway project after the run; do not commit it.
