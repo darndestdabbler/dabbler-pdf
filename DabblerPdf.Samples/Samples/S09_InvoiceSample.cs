@@ -161,7 +161,7 @@ public class S09_InvoiceSample : SampleBase
         string subtotalStr = $"${subtotal:F2}";
         double stw = font.GetWidthPoint(subtotalStr, 10);
         DrawText(cb, subtotalStr, font, 10, totalsX + totalsW - stw, y + 12);
-        y += 18;
+        y += 24;
 
         // Tax
         double tax = subtotal * 0.07;
@@ -169,7 +169,7 @@ public class S09_InvoiceSample : SampleBase
         string taxStr = $"${tax:F2}";
         double txw = font.GetWidthPoint(taxStr, 10);
         DrawText(cb, taxStr, font, 10, totalsX + totalsW - txw, y + 12);
-        y += 18;
+        y += 24;
 
         // Total line
         DrawHLine(cb, totalsX, y, totalsW);
