@@ -18,6 +18,7 @@ dependencies, no design surface, just code-to-PDF.
 - **Colors** — full hex color support (#RRGGBB) and named color constants
 - **Padding** — uniform and per-side (top, bottom, left, right)
 - **Multi-page documents** — page headers, footers, and "Page X of Y" numbering with backfill
+- **Document metadata** — set Title, Author, Subject, Keywords, Creator, and CreationDate in the PDF `/Info` dictionary
 - **Coordinate translation** — convert between top-left-down inches (report layout) and bottom-left-up points (PDF)
 
 ## Installation
@@ -144,6 +145,28 @@ var (pdfX, pdfY) = CoordinateTranslator.FromTopLeftInches(
 // pdfX = 72.0, pdfY = 702.0
 ```
 
+### Document Metadata
+
+Stage values for the PDF document information dictionary (`/Info`).
+Adobe Reader, browsers, and indexers see these fields:
+
+```csharp
+var document = new Document(PageSize.Letter);
+PdfWriter.GetInstance(document, stream);
+
+document.AddTitle("Quarterly Report");
+document.AddAuthor("AcmeCoffeeDistributors");
+document.AddSubject("Q1 2026 results");
+document.AddKeywords("orders, report, sales");
+document.AddCreator("AcmeCoffeeOnline");
+// CreationDate is auto-stamped at Close().
+// Use document.SuppressCreationDate() to opt out.
+
+document.Open();
+// ... draw content ...
+document.Close();
+```
+
 ## API Overview
 
 | Namespace | Key Types | Purpose |
@@ -152,7 +175,7 @@ var (pdfX, pdfY) = CoordinateTranslator.FromTopLeftInches(
 | `DabblerPdf.Pdf` | `PdfWriter`, `PdfContentByte`, `PdfTemplate`, `IPdfPageEvent` | PDF writing, drawing API, page events |
 | `DabblerPdf.Text` | `BaseFont`, `TextLayout` | Font metrics, text measurement, word wrapping |
 | `DabblerPdf.Image` | `Image`, `Jpeg` | JPEG and PNG image embedding |
-| `DabblerPdf.Utilities` | `CoordinateTranslator` | Inch/point coordinate conversion |
+| `DabblerPdf.Utilities` | `CoordinateTranslator`, `PdfDate` | Inch/point coordinate conversion, PDF 1.7 §7.9.4 date formatting |
 
 All public types and methods include XML documentation comments visible in IntelliSense.
 
