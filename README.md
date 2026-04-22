@@ -219,6 +219,54 @@ dotnet run
 
 Output PDFs are written to `DabblerPdf.Samples/Output/`.
 
+## Testing
+
+DabblerPdf is covered by **608 automated tests** plus **10 runnable sample programs** that emit
+real PDFs for visual review. Tests are organized in a four-tier hierarchy (strict unit →
+integration → sample-based visual review → human review) and run on every build.
+
+### Running the tests
+
+```bash
+# Full test suite (608 tests, ~0.3s)
+dotnet test tests/DabblerPdf.Tests/DabblerPdf.Tests.csproj
+
+# Generate sample PDFs for visual review
+dotnet run --project DabblerPdf.Samples
+```
+
+### What the tests cover
+
+| Layer | Scope | Examples |
+|---|---|---|
+| **Unit** | Isolated logic — font metrics, coordinate translation, encoding, PDF date formatting | `BaseFont`, `CoordinateTranslator`, `PdfDate`, `BaseColor` |
+| **Integration** | Full `Document` + `PdfWriter` + produced byte stream | `PdfWriterTests`, `DocumentMetadataTests`, `PdfInfoDictionaryTests`, `PageEventTests` |
+| **Rendering-visibility** | Per-physical-page text extraction via [PdfPig](https://github.com/UglyToad/PdfPig) — proves content is actually visible to a reader, not just present in bytes | `MultipageDirectContentRenderingTests`, `RenderingVisibilityDisciplineTests` |
+| **Sample-based** | 10 runnable programs that emit PDFs to `DabblerPdf.Samples/Output/` for visual inspection | `S01_BasicText` through `S10_StressTest` |
+
+### Rendering-visibility discipline
+
+Any test that asserts *"content X is visible in the PDF"* drives the assertion through a
+rendering-aware parser (PdfPig) that reports per-physical-page text with bounding boxes —
+not a raw byte grep of the content stream. A byte grep proves the text-showing operator is
+present; it cannot detect that the text was overdrawn by a later fill, clipped, placed
+off-page, or rendered in an unavailable font. The discipline and its motivating field incident
+are captured in [`docs/planning/project-guidance.md`](docs/planning/project-guidance.md) →
+Conventions → Testing Conventions.
+
+Byte-level stream assertions are still used for *structural* properties (object IDs,
+`/Info` dictionary keys, cross-reference-table validity) where a parser would add nothing.
+
+### Test dependencies
+
+| Dependency | License | Purpose | Ships in nupkg? |
+|---|---|---|---|
+| xUnit | Apache-2.0 | Test runner | No |
+| PdfPig | Apache-2.0 | Per-page text extraction for rendering-visibility tests | No |
+
+Test dependencies are not propagated to consumers — the shipped `DabblerPdf` package remains
+dual-licensed under LGPL-2.1-only AND MPL-2.0.
+
 ## License
 
 DabblerPdf is dual-licensed under the [LGPL-2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) and [MPL-2.0](https://www.mozilla.org/en-US/MPL/2.0/) — you may choose either license. This matches the licensing of [OpenPDF](https://github.com/LibrePDF/OpenPDF), from which this library is ported.
