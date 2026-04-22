@@ -124,6 +124,11 @@ Use this structure for new entries:
 
 ## `route(task_type=documentation)` Wraps Content In A Code-Documentation Template
 
+- **Promoted to:** `project-guidance.md` → Conventions → Workflow Expectations.
+  Applied successfully across two session sets (`pdf-info-metadata-api`
+  Session 3 after the 400 incident; `directcontent-multipage-fix-and-tests`
+  Session 2 change-log generation via `summarization`+`max_tier=1`).
+- **Original entry preserved below for context.**
 - **Context:** Routing a change-log generation call through the AI router.
 - **Failure or friction:** The `documentation` prompt template at
   `ai-router/prompt-templates/task-types/documentation.md` is shaped for
@@ -241,6 +246,15 @@ Use this structure for new entries:
 
 ## Cross-Repo Session Sets — Each Repo Owns Its Own Spec; Coordinate Via The Build Artifact
 
+- **Promoted to:** `project-guidance.md` → Conventions → Workflow Expectations.
+  Applied successfully across two session sets: `pdf-info-metadata-api`
+  (library-side spec in `dabbler-pdf`, consumer-side spec in
+  `dabbler-platform`, handoff via `DabblerPdf 1.1.0` nupkg) and
+  `directcontent-multipage-fix-and-tests` (this repo authored the fix,
+  queued a separate one-session stub spec in
+  `dabbler-platform/docs/session-sets/pdf-newpage-multipage-fix-consumption/`,
+  handoff via `DabblerPdf 1.1.1`).
+- **Original entry preserved below for context.**
 - **Context:** A session set whose work has to land in two repos
   (e.g., `pdf-info-metadata-api` — library code in `dabbler-pdf`,
   consumer wiring in `dabbler-platform`). Each repo runs its own

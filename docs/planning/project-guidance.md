@@ -303,3 +303,29 @@ human before proceeding.
   point is a cross-provider second opinion. Complements the existing
   Delegation Discipline criteria in
   `docs/ai-led-session-workflow.md`.
+- When a session set spans two repos (for example, a library repo and a
+  consuming repo), each repo owns its own `spec.md` with session
+  numbering scoped to that repo's work — not a single shared spec
+  copied into both. The two specs link to each other for context and
+  name the build artifact (nupkg version, version pin in
+  `Directory.Packages.props`, local feed config) as the coordination
+  handoff. Each repo's `change-log.md` describes what shipped from
+  that repo; the two together document the full feature. Promoted
+  2026-04-22 from the `pdf-info-metadata-api` set (3-session imported
+  spec, only Session 2 ran in this repo; `dabbler-platform` ran its
+  own 2-session spec) and the `directcontent-multipage-fix-and-tests`
+  set (Session 2 queued a separate one-session stub spec in
+  `dabbler-platform` rather than duplicating this repo's spec).
+- Use `route(task_type="summarization")` for narrative prose outputs
+  (change logs, release notes, session summaries). Reserve
+  `route(task_type="documentation")` for code-documentation generation —
+  its prompt template wraps content in a "document this code" frame
+  that mis-fits free-form prose and has produced `400 Bad Request`
+  responses from the provider. Promoted 2026-04-22 from the
+  `pdf-info-metadata-api` Session 3 incident (documentation template
+  400'd on a change-log prompt) and the
+  `directcontent-multipage-fix-and-tests` Session 2 success
+  (`summarization` + `max_tier=1` landed cleanly on Gemini Flash at
+  $0.0009). If a `summarization` call also 400s on a prompt above
+  ~2 KB, pin `max_tier=1` to force Gemini Flash, which tolerates
+  long prose more reliably than Gemini Pro.
