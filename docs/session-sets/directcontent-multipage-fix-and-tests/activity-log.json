@@ -64,6 +64,103 @@
           "costUsd": 1.033845
         }
       ]
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 7,
+      "stepKey": "session-1/commit-push-notify",
+      "dateTime": "2026-04-22T10:01:17.854488+00:00",
+      "description": "Commit 395dd1c (Session 1 of 2: DirectContent multi-page fix and regression coverage) pushed to main. Pushover notification attempted via send_session_complete_notification helper.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 1,
+      "stepKey": "session-2/read-planning",
+      "dateTime": "2026-04-22T10:10:54.185802+00:00",
+      "description": "Read docs/planning/project-guidance.md and docs/planning/lessons-learned.md. Confirmed Session 1 is VERIFIED and committed (395dd1c); spec and activity log show Session 2 is next; API keys loaded.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 2,
+      "stepKey": "session-2/convention-addition",
+      "dateTime": "2026-04-22T10:10:54.185802+00:00",
+      "description": "Added 'Visibility assertions go through a rendering-aware parser' bullet to docs/planning/project-guidance.md Conventions > Testing Conventions, including the PdfPig/pymupdf guidance, the structural-assertion carve-out, and a pointer to the 'String In Bytes' lesson for the motivating failure.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 3,
+      "stepKey": "session-2/second-regression-test",
+      "dateTime": "2026-04-22T10:10:54.185802+00:00",
+      "description": "Authored tests/DabblerPdf.Tests/Pdf/RenderingVisibilityDisciplineTests.cs with two tests: (1) OffPageText_IsReportedByPdfPig_OutsideTheMediaBox \u2014 places text at Y=900 on a Letter page (height=792), asserts every glyph's PdfPig BoundingBox.Bottom > Page.Height, which is the 'visible at the unexpected position' discipline check; (2) OffPageText_ContradictsNaiveByteGrep_Discipline_Illustration \u2014 combines byte-level grep assertion (passes, showing a byte grep falsely confirms presence) with the PdfPig off-page assertion in one place so the discipline story is preserved for future maintainers. Switched from deprecated Letter.GlyphRectangle to Letter.BoundingBox to eliminate CS0618 warnings.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 4,
+      "stepKey": "session-2/version-bump-and-changelog",
+      "dateTime": "2026-04-22T10:10:54.185802+00:00",
+      "description": "Bumped src/DabblerPdf/DabblerPdf.csproj <Version> from 1.1.0 to 1.1.1 (patch bump \u2014 bug fix, no API change) and updated <PackageReleaseNotes>. Added 1.1.1 entry to CHANGELOG.md documenting the DirectContent multi-page fix, the user-facing loop shape that was affected, and the new rendering-visibility regression tests.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 5,
+      "stepKey": "session-2/mirror-stub",
+      "dateTime": "2026-04-22T10:10:54.185802+00:00",
+      "description": "Drafted ../dabbler-platform/docs/session-sets/pdf-newpage-multipage-fix-consumption/spec.md as a one-session plan that (a) bumps Directory.Packages.props DabblerPdf from 1.1.0 to 1.1.1, (b) upgrades tests/Dabbler.Reports.Blazor.Tests/CallerLevelPdfExportTests.ProductionCaller_RendersTitleHeadingOnFirstPage from byte-grep to PdfPig per-physical-page, (c) adds a Playwright end-to-end test that downloads the exported PDF and runs PdfPig assertions, and (d) formally closes Finding 2 from pdf-info-metadata-uat-remediation (whose 'stale runtime' disposition the 2026-04-22 field report disproved). Used the Cross-Repo Mirror Convention from dabbler-platform's project-guidance.md.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 6,
+      "stepKey": "session-2/build-and-test",
+      "dateTime": "2026-04-22T10:10:54.185802+00:00",
+      "description": "dotnet build DabblerPdf.slnx: Build succeeded, 0 errors, 0 warnings. dotnet test tests/DabblerPdf.Tests/DabblerPdf.Tests.csproj: Passed 608, Failed 0, Skipped 0 (up from 606 in Session 1 \u2014 +2 new tests from RenderingVisibilityDisciplineTests).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 7,
+      "stepKey": "session-2/change-log",
+      "dateTime": "2026-04-22T10:13:00.480467+00:00",
+      "description": "Generated docs/session-sets/directcontent-multipage-fix-and-tests/change-log.md via route(task_type=summarization, max_tier=1). Model: gemini-flash. 1669 in / 1003 out tokens; $0.00085. Per the promoted convention summarization is correct for narrative prose (documentation template produces 400s on meta-prose).",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-flash",
+          "taskType": "summarization",
+          "inputTokens": 1669,
+          "outputTokens": 1003,
+          "costUsd": 0.00085215
+        }
+      ]
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 8,
+      "stepKey": "session-2/verification",
+      "dateTime": "2026-04-22T10:13:00.480467+00:00",
+      "description": "Cross-provider verification via route(task_type=session-verification). Verifier model: gemini-pro. Input: 9782 tokens, Output: 579 tokens, Cost: $0.0180. Raw review saved to session-reviews/session-002.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 9782,
+          "outputTokens": 579,
+          "costUsd": 0.0180175
+        }
+      ]
     }
   ]
 }

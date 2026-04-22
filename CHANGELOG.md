@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.1.1 — 2026-04-22
+
+### Fixed
+- `Document.NewPage()` no longer stacks the first two logical pages into a
+  single physical page's content stream when the caller writes to
+  `PdfWriter.DirectContent` before the first `NewPage()` call. Previously,
+  a loop of the shape
+  ```csharp
+  for (int i = 0; i < pages.Count; i++) {
+      if (i > 0) document.NewPage();
+      renderer.RenderPage(writer.DirectContent, pages[i]);
+  }
+  ```
+  produced a PDF whose first physical page contained composer pages 1 and
+  2 concatenated in the same content stream, with page 2's full-page
+  background fill painting over page 1's visible output. After the fix,
+  each `RenderPage` call produces exactly one physical PDF page. Single-
+  page callers (one `DirectContent` write followed by `Close()`, no
+  `NewPage()`) and callers who invoke `NewPage()` before every page are
+  unaffected. No public API changes.
+
+### Added
+- Rendering-visibility regression tests under
+  `tests/DabblerPdf.Tests/Pdf/` that exercise per-physical-page text
+  extraction via PdfPig, replacing the byte-grep pattern that could not
+  catch overdraw or off-page positioning.
+
 ## 1.1.0 — 2026-04-21
 
 ### Added

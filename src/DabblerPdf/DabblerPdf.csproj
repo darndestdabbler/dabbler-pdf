@@ -9,7 +9,7 @@
 
     <!-- Package identity -->
     <PackageId>DabblerPdf</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>darndestdabbler</Authors>
 
     <!-- Description shown on NuGet.org -->
@@ -31,7 +31,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- Release notes for this version -->
-    <PackageReleaseNotes>1.1.0: Document information dictionary API. New Document methods AddTitle, AddAuthor, AddSubject, AddKeywords, AddCreator, AddCreationDate, and SuppressCreationDate stage values for the PDF /Info dictionary. CreationDate is auto-stamped at Close() unless suppressed. Backward compatible (existing 1.0.0 callers see only the new /CreationDate key; SuppressCreationDate() restores the 1.0.0 output shape exactly). Adds DabblerPdf.Utilities.PdfDate for PDF 1.7 §7.9.4 date formatting.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.1.1: Fixes a multi-page DirectContent bug where the first two logical pages could be rendered into the same physical page's content stream, producing visible overdraw and a physical page count one short of the caller's intent. Callers who wrote to PdfWriter.DirectContent before calling Document.NewPage() — the canonical multi-page export loop — are affected. Single-page callers and callers who call NewPage() before each page are unaffected. No API changes. See CHANGELOG.md for details.</PackageReleaseNotes>
 
     <!-- Copyright -->
     <Copyright>Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares. C# port Copyright (C) 2025-2026 darndestdabbler.</Copyright>

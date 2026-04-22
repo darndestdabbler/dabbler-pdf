@@ -200,6 +200,20 @@ human before proceeding.
   catch a real bug, but prefer assertions against observable behavior
   (rendered text position, color state after drawing, dimensions of
   the produced page) when both paths are available.
+- **Visibility assertions go through a rendering-aware parser.** Tests
+  that assert "content is visible in the PDF" must exercise a
+  rendering-aware parser that models per-physical-page visible text
+  with bounding boxes (PdfPig, pymupdf, or equivalent). Raw
+  content-stream byte greps are wiring-presence assertions only —
+  they cannot catch content that was overdrawn, clipped, off-page, or
+  rendered in an unavailable font. Single-page tests may still use
+  byte-level asserts for specific structural properties (object IDs,
+  dictionary keys), but visibility assertions always go through the
+  rendering-aware parser. The canonical failure that motivated this
+  rule is captured in `lessons-learned.md` → "String In Bytes" Is Not
+  "Rendered Visible": a byte-grep test passed on a PDF whose title was
+  overdrawn by a later full-page fill, and the regression surfaced
+  only in human UAT.
 
 ### Human Review And Checklist Editor
 
