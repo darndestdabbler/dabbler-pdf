@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.1.2 — 2026-04-22
+
+Verified republish of the 1.1.1 multi-page DirectContent fix. No library
+source changes between 1.1.1 and 1.1.2; this release exists to ship the
+verification artifacts alongside the fix so downstream consumers pick up
+a single shippable version rather than an unpublished 1.1.1.
+
+### Added
+- `DabblerPdf.Samples/Samples/S11_OrdersStyleReport.cs` — a landscape
+  multi-page sample that mirrors the `dabbler-platform` Orders By Retail
+  Business report pattern (reportHeader-before-NewPage, pageHeader
+  repeat, grouped details, IPdfPageEvent footer, explicit navy title
+  fill color).
+- `tests/DabblerPdf.Tests/Pdf/OrdersStyleSampleRenderingTests.cs` — six
+  PdfPig-based rendering-visibility assertions: bounding-box title
+  position, Helvetica-Bold font, no "Page 2 of" on page 1 (stacking
+  guard), exactly one "Page X of N" per page, navy `rg` operator
+  immediately before the title `Tj`, and page-1 completeness (column
+  headers + first customer group).
+
+### Verified
+- Human visual sign-off against `DabblerPdf.Samples/Output/11-orders-style-report.pdf`
+  in Adobe Reader: title visible at top of page 1 in dark navy, column
+  headers repeat on every page, "Page X of 3" footer on every page, no
+  stacked content. The sample PDF is committed so a clean clone
+  produces identical bytes.
+
+### Recommendation
+- Use 1.1.2 in preference to 1.1.1. The library surface is identical;
+  1.1.2 simply ships with the verification assets that confirm the fix.
+
 ## 1.1.1 — 2026-04-22
 
 ### Fixed

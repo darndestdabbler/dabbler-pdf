@@ -9,7 +9,7 @@
 
     <!-- Package identity -->
     <PackageId>DabblerPdf</PackageId>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
     <Authors>darndestdabbler</Authors>
 
     <!-- Description shown on NuGet.org -->
@@ -31,7 +31,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- Release notes for this version -->
-    <PackageReleaseNotes>1.1.1: Fixes a multi-page DirectContent bug where the first two logical pages could be rendered into the same physical page's content stream, producing visible overdraw and a physical page count one short of the caller's intent. Callers who wrote to PdfWriter.DirectContent before calling Document.NewPage() — the canonical multi-page export loop — are affected. Single-page callers and callers who call NewPage() before each page are unaffected. No API changes. See CHANGELOG.md for details.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.1.2: Verified republish of the 1.1.1 multi-page DirectContent fix. The library surface is unchanged from 1.1.1; this release adds an in-library reproduction sample (S11_OrdersStyleReport) and PdfPig-based rendering-visibility regression tests that confirm the fix against a landscape multi-page report pattern with a title drawn into the reportHeader band before the first NewPage() call. Use 1.1.2 in preference to 1.1.1. No API changes. See CHANGELOG.md for details.</PackageReleaseNotes>
 
     <!-- Copyright -->
     <Copyright>Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares. C# port Copyright (C) 2025-2026 darndestdabbler.</Copyright>
