@@ -195,7 +195,7 @@ TrueType fonts (`.ttf`) can also be loaded from file paths.
 
 ## Samples
 
-The [`DabblerPdf.Samples`](DabblerPdf.Samples/) project includes 10 working examples:
+The [`DabblerPdf.Samples`](DabblerPdf.Samples/) project includes 11 working examples:
 
 | Sample | Description |
 |--------|-------------|
@@ -209,6 +209,7 @@ The [`DabblerPdf.Samples`](DabblerPdf.Samples/) project includes 10 working exam
 | S08 | Padding |
 | S09 | Invoice (full-featured example) |
 | S10 | Stress test |
+| S11 | Orders-style landscape report — multi-page, grouped, page footer template |
 
 Run them with:
 
@@ -221,14 +222,14 @@ Output PDFs are written to `DabblerPdf.Samples/Output/`.
 
 ## Testing
 
-DabblerPdf is covered by **608 automated tests** plus **10 runnable sample programs** that emit
+DabblerPdf is covered by **614 automated tests** plus **11 runnable sample programs** that emit
 real PDFs for visual review. Tests are organized in a four-tier hierarchy (strict unit →
 integration → sample-based visual review → human review) and run on every build.
 
 ### Running the tests
 
 ```bash
-# Full test suite (608 tests, ~0.3s)
+# Full test suite (614 tests, ~0.3s)
 dotnet test tests/DabblerPdf.Tests/DabblerPdf.Tests.csproj
 
 # Generate sample PDFs for visual review
@@ -241,8 +242,8 @@ dotnet run --project DabblerPdf.Samples
 |---|---|---|
 | **Unit** | Isolated logic — font metrics, coordinate translation, encoding, PDF date formatting | `BaseFont`, `CoordinateTranslator`, `PdfDate`, `BaseColor` |
 | **Integration** | Full `Document` + `PdfWriter` + produced byte stream | `PdfWriterTests`, `DocumentMetadataTests`, `PdfInfoDictionaryTests`, `PageEventTests` |
-| **Rendering-visibility** | Per-physical-page text extraction via [PdfPig](https://github.com/UglyToad/PdfPig) — proves content is actually visible to a reader, not just present in bytes | `MultipageDirectContentRenderingTests`, `RenderingVisibilityDisciplineTests` |
-| **Sample-based** | 10 runnable programs that emit PDFs to `DabblerPdf.Samples/Output/` for visual inspection | `S01_BasicText` through `S10_StressTest` |
+| **Rendering-visibility** | Per-physical-page text extraction via [PdfPig](https://github.com/UglyToad/PdfPig) — proves content is actually visible to a reader, not just present in bytes | `MultipageDirectContentRenderingTests`, `RenderingVisibilityDisciplineTests`, `OrdersStyleSampleRenderingTests` |
+| **Sample-based** | 11 runnable programs that emit PDFs to `DabblerPdf.Samples/Output/` for visual inspection | `S01_BasicText` through `S11_OrdersStyleReport` |
 
 ### Rendering-visibility discipline
 
