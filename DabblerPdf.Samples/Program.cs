@@ -26,6 +26,7 @@ public class Program
             new S08_Padding(),
             new S09_InvoiceSample(),
             new S10_StressTest(),
+            new S11_OrdersStyleReport(),
         };
 
         var total = Stopwatch.StartNew();

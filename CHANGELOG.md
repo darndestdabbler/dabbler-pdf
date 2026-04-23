@@ -26,6 +26,21 @@
   `tests/DabblerPdf.Tests/Pdf/` that exercise per-physical-page text
   extraction via PdfPig, replacing the byte-grep pattern that could not
   catch overdraw or off-page positioning.
+- `DabblerPdf.Samples/Samples/S11_OrdersStyleReport.cs` and the
+  committed `Output/11-orders-style-report.pdf` artifact — a landscape
+  multi-page sample that mirrors the `dabbler-platform` Orders By
+  Retail Business report, exercising the DirectContent reportHeader
+  pattern against 1.1.1. Companion tests
+  (`tests/DabblerPdf.Tests/Pdf/OrdersStyleSampleRenderingTests.cs`)
+  assert title visibility, color state, and "Page X of N" correctness
+  per physical page via PdfPig.
+
+### Verified
+- 1.1.1 reproduces the real report's title-on-page-1 rendering pattern
+  end-to-end inside DabblerPdf itself (no consumer repo needed). The
+  PdfPig rendering-visibility assertions all pass on the Orders-style
+  sample; see `DabblerPdf.Samples/Samples/S11_FINDINGS.md` for the
+  per-assertion breakdown and the push recommendation.
 
 ## 1.1.0 — 2026-04-21
 

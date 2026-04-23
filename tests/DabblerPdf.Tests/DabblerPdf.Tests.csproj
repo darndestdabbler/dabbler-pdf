@@ -20,6 +20,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DabblerPdf\DabblerPdf.csproj" />
+    <!-- Referenced so rendering-visibility tests can drive the exact sample
+         code path the runnable program executes, rather than duplicating the
+         band-drawing logic. Only sample types need to be reachable here, not
+         the runner. -->
+    <ProjectReference Include="..\..\DabblerPdf.Samples\DabblerPdf.Samples.csproj" />
   </ItemGroup>
 
 </Project>

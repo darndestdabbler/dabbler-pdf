@@ -36,8 +36,10 @@ __pycache__/
 # AI Router state
 router-state.db
 
-# Samples output
-DabblerPdf.Samples/Output/
+# Samples output — ignore folder contents, but allow specific PDFs that
+# are committed as visual-review deliverables for the human reviewer.
+DabblerPdf.Samples/Output/*
+!DabblerPdf.Samples/Output/11-orders-style-report.pdf
 
 # Temp files
 *.tmp
