@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DabblerPdf</RootNamespace>
+    <AssemblyName>DabblerPdf</AssemblyName>
+
+    <!-- Package identity -->
+    <PackageId>DabblerPdf</PackageId>
+    <Version>1.1.2</Version>
+    <Authors>darndestdabbler</Authors>
+
+    <!-- Description shown on NuGet.org -->
+    <Description>A lightweight .NET library for generating PDF documents with text, images, lines, rectangles, and styled content. Ported from OpenPDF with a clean, code-first API — no heavy dependencies, no design surface.</Description>
+
+    <!-- NuGet.org metadata -->
+    <PackageTags>pdf;pdf-generation;document;report;dotnet;openpdf</PackageTags>
+    <PackageProjectUrl>https://github.com/darndestdabbler/dabbler-pdf</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/darndestdabbler/dabbler-pdf</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- License -->
+    <PackageLicenseExpression>LGPL-2.1-only AND MPL-2.0</PackageLicenseExpression>
+
+    <!-- README on NuGet.org -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- XML docs included in package for IntelliSense -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Release notes for this version -->
+    <PackageReleaseNotes>1.1.2: Verified republish of the 1.1.1 multi-page DirectContent fix. The library surface is unchanged from 1.1.1; this release adds an in-library reproduction sample (S11_OrdersStyleReport) and PdfPig-based rendering-visibility regression tests that confirm the fix against a landscape multi-page report pattern with a title drawn into the reportHeader band before the first NewPage() call. Use 1.1.2 in preference to 1.1.1. No API changes. See CHANGELOG.md for details.</PackageReleaseNotes>
+
+    <!-- Copyright -->
+    <Copyright>Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares. C# port Copyright (C) 2025-2026 darndestdabbler.</Copyright>
+
+    <!-- Deterministic builds for reproducibility -->
+    <Deterministic>true</Deterministic>
+
+    <!-- Include symbols for debugging -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DabblerPdf.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

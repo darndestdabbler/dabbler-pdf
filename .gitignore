@@ -1,0 +1,55 @@
+# Build outputs
+bin/
+obj/
+publish/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# IDE
+.vs/
+.vscode/settings.json
+.idea/
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment / secrets
+.env
+*.key
+*.pem
+
+# Test results
+TestResults/
+*.trx
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# AI Router state
+router-state.db
+
+# Samples output — ignore folder contents, but allow specific PDFs that
+# are committed as visual-review deliverables for the human reviewer.
+DabblerPdf.Samples/Output/*
+!DabblerPdf.Samples/Output/11-orders-style-report.pdf
+
+# Temp files
+*.tmp
+*.log
+
+# Dabbler router machine-side state: the run ledger records each
+# verification round after the tree it describes, so committing it
+# makes verified work look like it changed post-verification.
+.dabbler/
+
+# MSBuild's own output, and what `dotnet test` and Coverlet write, which land inside the project they ran in.
+coverage*.json
+coverage*.xml
