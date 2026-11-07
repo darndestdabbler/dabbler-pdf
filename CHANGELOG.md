@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.3
+
+No API changes; the library surface is identical to 1.1.2.
+
+### Changed
+- First release built, validated and published from CI: the package is
+  packed and checked by package validation in the workflow, and pushed to
+  nuget.org through trusted publishing (OIDC) on its `nuget-v1.1.3` tag,
+  with no API key on any machine.
+
 ## 1.1.2 — 2026-04-22
 
 Verified republish of the 1.1.1 multi-page DirectContent fix. No library

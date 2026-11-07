@@ -21,7 +21,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 7 | Packaging | no | 2026-11-07 |
 | 8 | Make the TrueType tests run on Linux | no | 2026-11-07 |
 | 9 | Maintainer guide | no | 2026-11-07 |
-| 10 | Bump the version to 1.1.3 | — | not declared |
+| 10 | Bump the version to 1.1.3 | no | 2026-11-07 |
 | 11 | Release 1.1.3 (release: 1.1.3) | — | not declared |
 
 ### Session 1 — Author or import the solution plan
@@ -77,3 +77,9 @@ Make the 17 TrueType tests pass on any OS by vendoring Liberation Sans Regular (
 **Releasable: no.**
 
 Write docs/MAINTAINING.md, the one maintainer document: how to clone, build, run the whole test suite (`dotnet test DabblerPdf.slnx --blame-hang-timeout 5m`), run the samples, pack, release by pushing a `nuget-v<version>` tag that `publish.yml` publishes, how a consumer pins a version, and what a redistributor owes under LGPL-2.1-only or MPL-2.0. It also takes in what still holds from the v1 project guidance and lessons learned, as listed in the solution plan's *What carries over*. Then delete the three v1 planning documents (docs/planning/project-guidance.md, docs/planning/lessons-learned.md, docs/planning/project-status.md) and repoint the two links to the guidance file, in README.md and in the doc comment of RenderingVisibilityDisciplineTests.cs, to docs/MAINTAINING.md. Last, add a README section "If this library stops being maintained" (vendor the source under either license and keep the notices), link docs/MAINTAINING.md from the README and from AGENTS.md's project note (outside the managed fence), and change the LICENSE attribution line from "openpdf-dotnet contributors" to `darndestdabbler`. The no-remaining-references check also skips the plan records that describe this retirement: docs/sessions/ (the framework's records and the session plan) and docs/planning/brief.md and solution-plan.md. Those names are history there, not links, and the plan records are not this session's to rewrite.
+
+### Session 10 — Bump the version to 1.1.3
+
+**Releasable: no.**
+
+Bump DabblerPdf to version 1.1.3: set <Version> to 1.1.3 and rewrite PackageReleaseNotes in src/DabblerPdf/DabblerPdf.csproj, and add a 1.1.3 entry at the top of CHANGELOG.md stating that there is no API change and that this is the first release built, validated and published from CI through trusted publishing. The step is proved by packing the project in Release to a scratch directory and confirming DabblerPdf.1.1.3.nupkg is produced.
