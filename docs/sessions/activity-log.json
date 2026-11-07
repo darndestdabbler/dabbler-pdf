@@ -22,6 +22,13 @@
       "dateTime": "2026-11-07T10:52:32.639000-05:00",
       "task": "Adopt DabblerPdf.slnx and its three existing projects (src/DabblerPdf, tests/DabblerPdf.Tests, DabblerPdf.Samples) as they stand, and narrow the dotnet test suite in dabbler.yaml: covers [src, tests, DabblerPdf.Samples], test_roots [tests], expensive true, command `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m`, and select `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter {names}`. Then replace the scaffold's commented packaging block in dabbler.yaml with one line saying the packaging: block is written by Session 7 and that nuget.org publication is CI's on a nuget-v<version> tag.",
       "releasable": false
+    },
+    {
+      "kind": "task-declaration",
+      "sessionNumber": 4,
+      "dateTime": "2026-11-07T11:55:03.103000-05:00",
+      "task": "Clean the repository of the v1 AI-led workflow: delete the v1 relics (ai-router/, utils/, docs/ai-led-session-workflow.md, docs/claude-instructions/, docs/gemini-instructions/, GEMINI.md) and the .gitignore lines that only served them (the router-state.db entry); move every docs/session-sets/<set>/ under docs/session-sets/_archived/ with git mv and add an _archived/README.md marking them as closed v1 history not to be resumed or migrated; and replace the v1 text above the managed fence in AGENTS.md and CLAUDE.md with a short project note (what DabblerPdf is, that it is a scoped port of OpenPDF, the build and test commands, and pointers to README.md and docs/planning/solution-plan.md), leaving the managed bodies and engine tails untouched.",
+      "releasable": false
     }
   ]
 }

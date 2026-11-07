@@ -15,7 +15,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 1 | Author or import the solution plan | no | 2026-11-07 |
 | 2 | Challenge the plan, then break it into numbered sessions | no | 2026-11-07 |
 | 3 | Adopt the solution and narrow the test suite | no | 2026-11-07 |
-| 4 | Repository hygiene | — | not declared |
+| 4 | Repository hygiene | no | 2026-11-07 |
 | 5 | Continuous integration | — | not declared |
 | 6 | Trusted publishing | — | not declared |
 | 7 | Packaging | — | not declared |
@@ -40,3 +40,9 @@ Challenge the cuts and decisions in docs/planning/solution-plan.md and record th
 **Releasable: no.**
 
 Adopt DabblerPdf.slnx and its three existing projects (src/DabblerPdf, tests/DabblerPdf.Tests, DabblerPdf.Samples) as they stand, and narrow the dotnet test suite in dabbler.yaml: covers [src, tests, DabblerPdf.Samples], test_roots [tests], expensive true, command `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m`, and select `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter {names}`. Then replace the scaffold's commented packaging block in dabbler.yaml with one line saying the packaging: block is written by Session 7 and that nuget.org publication is CI's on a nuget-v<version> tag.
+
+### Session 4 — Repository hygiene
+
+**Releasable: no.**
+
+Clean the repository of the v1 AI-led workflow: delete the v1 relics (ai-router/, utils/, docs/ai-led-session-workflow.md, docs/claude-instructions/, docs/gemini-instructions/, GEMINI.md) and the .gitignore lines that only served them (the router-state.db entry); move every docs/session-sets/<set>/ under docs/session-sets/_archived/ with git mv and add an _archived/README.md marking them as closed v1 history not to be resumed or migrated; and replace the v1 text above the managed fence in AGENTS.md and CLAUDE.md with a short project note (what DabblerPdf is, that it is a scoped port of OpenPDF, the build and test commands, and pointers to README.md and docs/planning/solution-plan.md), leaving the managed bodies and engine tails untouched.

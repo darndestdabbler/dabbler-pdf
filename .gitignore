@@ -33,9 +33,6 @@ TestResults/
 __pycache__/
 *.pyc
 
-# AI Router state
-router-state.db
-
 # Samples output — ignore folder contents, but allow specific PDFs that
 # are committed as visual-review deliverables for the human reviewer.
 DabblerPdf.Samples/Output/*
