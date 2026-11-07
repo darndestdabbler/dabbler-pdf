@@ -1,0 +1,8 @@
+[
+  {
+    "issue": "S08 padding sample had extra 4pt Y offsets that misrepresented the padding demonstrations. No Padding showed 4pt of padding, and Uniform/Asymmetric padding showed pad+4pt instead of the intended padding value.",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Removed extra 4pt offset from all DrawText calls in S08_Padding.cs sections 1-5. Text now positioned at exact padding boundary."
+  }
+]

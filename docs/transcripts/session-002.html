@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session 002 transcript</title>
+<style>
+:root {
+  --page: #ffffff;
+  --ink: #1f1f1f;
+  --faint: #e4e4e4;
+  --panel: #f6f6f6;
+  --tone-milestone: #2a5db0;
+  --tone-good: #256029;
+  --tone-warn: #8a6100;
+  --tone-bad: #a31515;
+  --tone-muted: #6b6b6b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #1e1e1e;
+    --ink: #d4d4d4;
+    --faint: #3a3a3a;
+    --panel: #252526;
+  --tone-milestone: #3874db;
+  --tone-good: #54a33b;
+  --tone-warn: #b79427;
+  --tone-bad: #f14c4c;
+  --tone-muted: #8c8c8c;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 64px;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.6 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+main { max-width: 68rem; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.05rem; margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--faint); padding-bottom: .3rem; }
+.stamp { color: var(--tone-muted); font-size: .85rem; margin: 0 0 .25rem; }
+.mono, pre, code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.lines { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+.line { white-space: pre-wrap; word-break: break-word; padding-left: 10.5ch; text-indent: -10.5ch; }
+.at { color: var(--tone-muted); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--faint); vertical-align: top; }
+th { color: var(--tone-muted); font-weight: 600; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; }
+td details { margin: 0; }
+tr:has(details:not([open])) + tr.findings { display: none; }
+tr.findings > td { padding: 0 0 .5rem 1.5rem; }
+pre { background: var(--panel); padding: .75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font-size: 12.5px; }
+.stop, .cancelled { border-left: 3px solid var(--tone-bad); background: var(--panel); padding: .6rem .9rem; }
+.milestone { color: var(--tone-milestone); }
+.good { color: var(--tone-good); }
+.warn { color: var(--tone-warn); }
+.bad { color: var(--tone-bad); }
+.muted { color: var(--tone-muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Session 002 transcript</h1>
+<p class="stamp">Rendered 2026-11-07T15:33:41.623Z by dabbler-ai-router 3.29.0 at 8d484993cbcccc86e2edd0632f3a66eade903ab7.</p>
+<p class="stamp">Engine cli, last phase <span class="milestone">log</span>, started 2026-11-07T10:20:42.271-05:00.</p>
+<h2>Session Plan</h2>
+<h3>Session 2: Challenge the plan, then break it into numbered sessions</h3>
+<ol><li>Register.</li><li>Read <code>docs/planning/solution-plan.md</code> (or <code>docs/planning/project-plan.md</code> where that is the file this repository keeps its plan in) and challenge its cuts: for each module, whether it should exist, whether its contract is a promise something can prove, and whether the dependency direction hides the decisions most likely to change; decide each deferred cut or say why it stays deferred. Record the answers in the plan's rationale.</li><li>Break the plan into numbered sessions appended to this file. Each session is a focused unit of work one AI coding session can complete: one <code>### Session &lt;N&gt;: &lt;title&gt;</code> heading, and its steps as a top-level ordered list. Step 1 registers the session and the rest are the work: cross-provider verification, the run of record and the close are the framework's, never steps to plan. Never write a step that says &quot;run the tests&quot; without saying which run it means. Order sessions so earlier ones unblock later ones — a module before the modules that depend on it — and keep at most ~3 work steps per session.</li></ol>
+<p>The first numbered session adopts the solution already there rather than writing a skeleton over it: it adds only the projects, references and architecture test the plan names that are missing, and makes sure <code>dabbler.yaml</code> declares the test suite under <code>testing.suites</code>, with <code>expensive: true</code> where its run is the run of record and a hang limit in its command -- <code>dotnet test --blame-hang-timeout 5m</code>, or Surefire's <code>forkedProcessTimeoutInSeconds</code>. No session re-creates a project that exists.</p>
+<p>Packaging and releases are sessions of their own. Where the plan names *Handoff artifacts*, plan one packaging session -- early, with project files only, or later -- that writes the <code>packaging:</code> block in <code>dabbler.yaml</code> and does nothing else; its check is <code>dabbler packaging --rehearse</code>, which runs the pack and pushes nothing. A release is a session with no steps, headed <code>### Session &lt;N&gt;: Release &lt;version&gt; (release: &lt;version&gt;)</code>; propose its version -- patch, minor or major by what the sessions it releases change -- for the person to approve with the plan.</p>
+<p>The framework then verifies the work cross-provider, runs the suites as the run of record and closes the session. These are the framework's, not steps to plan.</p>
+<p>This session writes the plan and nothing else: it creates, edits or deletes no code, project, build file, test, <code>dabbler.yaml</code> suite or packaging.</p>
+<p><strong>Creates:</strong> the numbered session list the rest of this repository runs, starting with the session that adopts the solution.</p>
+<p>&gt; Do NOT hand-author <code>sessions.json</code>. The first <code>session start</code> &gt; bootstraps it from this plan — state files are the writers' job.</p>
+<h2>Work Plan</h2>
+<p>Challenge the cuts and decisions in docs/planning/solution-plan.md and record the answers as a rationale section in that file: for the one module DabblerPdf, whether it should exist, whether each clause of its contract is a promise something can prove (and the cheapest proof where one is missing, e.g. SDK package validation against 1.1.2 for the additive-only surface), whether the dependency direction hides the decisions most likely to change, and a decision on each deferred cut (separate metrics package, moving the samples, the packaging block) and on each of the brief's six decisions. Then append the numbered sessions to docs/sessions/session-plan.md, starting at Session 3 with the session that adopts the existing DabblerPdf.slnx (narrowing the dotnet suite in dabbler.yaml to src, tests and DabblerPdf.Samples with test_roots [tests], expensive: true and a --blame-hang-timeout 5m hang limit, adding no project), followed by repository hygiene, continuous integration, trusted publishing, a packaging session that writes only the packaging: block (checked by dabbler packaging --rehearse), the maintainer guide, the 1.1.3 version bump, and a step-less Release 1.1.3 (release: 1.1.3) session proposed as a patch release.</p>
+<p>Landed <a href="https://github.com/darndestdabbler/dabbler-pdf/commit/5232926a078f27a502fafb069dfafc6480ff26ed"><code>5232926a078f27a502fafb069dfafc6480ff26ed</code></a>.</p>
+<table>
+<tr><th>Step</th><th>Ask</th><th>Files</th><th>Checks</th><th>Accepted</th></tr>
+<tr><td>Challenge cuts</td><td><p>Add a section headed exactly '## Rationale: Session 2 challenge' to docs/planning/solution-plan.md recording, for the DabblerPdf module, whether it should exist, whether each contract clause is provable and by what, whether the dependency direction hides the likely-to-change decisions, a decision on each deferred cut (or why it stays deferred), and the outcome of challenging each of the six numbered decisions, including where the session plan's rules (adoption session first, a packaging session where handoff artifacts are named, a (release: &lt;version&gt;) session) override the brief's decomposition.</p></td><td><span class="mono">docs/planning/solution-plan.md</span></td><td><code>node -e const s=require('fs').readFileSync('docs/planning/solution-plan.md','utf8');process.exit(/^## Rationale: Session 2 challenge\s*$/m.test(s)?0:1)</code></td><td>yes</td></tr>
+<tr><td>Decompose</td><td><p>Append to docs/sessions/session-plan.md the numbered sessions from Session 3 onward, each a '### Session &lt;N&gt;: &lt;title&gt;' heading with a top-level ordered list whose step 1 registers the session and whose remaining (at most ~3) steps are the work, naming any run of tests precisely: 3 adopt the solution and narrow the dabbler.yaml suite; 4 repository hygiene (v1 relics deleted, session sets archived, AGENTS.md/CLAUDE.md project notes rewritten); 5 continuous integration (build.yml, dependabot.yml); 6 trusted publishing (package validation baseline, publish.yml with the tag/version gate, nupkg smoke consumer and GitHub Packages dry run); 7 packaging (the packaging: block only, checked by dabbler packaging --rehearse); 8 maintainer guide (docs/MAINTAINING.md, retire v1 planning documents, README fallback section, LICENSE attribution); 9 version bump to 1.1.3; 10 Release 1.1.3 (release: 1.1.3) with no steps.</p></td><td><span class="mono">docs/sessions/session-plan.md</span></td><td><code>node -e const s=require('fs').readFileSync('docs/sessions/session-plan.md','utf8');const n=[...s.matchAll(/^### Session (\d+): .+$/gm)].map(m=&gt;+m[1]);const seq=n.every((v,i)=&gt;v===i+1);const rel=/^### Session \d+: Release 1\.1\.3 \(release: 1\.1\.3\)\s*$/m.test(s);const parts=s.split(/^(?=### Session )/m).slice(1).filter(p=&gt;!/\(release: /.test(p.split('\n')[0]));const reg=parts.every(p=&gt;/^1\. Register/m.test(p));process.exit(seq&amp;&amp;n.length&gt;=10&amp;&amp;rel&amp;&amp;reg?0:1)</code></td><td>yes</td></tr>
+</table>
+<p>Non-goals:</p>
+<ul><li>No code, project, build file, test, workflow, dabbler.yaml suite or packaging block is created, edited or deleted -- those are the work of Sessions 3 onward that this session plans.</li><li>sessions.json and everything under .dabbler/runs are not hand-authored; the framework bootstraps and writes them.</li><li>No repository restructuring (moving DabblerPdf.Samples) and no new library features are planned; the plan's out-of-scope list stands.</li><li>No GitHub-side change (default branch, renaming master, nuget.org trusted-publishing policy) is made here; the plan names them as the operator's preconditions for the sessions that need them.</li></ul>
+<h2>What the framework said</h2>
+<div class="lines"><div class="line"><span class="at">[15:20:42]</span> <span class="muted">run-started</span> session=002 mode=pull</div>
+<div class="line"><span class="at">[15:20:42]</span> <span class="muted">instruction-issued</span> seq=1 kind=step step=plan</div>
+<div class="line"><span class="at">[15:25:41]</span> <span class="muted">run-resumed</span> session=002 phase=<span class="milestone">plan</span> mode=pull</div>
+<div class="line"><span class="at">[15:25:42]</span> <span class="muted">plan-accepted</span> steps=[&quot;challenge-cuts&quot;,&quot;decompose&quot;] non_goals=4</div>
+<div class="line"><span class="at">[15:25:52]</span> <span class="milestone">phase</span> phase=<span class="milestone">work</span></div>
+<div class="line"><span class="at">[15:25:52]</span> <span class="muted">instruction-issued</span> seq=2 kind=step step=challenge-cuts</div>
+<div class="line"><span class="at">[15:28:03]</span> <span class="muted">run-resumed</span> session=002 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[15:28:24]</span> <span class="muted">check-passed</span> step=challenge-cuts argv=[&quot;node&quot;,&quot;-e&quot;,&quot;const s=require('fs').readFileSync('docs/planning/solution-plan.md','utf8');process.exit(/^## Rationale: Session 2 challenge\\s*$/m.test(s)?0:1)&quot;]</div>
+<div class="line"><span class="at">[15:28:28]</span> <span class="muted">report-accepted</span> seq=2 step=challenge-cuts files=[&quot;docs/planning/solution-plan.md&quot;] notes=Added Rationale: Session 2 challenge section deciding each contract clause's proof, each deferred cut, and each of the six decisions, with the session-plan overrides table.</div>
+<div class="line"><span class="at">[15:28:28]</span> <span class="muted">instruction-issued</span> seq=3 kind=step step=decompose</div>
+<div class="line"><span class="at">[15:30:25]</span> <span class="muted">run-resumed</span> session=002 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[15:30:39]</span> <span class="muted">check-passed</span> step=decompose argv=[&quot;node&quot;,&quot;-e&quot;,&quot;const s=require('fs').readFileSync('docs/sessions/session-plan.md','utf8');const n=[...s.matchAll(/^### Session (\\d+): .+$/gm)].map(m=&gt;+m[1]);const seq=n.every((v,i)=&gt;v===i+1);const rel=/^### Session \\d+: Release 1\\.1\\.3 \\(release: 1\\.1\\.3\\)\\s*$/m.test(s);const parts=s.split(/^(?=### Session )/m).slice(1).filter(p=&gt;!/\\(release: /.test(p.split('\\n')[0]));const reg=parts.every(p=&gt;/^1\\. Register/m.test(p));process.exit(seq&amp;&amp;n.length&gt;=10&amp;&amp;rel&amp;&amp;reg?0:1)&quot;]</div>
+<div class="line"><span class="at">[15:30:43]</span> <span class="muted">report-accepted</span> seq=3 step=decompose files=[&quot;docs/sessions/session-plan.md&quot;] notes=Appended Sessions 3-10: adopt+suite, hygiene, CI, trusted publishing, packaging, maintainer guide, 1.1.3 bump, Release 1.1.3 (release: 1.1.3) proposed as patch.</div>
+<div class="line"><span class="at">[15:30:43]</span> <span class="milestone">phase</span> phase=<span class="milestone">preverify</span></div>
+<div class="line"><span class="at">[15:30:43]</span> <span class="milestone">phase</span> phase=<span class="milestone">verify</span></div>
+<div class="line"><span class="at">[15:30:49]</span> <span class="muted">job-started</span> name=verification pid=48368 log=.dabbler/runs/s2/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[15:31:51]</span> <span class="muted">job-finished</span> name=verification exit=<span class="good">0</span> log=.dabbler/runs/s2/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[15:31:51]</span> <span class="muted">verification-passed</span></div>
+<div class="line"><span class="at">[15:31:51]</span> <span class="milestone">phase</span> phase=<span class="milestone">run-of-record</span></div>
+<div class="line"><span class="at">[15:31:52]</span> <span class="muted">run-of-record</span> suite=dotnet stage=final-full why=the last whole run of dotnet took 20s, within 60s command=dotnet test</div>
+<div class="line"><span class="at">[15:31:53]</span> <span class="muted">job-started</span> name=run of record: dotnet pid=54056 log=.dabbler/runs/s2/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[15:32:10]</span> <span class="muted">job-finished</span> name=run of record: dotnet exit=<span class="good">0</span> log=.dabbler/runs/s2/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[15:32:10]</span> <span class="milestone">phase</span> phase=<span class="milestone">land</span></div>
+<div class="line"><span class="at">[15:32:34]</span> <span class="muted">landed</span> commit=5232926a078f27a502fafb069dfafc6480ff26ed</div>
+<div class="line"><span class="at">[15:32:34]</span> <span class="milestone">phase</span> phase=<span class="milestone">publish</span></div>
+<div class="line"><span class="at">[15:32:36]</span> <span class="muted">publish-skipped</span> reason=an ordinary session never publishes</div>
+<div class="line"><span class="at">[15:32:36]</span> <span class="milestone">phase</span> phase=<span class="milestone">close</span></div>
+<div class="line"><span class="at">[15:32:39]</span> <span class="muted">job-started</span> name=close pid=31168 log=.dabbler/runs/s2/driver/jobs/close.log</div>
+<div class="line"><span class="at">[15:33:41]</span> <span class="muted">job-finished</span> name=close exit=<span class="good">0</span> log=.dabbler/runs/s2/driver/jobs/close.log</div>
+<div class="line"><span class="at">[15:33:41]</span> <span class="milestone">phase</span> phase=<span class="milestone">log</span></div></div>
+<h2>Verification</h2>
+<table>
+<tr><th>Round</th><th>Phase</th><th>Verdict</th><th>Reviewer</th><th>Provider</th><th>Transport</th><th>Findings</th></tr>
+<tr><td>1</td><td>full</td><td><span class="good">VERIFIED</span></td><td>gpt-5.6-terra</td><td>openai</td><td>api</td><td><details><summary>1 finding</summary></details></td></tr><tr class="findings"><td colspan="7"><table>
+<tr><th>#</th><th>Severity</th><th>Finding</th><th>Response</th></tr>
+<tr><td>0</td><td><strong>minor</strong></td><td>`docs/planning/solution-plan.md` — The claim that `GenerateDocumentationFile` proves all public members are documented is weaker than stated unless missing XML documentation warnings are treated as errors or otherwise scanned. Documentation generation can emit CS1591 warnings while a build still succeeds.</td><td>not answered</td></tr>
+</table></td></tr>
+</table>
+<h2>Test runs</h2>
+<table>
+<tr><th>Suite</th><th>Stage</th><th>Outcome</th><th>Duration</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Command</th></tr>
+<tr><td>dotnet</td><td>final-full</td><td><span class="good">passed</span></td><td>12s</td><td>614</td><td>0</td><td>0</td><td><span class="mono">dotnet test</span></td></tr>
+</table>
+<h2>Jobs</h2>
+<div><strong>close</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>run-of-record-dotnet</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>verification</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+</main>
+</body>
+</html>
