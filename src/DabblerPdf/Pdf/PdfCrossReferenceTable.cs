@@ -1,0 +1,60 @@
+// DabblerPdf.NET — A .NET port of OpenPDF (https://github.com/LibrePDF/OpenPDF)
+// Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares.
+// Ported to C# under the same license terms.
+//
+// SPDX-License-Identifier: LGPL-2.1-only AND MPL-2.0
+
+using System.Text;
+
+namespace DabblerPdf.Pdf;
+
+/// <summary>
+/// Writes the PDF cross-reference (xref) table. Each entry is exactly 20 bytes:
+/// <c>OOOOOOOOOO GGGGG n \r\n</c> (10-digit offset, 5-digit generation, in-use flag).
+/// Object 0 is always the head of the free list.
+/// </summary>
+public static class PdfCrossReferenceTable
+{
+    private static readonly byte[] FreeListHead = "0000000000 65535 f \n"u8.ToArray();
+    private static readonly byte[] FreeEntry = "0000000000 00000 f \n"u8.ToArray();
+
+    /// <summary>
+    /// Writes the xref table to the output stream and returns the byte offset
+    /// where the xref section started (for the <c>startxref</c> pointer).
+    /// </summary>
+    /// <param name="outputStream">The PDF output stream.</param>
+    /// <param name="entries">The list of object numbers and their byte offsets.</param>
+    /// <param name="size">The total number of objects (including object 0).</param>
+    /// <returns>The byte offset of the start of the xref section.</returns>
+    public static long WriteTo(Stream outputStream, IReadOnlyList<XrefEntry> entries, int size)
+    {
+        long startXref = outputStream.Position;
+
+        // xref header
+        var header = Encoding.ASCII.GetBytes($"xref\n0 {size}\n");
+        outputStream.Write(header);
+
+        // Object 0: head of free list (always present)
+        outputStream.Write(FreeListHead);
+
+        // Sort entries by object number to write in order
+        var sorted = entries.OrderBy(e => e.ObjectNumber).ToArray();
+        int nextExpected = 1;
+
+        foreach (var entry in sorted)
+        {
+            // Fill gaps with free entries if any object numbers were skipped
+            while (nextExpected < entry.ObjectNumber)
+            {
+                outputStream.Write(FreeEntry);
+                nextExpected++;
+            }
+
+            var line = string.Format("{0:D10} {1:D5} n \n", entry.Offset, 0);
+            outputStream.Write(Encoding.ASCII.GetBytes(line));
+            nextExpected++;
+        }
+
+        return startXref;
+    }
+}

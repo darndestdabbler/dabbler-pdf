@@ -1,0 +1,20 @@
+[
+  {
+    "issue": "AddPageImage has a redundant PdfWriter parameter.",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Removed the redundant 'writer' parameter from AddPageImage and updated the call site."
+  },
+  {
+    "issue": "Image deduplication logic in AddPageImage not covered by tests.",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Added 2 tests: AddPageImage_SameImageOnMultiplePages_WritesXObjectOnce and AddPageImage_SameImageSamePage_ReturnsSameResourceName."
+  },
+  {
+    "issue": "Image resource names use document-level counter vs page-level counter for fonts. Inconsistent but valid PDF.",
+    "severity": "Minor",
+    "status": "deferred",
+    "response": "This is a style/consistency concern, not a correctness bug. Both approaches produce valid PDF. Document-level image counters are common in PDF generators. Deferred for human review."
+  }
+]
