@@ -1,0 +1,187 @@
+// DabblerPdf.NET — A .NET port of OpenPDF (https://github.com/LibrePDF/OpenPDF)
+// Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares.
+// Ported to C# under the same license terms.
+//
+// SPDX-License-Identifier: LGPL-2.1-only AND MPL-2.0
+
+namespace DabblerPdf.Text;
+
+/// <summary>
+/// Provides font metrics and PDF font dictionaries for the 14 standard PDF fonts
+/// and (in future) TrueType fonts. This is the primary text measurement API.
+/// </summary>
+public abstract class BaseFont
+{
+    /// <summary>
+    /// Windows-1252 encoding. Supports ASCII plus Western European characters
+    /// including accented letters (e, n, u), the Euro sign, em/en dashes,
+    /// and typographic quotes. Characters outside this range are replaced with '?'.
+    ///
+    /// For full Unicode support, use <see cref="IdentityH"/> encoding with an
+    /// embedded TrueType font. (Note: Identity-H support is planned for a future release.)
+    /// </summary>
+    public const string WinAnsiEncoding = "Cp1252";
+
+    /// <summary>
+    /// Identity-H encoding for full Unicode CIDFont support.
+    /// Requires an embedded TrueType font. Not yet implemented — planned for a future release.
+    /// </summary>
+    public const string IdentityH = "Identity-H";
+
+    /// <summary>Font descriptor key for the ascent (distance above baseline).</summary>
+    public const int ASCENT = 1;
+
+    /// <summary>Font descriptor key for the cap height.</summary>
+    public const int CAPHEIGHT = 2;
+
+    /// <summary>Font descriptor key for the descent (distance below baseline, typically negative).</summary>
+    public const int DESCENT = 3;
+
+    /// <summary>Font descriptor key for the italic angle in degrees.</summary>
+    public const int ITALICANGLE = 4;
+
+    /// <summary>Font descriptor key for the bounding box lower-left X.</summary>
+    public const int BBOXLLX = 5;
+
+    /// <summary>Font descriptor key for the bounding box lower-left Y.</summary>
+    public const int BBOXLLY = 6;
+
+    /// <summary>Font descriptor key for the bounding box upper-right X.</summary>
+    public const int BBOXURX = 7;
+
+    /// <summary>Font descriptor key for the bounding box upper-right Y.</summary>
+    public const int BBOXURY = 8;
+
+    /// <summary>Helvetica (regular).</summary>
+    public const string Helvetica = "Helvetica";
+
+    /// <summary>Helvetica Bold.</summary>
+    public const string HelveticaBold = "Helvetica-Bold";
+
+    /// <summary>Helvetica Oblique (italic).</summary>
+    public const string HelveticaOblique = "Helvetica-Oblique";
+
+    /// <summary>Helvetica Bold Oblique (bold italic).</summary>
+    public const string HelveticaBoldOblique = "Helvetica-BoldOblique";
+
+    /// <summary>Times Roman (regular).</summary>
+    public const string TimesRoman = "Times-Roman";
+
+    /// <summary>Times Bold.</summary>
+    public const string TimesBold = "Times-Bold";
+
+    /// <summary>Times Italic.</summary>
+    public const string TimesItalic = "Times-Italic";
+
+    /// <summary>Times Bold Italic.</summary>
+    public const string TimesBoldItalic = "Times-BoldItalic";
+
+    /// <summary>Courier (regular, monospaced).</summary>
+    public const string Courier = "Courier";
+
+    /// <summary>Courier Bold.</summary>
+    public const string CourierBold = "Courier-Bold";
+
+    /// <summary>Courier Oblique (italic).</summary>
+    public const string CourierOblique = "Courier-Oblique";
+
+    /// <summary>Courier Bold Oblique (bold italic).</summary>
+    public const string CourierBoldOblique = "Courier-BoldOblique";
+
+    /// <summary>Symbol font (Greek letters and mathematical symbols).</summary>
+    public const string Symbol = "Symbol";
+
+    /// <summary>ZapfDingbats font (decorative symbols and icons).</summary>
+    public const string ZapfDingbats = "ZapfDingbats";
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, BaseFont> _fontCache = new();
+
+    /// <summary>The PostScript name of this font.</summary>
+    public string PostscriptName { get; }
+
+    /// <summary>Initializes the base font with the given PostScript name.</summary>
+    /// <param name="postscriptName">The PostScript name of the font.</param>
+    protected BaseFont(string postscriptName)
+    {
+        PostscriptName = postscriptName;
+    }
+
+    /// <summary>
+    /// Creates a BaseFont for the given font name and encoding.
+    /// For the 14 standard PDF fonts, no external font file is needed.
+    /// For TrueType fonts, pass the .ttf file path as <paramref name="name"/>.
+    /// Use <see cref="CanEncode"/> to check whether a specific character is supported
+    /// by the font's encoding before rendering.
+    /// </summary>
+    /// <param name="name">Font name (e.g., "Helvetica") or a .ttf file path.</param>
+    /// <param name="encoding">Encoding (e.g., <see cref="WinAnsiEncoding"/>). Currently only
+    /// WinAnsi (Windows-1252) is supported, which covers ASCII and Western European characters.</param>
+    /// <param name="embedded">Whether to embed the font (always true for TrueType).</param>
+    public static BaseFont CreateFont(string name, string encoding, bool embedded)
+    {
+        string key = $"{name}-{encoding}";
+        return _fontCache.GetOrAdd(key, _ =>
+        {
+            if (BuiltinFonts.IsStandardFont(name))
+                return new Type1Font(name);
+
+            if (IsTrueTypeFontFile(name))
+            {
+                byte[] fontData = File.ReadAllBytes(name);
+                string psName = TrueTypeFont.ExtractPostscriptName(fontData);
+                return new TrueTypeFont(psName, fontData);
+            }
+
+            throw new ArgumentException(
+                $"Font '{name}' is not a standard PDF font and is not a valid TrueType font file path.",
+                nameof(name));
+        });
+    }
+
+    private static bool IsTrueTypeFontFile(string name)
+    {
+        return name.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Measures the width of a string at the given font size, in points.
+    /// This is the key method for the reporting engine's text measurement.
+    /// </summary>
+    /// <param name="text">The text to measure.</param>
+    /// <param name="fontSize">The font size in points.</param>
+    /// <returns>The width of the text in points.</returns>
+    public double GetWidthPoint(string text, double fontSize)
+    {
+        double totalWidth = 0;
+        foreach (char c in text)
+        {
+            totalWidth += GetCharWidth(c);
+        }
+        return totalWidth * fontSize / 1000.0;
+    }
+
+    /// <summary>
+    /// Gets the width of a single character in 1/1000 of a unit (unscaled).
+    /// </summary>
+    /// <param name="c">The character code.</param>
+    /// <returns>The character width in thousandths of a unit.</returns>
+    public abstract int GetCharWidth(int c);
+
+    /// <summary>
+    /// Gets a font descriptor value scaled to the given font size.
+    /// </summary>
+    /// <param name="key">One of the descriptor constants (ASCENT, DESCENT, etc.).</param>
+    /// <param name="fontSize">The font size in points.</param>
+    public abstract double GetFontDescriptor(int key, double fontSize);
+
+    /// <summary>
+    /// Returns whether the given character can be represented in the current encoding.
+    /// For WinAnsi fonts, returns true for characters in the Windows-1252 range.
+    /// </summary>
+    /// <param name="c">The character to test.</param>
+    /// <returns><c>true</c> if the character can be encoded; otherwise, <c>false</c>.</returns>
+    public bool CanEncode(char c)
+    {
+        return PdfEncodings.CharToWinAnsi(c) >= 0;
+    }
+}

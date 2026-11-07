@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- PdfPig (Apache-2.0) is used for rendering-aware per-physical-page text
+         extraction in regression tests. Test-only dependency; not shipped with
+         the DabblerPdf package, so its license does not propagate. -->
+    <PackageReference Include="PdfPig" Version="0.1.16" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DabblerPdf\DabblerPdf.csproj" />
+    <!-- Referenced so rendering-visibility tests can drive the exact sample
+         code path the runnable program executes, rather than duplicating the
+         band-drawing logic. Only sample types need to be reachable here, not
+         the runner. -->
+    <ProjectReference Include="..\..\DabblerPdf.Samples\DabblerPdf.Samples.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Liberation Sans (SIL OFL 1.1), metric-compatible with Arial: the
+         TrueType test fixture, so those tests run on any OS. -->
+    <None Include="Fonts\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
