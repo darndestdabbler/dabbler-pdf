@@ -13,17 +13,19 @@ namespace DabblerPdf.Tests.Text;
 
 /// <summary>
 /// Tests for TrueType font loading, text measurement, and PDF embedding.
-/// Uses Arial (C:\Windows\Fonts\arial.ttf) as the test font since it's
-/// universally available on Windows.
+/// Uses the vendored Liberation Sans Regular fixture (Fonts/LiberationSans-Regular.ttf,
+/// SIL OFL 1.1, copied to the test output directory), which is metric-compatible
+/// with Arial, so the tests run on any OS.
 /// </summary>
 public class TrueTypeFontTests
 {
-    private const string ArialPath = @"C:\Windows\Fonts\arial.ttf";
+    private static readonly string FontPath =
+        Path.Combine(AppContext.BaseDirectory, "Fonts", "LiberationSans-Regular.ttf");
 
-    private static void SkipIfNoArial()
+    private static void RequireFontFixture()
     {
-        if (!File.Exists(ArialPath))
-            Assert.Fail("Arial.ttf not found — skipping TrueType test");
+        if (!File.Exists(FontPath))
+            Assert.Fail($"Font fixture not found at {FontPath}; the checkout or test output is broken.");
     }
 
     public class FontLoadingTests
@@ -31,21 +33,21 @@ public class TrueTypeFontTests
         [Fact]
         public void CreateFont_ArialTtf_LoadsSuccessfully()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             Assert.NotNull(font);
-            // Arial's PostScript name is "ArialMT"
-            Assert.Equal("ArialMT", font.PostscriptName);
+            // Liberation Sans Regular's PostScript name is "LiberationSans"
+            Assert.Equal("LiberationSans", font.PostscriptName);
         }
 
         [Fact]
         public void CreateFont_ArialTtf_CachesInstances()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font1 = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
-            var font2 = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font1 = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
+            var font2 = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             Assert.Same(font1, font2);
         }
 
@@ -62,9 +64,9 @@ public class TrueTypeFontTests
         [Fact]
         public void GetWidthPoint_HelloWorld_Arial12()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             double width = font.GetWidthPoint("Hello World", 12.0);
 
             // Arial is metrically very similar to Helvetica.
@@ -75,18 +77,18 @@ public class TrueTypeFontTests
         [Fact]
         public void GetWidthPoint_EmptyString_ReturnsZero()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             Assert.Equal(0.0, font.GetWidthPoint("", 12.0));
         }
 
         [Fact]
         public void GetCharWidth_Space_NonZero()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             int spaceWidth = font.GetCharWidth(32);
             // Space should have a positive width (typically 200-300 units)
             Assert.True(spaceWidth > 0, $"Space width should be positive, got {spaceWidth}");
@@ -95,9 +97,9 @@ public class TrueTypeFontTests
         [Fact]
         public void GetCharWidth_UpperA_NonZero()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             int aWidth = font.GetCharWidth('A');
             // 'A' should have a positive width (typically 600-700 units)
             Assert.True(aWidth > 0, $"'A' width should be positive, got {aWidth}");
@@ -106,9 +108,9 @@ public class TrueTypeFontTests
         [Fact]
         public void GetCharWidth_OutOfRange_ReturnsZero()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             Assert.Equal(0, font.GetCharWidth(300));
             Assert.Equal(0, font.GetCharWidth(-1));
         }
@@ -119,9 +121,9 @@ public class TrueTypeFontTests
         [Fact]
         public void Ascent_IsPositive()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             double ascent = font.GetFontDescriptor(BaseFont.ASCENT, 12.0);
             Assert.True(ascent > 0, $"Ascent should be positive, got {ascent}");
         }
@@ -129,9 +131,9 @@ public class TrueTypeFontTests
         [Fact]
         public void Descent_IsNegative()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             double descent = font.GetFontDescriptor(BaseFont.DESCENT, 12.0);
             Assert.True(descent < 0, $"Descent should be negative, got {descent}");
         }
@@ -139,9 +141,9 @@ public class TrueTypeFontTests
         [Fact]
         public void CapHeight_IsPositive()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             double capHeight = font.GetFontDescriptor(BaseFont.CAPHEIGHT, 12.0);
             Assert.True(capHeight > 0, $"CapHeight should be positive, got {capHeight}");
         }
@@ -149,9 +151,9 @@ public class TrueTypeFontTests
         [Fact]
         public void LineHeight_CanBeComputed()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             double ascent = font.GetFontDescriptor(BaseFont.ASCENT, 12.0);
             double descent = font.GetFontDescriptor(BaseFont.DESCENT, 12.0);
             double lineHeight = ascent - descent;
@@ -162,9 +164,9 @@ public class TrueTypeFontTests
         [Fact]
         public void ItalicAngle_IsZeroForArial()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             double angle = font.GetFontDescriptor(BaseFont.ITALICANGLE, 1000.0);
             // Arial (non-italic) should have italic angle of 0
             Assert.Equal(0.0, angle, 1);
@@ -176,7 +178,7 @@ public class TrueTypeFontTests
         [Fact]
         public void TrueTypeText_ProducesValidPdf()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
             using var stream = new MemoryStream();
             var document = new DabblerPdf.Document.Document(PageSize.Letter);
@@ -184,7 +186,7 @@ public class TrueTypeFontTests
             document.Open();
             document.NewPage();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             var cb = writer.DirectContent;
 
             cb.BeginText();
@@ -202,7 +204,7 @@ public class TrueTypeFontTests
             Assert.StartsWith("%PDF-1.4", pdfText);
             Assert.Contains("/Type /Font", pdfText);
             Assert.Contains("/Subtype /TrueType", pdfText);
-            Assert.Contains("/BaseFont /ArialMT", pdfText);
+            Assert.Contains("/BaseFont /LiberationSans", pdfText);
             Assert.Contains("/FontDescriptor", pdfText);
             Assert.Contains("/FontFile2", pdfText);
             Assert.Contains("/Widths", pdfText);
@@ -214,7 +216,7 @@ public class TrueTypeFontTests
         [Fact]
         public void TrueTypeAndType1_MixedOnPage()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
             using var stream = new MemoryStream();
             var document = new DabblerPdf.Document.Document(PageSize.Letter);
@@ -222,7 +224,7 @@ public class TrueTypeFontTests
             document.Open();
             document.NewPage();
 
-            var arial = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var arial = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             var helvetica = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
             var cb = writer.DirectContent;
 
@@ -248,21 +250,21 @@ public class TrueTypeFontTests
             // Both font types should be present
             Assert.Contains("/Subtype /TrueType", pdfText);
             Assert.Contains("/Subtype /Type1", pdfText);
-            Assert.Contains("/ArialMT", pdfText);
+            Assert.Contains("/LiberationSans", pdfText);
             Assert.Contains("/Helvetica", pdfText);
         }
 
         [Fact]
         public void TrueType_MultiPage_ProducesValidPdf()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
             using var stream = new MemoryStream();
             var document = new DabblerPdf.Document.Document(PageSize.Letter);
             var writer = PdfWriter.GetInstance(document, stream);
             document.Open();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
 
             // Page 1
             document.NewPage();
@@ -292,14 +294,14 @@ public class TrueTypeFontTests
         [Fact]
         public void TrueType_WithDrawing_CombinedOnPage()
         {
-            SkipIfNoArial();
+            RequireFontFixture();
 
             using var stream = new MemoryStream();
             var document = new DabblerPdf.Document.Document(PageSize.Letter);
             var writer = PdfWriter.GetInstance(document, stream);
             document.Open();
 
-            var font = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
             document.NewPage();
             var cb = writer.DirectContent;
 

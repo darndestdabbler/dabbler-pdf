@@ -19,9 +19,10 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 5 | Continuous integration | no | 2026-11-07 |
 | 6 | Trusted publishing | no | 2026-11-07 |
 | 7 | Packaging | no | 2026-11-07 |
-| 8 | Maintainer guide | — | not declared |
-| 9 | Bump the version to 1.1.3 | — | not declared |
-| 10 | Release 1.1.3 (release: 1.1.3) | — | not declared |
+| 8 | Make the TrueType tests run on Linux | no | 2026-11-07 |
+| 9 | Maintainer guide | — | not declared |
+| 10 | Bump the version to 1.1.3 | — | not declared |
+| 11 | Release 1.1.3 (release: 1.1.3) | — | not declared |
 
 ### Session 1 — Author or import the solution plan
 
@@ -64,3 +65,9 @@ Set up trusted publishing for the DabblerPdf NuGet package. Turn on package vali
 **Releasable: no.**
 
 Declare how this repository packs by writing the packaging: block in dabbler.yaml and nothing else: a pack-only declaration whose argv is ["dotnet", "pack", "src/DabblerPdf/DabblerPdf.csproj", "-c", "Release", "-o", "{output}"], so the package version comes from the csproj's <Version> that the CI gate reads, with no push block and no credential, because nuget.org publication stays with CI on the nuget-v<version> tag. The comment that stood in for the block is replaced by a short one saying why there is no push. The check is that `dabbler packaging --rehearse` exits 0.
+
+### Session 8 — Make the TrueType tests run on Linux
+
+**Releasable: no.**
+
+Make the 17 TrueType tests pass on any OS by vendoring Liberation Sans Regular (SIL OFL 1.1, metric-compatible with Arial, from the liberationfonts/liberation-fonts 2.1.5 release) with its LICENSE under tests/DabblerPdf.Tests/Fonts/, copied to the test output directory, and pointing TrueTypeFontTests.cs and MvpValidationTests.cs at that fixture relative to AppContext.BaseDirectory. SkipIfNoArial is replaced by a precondition that fails naming the fixture path when it is missing; the PostScript-name and /BaseFont assertions that expect ArialMT (the PostscriptName check, Scenario 8, and the two other /ArialMT content assertions in TrueTypeFontTests that would otherwise fail) expect LiberationSans; the TrueTypeFontTests class doc comment is rewritten. Width and metric tolerances stay as they are. The whole suite then passes with 614 passed and 0 skipped, and no tracked file under tests/ names Windows\Fonts.

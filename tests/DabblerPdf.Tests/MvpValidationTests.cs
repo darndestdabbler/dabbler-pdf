@@ -21,12 +21,13 @@ namespace DabblerPdf.Tests;
 /// </summary>
 public class MvpValidationTests
 {
-    private const string ArialPath = @"C:\Windows\Fonts\arial.ttf";
+    private static readonly string FontPath =
+        Path.Combine(AppContext.BaseDirectory, "Fonts", "LiberationSans-Regular.ttf");
 
-    private static void SkipIfNoArial()
+    private static void RequireFontFixture()
     {
-        if (!File.Exists(ArialPath))
-            Assert.Fail("Arial.ttf not found — skipping TrueType test");
+        if (!File.Exists(FontPath))
+            Assert.Fail($"Font fixture not found at {FontPath}; the checkout or test output is broken.");
     }
 
     /// <summary>
@@ -277,14 +278,14 @@ public class MvpValidationTests
     [Fact]
     public void Scenario8_TrueTypeFont_FromTtfFile()
     {
-        SkipIfNoArial();
+        RequireFontFixture();
 
         using var ms = new MemoryStream();
         var document = new DabblerPdf.Document.Document(PageSize.Letter);
         var writer = PdfWriter.GetInstance(document, ms);
         document.Open();
 
-        var arial = BaseFont.CreateFont(ArialPath, BaseFont.WinAnsiEncoding, true);
+        var arial = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
 
         var cb = writer.DirectContent;
         cb.BeginText();
@@ -297,7 +298,7 @@ public class MvpValidationTests
 
         var pdf = Encoding.ASCII.GetString(ms.ToArray());
         Assert.Contains("/Subtype /TrueType", pdf);
-        Assert.Contains("/BaseFont /ArialMT", pdf);
+        Assert.Contains("/BaseFont /LiberationSans", pdf);
         Assert.Contains("/FontFile2", pdf);
     }
 

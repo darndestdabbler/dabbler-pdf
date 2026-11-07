@@ -27,4 +27,10 @@
     <ProjectReference Include="..\..\DabblerPdf.Samples\DabblerPdf.Samples.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Liberation Sans (SIL OFL 1.1), metric-compatible with Arial: the
+         TrueType test fixture, so those tests run on any OS. -->
+    <None Update="Fonts\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
