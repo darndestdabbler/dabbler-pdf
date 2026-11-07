@@ -69,4 +69,9 @@ testing:
   #     smoke:
   #       - tests/Csv.Tests/SmokeTests.cs
 
-# The packaging: block is written by Session 7; nuget.org publication is CI's, on a nuget-v<version> tag.
+# Pack only: the version is the csproj's <Version>, which the CI gate reads.
+# No push is declared because nuget.org publication is CI's, on a
+# nuget-v<version> tag.
+packaging:
+  pack:
+    argv: ["dotnet", "pack", "src/DabblerPdf/DabblerPdf.csproj", "-c", "Release", "-o", "{output}"]

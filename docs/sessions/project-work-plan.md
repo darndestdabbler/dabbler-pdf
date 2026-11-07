@@ -18,7 +18,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 4 | Repository hygiene | no | 2026-11-07 |
 | 5 | Continuous integration | no | 2026-11-07 |
 | 6 | Trusted publishing | no | 2026-11-07 |
-| 7 | Packaging | — | not declared |
+| 7 | Packaging | no | 2026-11-07 |
 | 8 | Maintainer guide | — | not declared |
 | 9 | Bump the version to 1.1.3 | — | not declared |
 | 10 | Release 1.1.3 (release: 1.1.3) | — | not declared |
@@ -58,3 +58,9 @@ Add continuous integration to DabblerPdf. Pin the test project's floating packag
 **Releasable: no.**
 
 Set up trusted publishing for the DabblerPdf NuGet package. Turn on package validation in src/DabblerPdf/DabblerPdf.csproj (EnablePackageValidation true, PackageValidationBaselineVersion 1.1.2) so a pack fails on a breaking change to the public surface relative to the published 1.1.2. Write .github/workflows/publish.yml: on push of a nuget-v* tag it fails before packing unless the tag's version equals <Version> in the csproj, restores, builds and runs the whole suite in Release with a 5-minute hang timeout, packs the library, builds a throwaway console project that references DabblerPdf at that version from the pack output folder as a local source, then logs in through NuGet/login (id-token: write, user darndestdabbler) and pushes the .nupkg and .snupkg to nuget.org; a workflow_dispatch run does the same build, test, pack and smoke consumer but pushes to GitHub Packages instead of nuget.org. Before the session closes the operator creates the nuget.org trusted-publishing policy with Workflow File publish.yml and runs the workflow_dispatch dry run once; that run is linked in the notes.
+
+### Session 7 — Packaging
+
+**Releasable: no.**
+
+Declare how this repository packs by writing the packaging: block in dabbler.yaml and nothing else: a pack-only declaration whose argv is ["dotnet", "pack", "src/DabblerPdf/DabblerPdf.csproj", "-c", "Release", "-o", "{output}"], so the package version comes from the csproj's <Version> that the CI gate reads, with no push block and no credential, because nuget.org publication stays with CI on the nuget-v<version> tag. The comment that stood in for the block is replaced by a short one saying why there is no push. The check is that `dabbler packaging --rehearse` exits 0.
