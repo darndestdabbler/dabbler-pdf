@@ -1,0 +1,44 @@
+[
+  {
+    "issue": "Round 2 issue 1: Missing <param>/<returns> tags on various methods",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Added all missing <param> and <returns> tags."
+  },
+  {
+    "issue": "Round 2 issue 2: Missing <param>/<returns> tags on various methods",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Added all missing <param> and <returns> tags."
+  },
+  {
+    "issue": "Round 2 issue 3: Missing <param>/<returns> tags on various methods",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Added all missing <param> and <returns> tags."
+  },
+  {
+    "issue": "Round 2 issue 4: Missing <param>/<returns> tags on various methods",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Added all missing <param> and <returns> tags."
+  },
+  {
+    "issue": "Round 2 issue 5: Missing <param>/<returns> tags on various methods",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Added all missing <param> and <returns> tags."
+  },
+  {
+    "issue": "Round 2 issue 6: Missing <param>/<returns> tags on various methods",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Added all missing <param> and <returns> tags."
+  },
+  {
+    "issue": "Round 2 issue 7: Missing <param>/<returns> tags on various methods",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Added all missing <param> and <returns> tags."
+  }
+]
