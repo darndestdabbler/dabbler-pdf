@@ -220,7 +220,42 @@ is renamed to `archive/openpdf-port-2026-03`.
    refusal rather than adding a credential. Check: `dabbler packaging
    --rehearse` exits 0.
 
-### Session 8: Maintainer guide
+### Session 8: Make the TrueType tests run on Linux
+
+Every `build.yml` run since Session 5 has failed, and `publish.yml` runs
+the same suite on `ubuntu-latest`, so the 1.1.3 release would fail at the
+tag. The 17 TrueType tests in
+`tests/DabblerPdf.Tests/Text/TrueTypeFontTests.cs` and
+`tests/DabblerPdf.Tests/MvpValidationTests.cs` read Arial from
+`C:\Windows\Fonts\arial.ttf`, and their `SkipIfNoArial` helper calls
+`Assert.Fail` when the file is absent, so on a Linux runner a missing
+font is 17 failures, not 17 skips. The test project only; no library
+code changes, no font installation in a workflow.
+
+1. Register.
+2. Vendor Liberation Sans Regular (SIL Open Font License 1.1,
+   metric-compatible with Arial, from the `liberationfonts/liberation-fonts`
+   2.1.5 release) as `tests/DabblerPdf.Tests/Fonts/LiberationSans-Regular.ttf`
+   with the release's `LICENSE` beside it as
+   `tests/DabblerPdf.Tests/Fonts/LICENSE`, both copied to the test output
+   directory (`CopyToOutputDirectory` `PreserveNewest`). Check: a `node -e`
+   check confirms both files are tracked and the csproj names the `Fonts`
+   folder.
+3. In both test files, point the font-path constant at that fixture,
+   relative to `AppContext.BaseDirectory`, and replace `SkipIfNoArial` with
+   a precondition that fails naming the fixture path when it is missing,
+   so the suite reports a broken checkout rather than a skip. Change the
+   two `ArialMT` assertions (the `PostscriptName` check and Scenario 8's
+   `/BaseFont /ArialMT`) to `LiberationSans`; leave the width and metric
+   tolerances alone, since the metrics match Arial. Rewrite the
+   `TrueTypeFontTests` class doc comment, which cites the Windows path.
+   Check: `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m` (the whole
+   suite) exits 0 with 614 passed and 0 skipped, and no tracked file under
+   `tests/` names `Windows\Fonts`. Green on a clean runner is confirmed
+   from the push's Actions run, linked in the session notes; the open
+   Dependabot pull requests go green once rebased onto it.
+
+### Session 9: Maintainer guide
 
 1. Register.
 2. Write `docs/MAINTAINING.md`: clone, build, test (the whole suite,
@@ -244,7 +279,7 @@ is renamed to `archive/openpdf-port-2026-03`.
    `node -e` check confirms the README heading exists and `LICENSE` no
    longer contains `openpdf-dotnet`.
 
-### Session 9: Bump the version to 1.1.3
+### Session 10: Bump the version to 1.1.3
 
 1. Register.
 2. Set `<Version>` to `1.1.3` and rewrite `PackageReleaseNotes` in
@@ -254,9 +289,9 @@ is renamed to `archive/openpdf-port-2026-03`.
    src/DabblerPdf/DabblerPdf.csproj -c Release -o <scratch dir>` exits 0
    and produces `DabblerPdf.1.1.3.nupkg`.
 
-### Session 10: Release 1.1.3 (release: 1.1.3)
+### Session 11: Release 1.1.3 (release: 1.1.3)
 
-Proposed version: **1.1.3 (patch)** — Sessions 3–9 change no public
+Proposed version: **1.1.3 (patch)** — Sessions 3–10 change no public
 surface. Publication is the annotated `nuget-v1.1.3` tag, from which
 `publish.yml` publishes to nuget.org; the operator creates the tag by hand
 until the framework's tagging can name a `nuget-v` tag, and holds the
