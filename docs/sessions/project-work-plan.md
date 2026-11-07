@@ -17,7 +17,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 3 | Adopt the solution and narrow the test suite | no | 2026-11-07 |
 | 4 | Repository hygiene | no | 2026-11-07 |
 | 5 | Continuous integration | no | 2026-11-07 |
-| 6 | Trusted publishing | — | not declared |
+| 6 | Trusted publishing | no | 2026-11-07 |
 | 7 | Packaging | — | not declared |
 | 8 | Maintainer guide | — | not declared |
 | 9 | Bump the version to 1.1.3 | — | not declared |
@@ -52,3 +52,9 @@ Clean the repository of the v1 AI-led workflow: delete the v1 relics (ai-router/
 **Releasable: no.**
 
 Add continuous integration to DabblerPdf. Pin the test project's floating package versions (Microsoft.NET.Test.Sdk 17.*, xunit 2.*, xunit.runner.visualstudio 2.*, PdfPig 0.1.*) to the exact versions restore resolves today (17.14.1, 2.9.3, 2.8.2, 0.1.16) so CI builds are reproducible; write a GitHub Actions workflow (.github/workflows/build.yml) that on push and pull request to main restores, builds DabblerPdf.slnx in Release and runs the whole test suite with a 5-minute hang timeout on ubuntu-latest with .NET 10.0.x; and write .github/dependabot.yml so Dependabot proposes weekly updates for the nuget and github-actions ecosystems at the repository root. Green on a clean runner is confirmed from the push's Actions run, linked in the session notes.
+
+### Session 6 — Trusted publishing
+
+**Releasable: no.**
+
+Set up trusted publishing for the DabblerPdf NuGet package. Turn on package validation in src/DabblerPdf/DabblerPdf.csproj (EnablePackageValidation true, PackageValidationBaselineVersion 1.1.2) so a pack fails on a breaking change to the public surface relative to the published 1.1.2. Write .github/workflows/publish.yml: on push of a nuget-v* tag it fails before packing unless the tag's version equals <Version> in the csproj, restores, builds and runs the whole suite in Release with a 5-minute hang timeout, packs the library, builds a throwaway console project that references DabblerPdf at that version from the pack output folder as a local source, then logs in through NuGet/login (id-token: write, user darndestdabbler) and pushes the .nupkg and .snupkg to nuget.org; a workflow_dispatch run does the same build, test, pack and smoke consumer but pushes to GitHub Packages instead of nuget.org. Before the session closes the operator creates the nuget.org trusted-publishing policy with Workflow File publish.yml and runs the workflow_dispatch dry run once; that run is linked in the notes.

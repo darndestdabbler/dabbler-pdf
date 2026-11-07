@@ -42,6 +42,10 @@
     <!-- Include symbols for debugging -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Fail a pack on a breaking change to the public surface since the published baseline -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>1.1.2</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
