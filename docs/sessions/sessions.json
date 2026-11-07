@@ -92,9 +92,9 @@
     {
       "number": 5,
       "title": "Continuous integration",
-      "status": "in-progress",
+      "status": "complete",
       "startedAt": "2026-11-07T12:32:57.584000-05:00",
-      "completedAt": null,
+      "completedAt": "2026-11-07T12:39:29.968000-05:00",
       "orchestrator": {
         "engine": "claude-code",
         "provider": "anthropic",
