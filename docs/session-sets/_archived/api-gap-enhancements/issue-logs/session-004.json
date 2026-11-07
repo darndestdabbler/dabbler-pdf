@@ -1,0 +1,20 @@
+[
+  {
+    "issue": "S07_MultiPage.cs OnEndPage: AddTemplate Y coordinate alleged double-conversion with PdfY",
+    "severity": "Major",
+    "status": "deferred",
+    "response": "FALSE POSITIVE. DrawText takes top-down Y and converts internally via PdfY(). AddTemplate takes raw PDF Y (bottom-up) \u2014 no internal conversion. Calling PdfY(y - 10) before passing to AddTemplate is correct: both DrawText(y-10) and AddTemplate(PdfY(y-10)) produce the same PDF Y coordinate. With y=720: PdfY(710)=82 for both. The text baseline and template origin are aligned at the same Y."
+  },
+  {
+    "issue": "HeaderFooterPageEvent accesses Margin/ContentWidth/etc from SampleBase without inheriting",
+    "severity": "Minor",
+    "status": "deferred",
+    "response": "NOT AN ISSUE. These are all const or static members of SampleBase. Nested class in a subclass (S07_MultiPage : SampleBase) can access inherited static/const members. Build succeeds with 0 errors, confirming access."
+  },
+  {
+    "issue": "Template resource names increment across pages (_templateCounter not reset)",
+    "severity": "Minor",
+    "status": "deferred",
+    "response": "NOT A BUG. Same behavior as _imageCounter. Resource names only need to be unique within a page's resource dictionary, and they are. The same template gets different names on different pages but this is functionally correct."
+  }
+]

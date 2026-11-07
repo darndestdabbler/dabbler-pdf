@@ -1,0 +1,121 @@
+{
+  "sessionSetName": "orders-style-sample-and-title-investigation",
+  "createdDate": "2026-04-23T01:30:21.453792+00:00",
+  "totalSessions": 1,
+  "entries": [
+    {
+      "sessionNumber": 1,
+      "stepNumber": 1,
+      "stepKey": "session-1/read-planning",
+      "dateTime": "2026-04-23T01:30:21.455798+00:00",
+      "description": "Read CLAUDE.md, project-guidance.md, lessons-learned.md, README.md, and the new feedback memory. Noted the 'String In Bytes' Is Not 'Rendered Visible' lesson as binding for the PdfPig assertions.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 2,
+      "stepKey": "session-1/sample-implementation",
+      "dateTime": "2026-04-23T01:30:21.456892+00:00",
+      "description": "Added DabblerPdf.Samples/Samples/S11_OrdersStyleReport.cs \u2014 landscape 11x8.5, reportHeader written to DirectContent before any NewPage(), pageHeader repeated every page, 4 synthetic customer groups with 48 detail rows, IPdfPageEvent-driven page footer with PdfTemplate for 'Page N of M', explicit navy (#1A1A2E) SetColorFill immediately before the title Tj.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 3,
+      "stepKey": "session-1/sample-runner-registration",
+      "dateTime": "2026-04-23T01:30:21.456892+00:00",
+      "description": "Registered S11_OrdersStyleReport in DabblerPdf.Samples/Program.cs after S10_StressTest.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 4,
+      "stepKey": "session-1/sample-generation",
+      "dateTime": "2026-04-23T01:30:21.456892+00:00",
+      "description": "Ran dotnet run --project DabblerPdf.Samples with an explicit output dir of DabblerPdf.Samples/Output \u2014 11 samples generated cleanly, S11 produced 11-orders-style-report.pdf (5.0 KB). Amended .gitignore to permit committing this one PDF while keeping the rest of Output/ ignored.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 5,
+      "stepKey": "session-1/visual-inspection-findings",
+      "dateTime": "2026-04-23T01:30:21.456892+00:00",
+      "description": "Wrote DabblerPdf.Samples/Samples/S11_FINDINGS.md documenting the programmatic (PdfPig-based) signals and handing the final visual sign-off to the human. Orchestrator cannot open a PDF viewer directly; findings frame that honestly.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 6,
+      "stepKey": "session-1/pdfpig-assertions",
+      "dateTime": "2026-04-23T01:30:21.458035+00:00",
+      "description": "Added tests/DabblerPdf.Tests/Pdf/OrdersStyleSampleRenderingTests.cs \u2014 6 assertions: \u22653 physical pages; title top-20% bounding box and Helvetica-Bold font; no Page-2-of-N on page 1; exactly one Page X of N per page with correct X and N; rg triple before the title Tj matches navy (26/255, 26/255, 46/255); page 1 also shows column headers and first group. Added a ProjectReference from DabblerPdf.Tests to DabblerPdf.Samples so the test drives the exact sample code path.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 7,
+      "stepKey": "session-1/build-and-test",
+      "dateTime": "2026-04-23T01:30:21.458035+00:00",
+      "description": "dotnet build DabblerPdf.slnx: 0 warnings, 0 errors. dotnet test: 614/614 passing (608 pre-session + 6 new). CHANGELOG.md updated with a '1.1.1 verified' note and an Added entry for S11 + companion test.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 8,
+      "stepKey": "session-1/verification",
+      "dateTime": "2026-04-23T01:35:04.424407+00:00",
+      "description": "Cross-provider session-verification via route(task_type='session-verification'). Model: gemini-pro. Verifier: n/a. Cost: $0.0215.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 17181,
+          "outputTokens": 2,
+          "costUsd": 0.021496249999999998
+        }
+      ]
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 8,
+      "stepKey": "session-1/verification",
+      "dateTime": "2026-04-23T01:36:04.535753+00:00",
+      "description": "Cross-provider session-verification via route(task_type='session-verification'). Model: gemini-pro. Verifier: n/a. Cost: $0.0295.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 17539,
+          "outputTokens": 762,
+          "costUsd": 0.02954375
+        }
+      ]
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 9,
+      "stepKey": "session-1/change-log",
+      "dateTime": "2026-04-23T01:36:54.264752+00:00",
+      "description": "Generated change-log.md via route(task_type='summarization', max_tier=1). Model: gemini-flash. Cost: $0.0012.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-flash",
+          "taskType": "summarization",
+          "inputTokens": 3927,
+          "outputTokens": 959,
+          "costUsd": 0.00116445
+        }
+      ]
+    }
+  ]
+}

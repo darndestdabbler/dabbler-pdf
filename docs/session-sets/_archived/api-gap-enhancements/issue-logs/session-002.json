@@ -1,0 +1,8 @@
+[
+  {
+    "issue": "DrawText creates a new BT/ET text object for every line, adding unnecessary overhead to the PDF content stream",
+    "severity": "Minor",
+    "status": "fixed",
+    "response": "Refactored DrawText to use a single BT/ET block with SetTextMatrix for each line position. All 525 tests still pass."
+  }
+]

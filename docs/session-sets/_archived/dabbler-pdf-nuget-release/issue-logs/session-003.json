@@ -1,0 +1,14 @@
+[
+  {
+    "issue": "Em dash encoding artifact in csproj Description and CHANGELOG.md",
+    "severity": "Minor",
+    "status": "deferred",
+    "response": "False positive. The em dashes are properly encoded as UTF-8 U+2014 (bytes e2 80 94). Verified by inspecting raw file bytes. No changes needed."
+  },
+  {
+    "issue": "SPDX license expression uses forward slash instead of OR operator",
+    "severity": "Minor",
+    "status": "deferred",
+    "response": "False positive. The actual file contains 'LGPL-2.1-only AND MPL-2.0' (with AND, not a forward slash). This is a valid SPDX expression and matches the project's CLAUDE.md instructions. The verifier hallucinated the file content."
+  }
+]
