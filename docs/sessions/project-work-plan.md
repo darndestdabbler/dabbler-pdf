@@ -16,7 +16,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 2 | Challenge the plan, then break it into numbered sessions | no | 2026-11-07 |
 | 3 | Adopt the solution and narrow the test suite | no | 2026-11-07 |
 | 4 | Repository hygiene | no | 2026-11-07 |
-| 5 | Continuous integration | — | not declared |
+| 5 | Continuous integration | no | 2026-11-07 |
 | 6 | Trusted publishing | — | not declared |
 | 7 | Packaging | — | not declared |
 | 8 | Maintainer guide | — | not declared |
@@ -46,3 +46,9 @@ Adopt DabblerPdf.slnx and its three existing projects (src/DabblerPdf, tests/Dab
 **Releasable: no.**
 
 Clean the repository of the v1 AI-led workflow: delete the v1 relics (ai-router/, utils/, docs/ai-led-session-workflow.md, docs/claude-instructions/, docs/gemini-instructions/, GEMINI.md) and the .gitignore lines that only served them (the router-state.db entry); move every docs/session-sets/<set>/ under docs/session-sets/_archived/ with git mv and add an _archived/README.md marking them as closed v1 history not to be resumed or migrated; and replace the v1 text above the managed fence in AGENTS.md and CLAUDE.md with a short project note (what DabblerPdf is, that it is a scoped port of OpenPDF, the build and test commands, and pointers to README.md and docs/planning/solution-plan.md), leaving the managed bodies and engine tails untouched.
+
+### Session 5 — Continuous integration
+
+**Releasable: no.**
+
+Add continuous integration to DabblerPdf. Pin the test project's floating package versions (Microsoft.NET.Test.Sdk 17.*, xunit 2.*, xunit.runner.visualstudio 2.*, PdfPig 0.1.*) to the exact versions restore resolves today (17.14.1, 2.9.3, 2.8.2, 0.1.16) so CI builds are reproducible; write a GitHub Actions workflow (.github/workflows/build.yml) that on push and pull request to main restores, builds DabblerPdf.slnx in Release and runs the whole test suite with a 5-minute hang timeout on ubuntu-latest with .NET 10.0.x; and write .github/dependabot.yml so Dependabot proposes weekly updates for the nuget and github-actions ecosystems at the repository root. Green on a clean runner is confirmed from the push's Actions run, linked in the session notes.
