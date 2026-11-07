@@ -1,0 +1,8 @@
+[
+  {
+    "issue": "Colored DrawText overload manually resets fill color to BaseColor.Black instead of using SaveState/RestoreState, creating inconsistent state management pattern",
+    "severity": "Major",
+    "status": "fixed",
+    "response": "Wrapped the colored DrawText overload in SaveState()/RestoreState() and removed the manual SetColorFill(BaseColor.Black) reset."
+  }
+]
