@@ -48,15 +48,17 @@ schema_version: 1
 testing:
   suites:
     - name: dotnet
-      command: dotnet test
+      command: dotnet test DabblerPdf.slnx --blame-hang-timeout 5m
       expensive: true
       covers:
-        - "."
+        - src
+        - tests
+        - DabblerPdf.Samples
       test_roots:
-        - "."
+        - tests
       test_glob: "*Tests.cs"
       test_name: "{name}Tests.cs"
-      select: dotnet test --filter {names}
+      select: dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter {names}
       select_separator: "|"
 
   # A source file with no test named after it is shown to the reviewer,
@@ -67,21 +69,4 @@ testing:
   #     smoke:
   #       - tests/Csv.Tests/SmokeTests.cs
 
-# Step (f) of the lifecycle: pack, then push to a feed. A session that
-# declared itself releasable publishes through these -- both argv, never
-# shell strings, and `push` naming the credential rather than holding it.
-# This repository declares none, and that is the declaration: it publishes
-# to no feed today. A feed that is a folder on disk -- a drive path, a UNC
-# path or file:// -- takes no credential: leave `secret` out, and the push
-# runs without one. `dabbler packaging --dry-run` rehearses the block and
-# exits 0 when it loads, in a session that may not publish too;
-# `dabbler packaging --rehearse` runs the pack and pushes nothing.
-#
-#   packaging:
-#     pack:
-#       argv: ["dotnet", "pack", "-c", "Release", "-o", "{output}"]
-#     push:
-#       argv: ["dotnet", "nuget", "push", "{artifact}",
-#              "--source", "{feed}", "--api-key", "{secret}"]
-#       feed: https://pkgs.dev.azure.com/<org>/_packaging/<feed>/nuget/v3/index.json
-#       secret: DABBLER_FEED_PAT
+# The packaging: block is written by Session 7; nuget.org publication is CI's, on a nuget-v<version> tag.

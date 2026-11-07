@@ -14,6 +14,14 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | ---: | --- | --- | --- |
 | 1 | Author or import the solution plan | no | 2026-11-07 |
 | 2 | Challenge the plan, then break it into numbered sessions | no | 2026-11-07 |
+| 3 | Adopt the solution and narrow the test suite | no | 2026-11-07 |
+| 4 | Repository hygiene | — | not declared |
+| 5 | Continuous integration | — | not declared |
+| 6 | Trusted publishing | — | not declared |
+| 7 | Packaging | — | not declared |
+| 8 | Maintainer guide | — | not declared |
+| 9 | Bump the version to 1.1.3 | — | not declared |
+| 10 | Release 1.1.3 (release: 1.1.3) | — | not declared |
 
 ### Session 1 — Author or import the solution plan
 
@@ -26,3 +34,9 @@ Import the operator's brief (docs/planning/brief.md) into docs/planning/solution
 **Releasable: no.**
 
 Challenge the cuts and decisions in docs/planning/solution-plan.md and record the answers as a rationale section in that file: for the one module DabblerPdf, whether it should exist, whether each clause of its contract is a promise something can prove (and the cheapest proof where one is missing, e.g. SDK package validation against 1.1.2 for the additive-only surface), whether the dependency direction hides the decisions most likely to change, and a decision on each deferred cut (separate metrics package, moving the samples, the packaging block) and on each of the brief's six decisions. Then append the numbered sessions to docs/sessions/session-plan.md, starting at Session 3 with the session that adopts the existing DabblerPdf.slnx (narrowing the dotnet suite in dabbler.yaml to src, tests and DabblerPdf.Samples with test_roots [tests], expensive: true and a --blame-hang-timeout 5m hang limit, adding no project), followed by repository hygiene, continuous integration, trusted publishing, a packaging session that writes only the packaging: block (checked by dabbler packaging --rehearse), the maintainer guide, the 1.1.3 version bump, and a step-less Release 1.1.3 (release: 1.1.3) session proposed as a patch release.
+
+### Session 3 — Adopt the solution and narrow the test suite
+
+**Releasable: no.**
+
+Adopt DabblerPdf.slnx and its three existing projects (src/DabblerPdf, tests/DabblerPdf.Tests, DabblerPdf.Samples) as they stand, and narrow the dotnet test suite in dabbler.yaml: covers [src, tests, DabblerPdf.Samples], test_roots [tests], expensive true, command `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m`, and select `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter {names}`. Then replace the scaffold's commented packaging block in dabbler.yaml with one line saying the packaging: block is written by Session 7 and that nuget.org publication is CI's on a nuget-v<version> tag.
