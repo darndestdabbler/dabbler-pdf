@@ -122,3 +122,142 @@ starting with the session that adopts the solution.
 
 > Do NOT hand-author `sessions.json`. The first `session start`
 > bootstraps it from this plan — state files are the writers' job.
+
+### Session 3: Adopt the solution and narrow the test suite
+
+1. Register.
+2. Adopt `DabblerPdf.slnx` as it stands: the plan names no missing project,
+   reference or architecture test (see *Rationale: Session 2 challenge* in
+   `docs/planning/solution-plan.md`), so none is added and none of the three
+   projects is re-created. In `dabbler.yaml`, change the `dotnet` suite to
+   `covers: [src, tests, DabblerPdf.Samples]`, `test_roots: [tests]`,
+   `expensive: true`, command `dotnet test DabblerPdf.slnx
+   --blame-hang-timeout 5m`, and `select` `dotnet test DabblerPdf.slnx
+   --blame-hang-timeout 5m --filter {names}`. Check: `dotnet test
+   DabblerPdf.slnx --blame-hang-timeout 5m` (the whole suite, the command
+   the suite now declares) exits 0.
+3. Replace the scaffold's packaging comment in `dabbler.yaml` with one line
+   saying the `packaging:` block is written by Session 7 and that nuget.org
+   publication is CI's on a `nuget-v<version>` tag. Check: `dabbler
+   affected` exits 0 and loads the edited file.
+
+This session adopts and declares; it changes no code, project or test.
+
+### Session 4: Repository hygiene
+
+Precondition (operator, GitHub): the default branch is `main` and `master`
+is renamed to `archive/openpdf-port-2026-03`.
+
+1. Register.
+2. Delete the v1 relics: `ai-router/`, `utils/`,
+   `docs/ai-led-session-workflow.md`, `docs/claude-instructions/`,
+   `docs/gemini-instructions/` and `GEMINI.md`, and any `.gitignore` lines
+   that only served them. Check: `dotnet build DabblerPdf.slnx` exits 0 and
+   a `node -e` check confirms none of those paths exists.
+3. Move every `docs/session-sets/<set>/` to
+   `docs/session-sets/_archived/<set>/` with `git mv`, and add
+   `docs/session-sets/_archived/README.md` saying they are the v1
+   workflow's history, closed, and not to be resumed or migrated. Check: a
+   `node -e` check confirms `docs/session-sets/` holds only `_archived/`.
+4. Rewrite the v1 text above the managed fence in `AGENTS.md` and above
+   `@AGENTS.md` in `CLAUDE.md` as a short project note: what DabblerPdf
+   is, that it is a scoped port, the build and test commands, and pointers
+   to `README.md` and `docs/planning/solution-plan.md`. Leave the managed
+   body and engine tails untouched. Check: a `node -e` check confirms
+   neither file mentions `ai-router` or `ai-led-session-workflow`.
+
+### Session 5: Continuous integration
+
+1. Register.
+2. Pin the test project's floating package versions (`17.*`, `2.*`,
+   `0.1.*`) in `tests/DabblerPdf.Tests/DabblerPdf.Tests.csproj` to the
+   exact versions restore resolves today. Check: `dotnet test
+   DabblerPdf.slnx --blame-hang-timeout 5m` (the whole suite) exits 0.
+3. Write `.github/workflows/build.yml`: on push and pull request to
+   `main`, on `ubuntu-latest`, `actions/setup-dotnet` with `10.0.x`, then
+   `dotnet restore`, `dotnet build DabblerPdf.slnx -c Release
+   --no-restore` and `dotnet test DabblerPdf.slnx -c Release --no-build
+   --blame-hang-timeout 5m`. Check: `dotnet build DabblerPdf.slnx -c
+   Release` exits 0 locally, and a `node -e` check confirms the workflow
+   names those three commands. Green on a clean runner is confirmed from
+   the push's Actions run, linked in the session notes.
+4. Write `.github/dependabot.yml` covering the `nuget` ecosystem at `/`
+   and `github-actions` at `/`, weekly. Check: a `node -e` check confirms
+   both ecosystems are declared.
+
+### Session 6: Trusted publishing
+
+1. Register.
+2. Add package validation to `src/DabblerPdf/DabblerPdf.csproj`:
+   `EnablePackageValidation` true and `PackageValidationBaselineVersion`
+   `1.1.2`, so a pack fails on a breaking change to the public surface.
+   Check: `dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release -o
+   <scratch dir>` exits 0 (validation passes against the published 1.1.2).
+3. Write `.github/workflows/publish.yml`: on push of a `nuget-v*` tag,
+   fail before packing unless the tag's version equals `<Version>` in the
+   csproj; build and run the whole suite (`dotnet test DabblerPdf.slnx -c
+   Release --blame-hang-timeout 5m`); `dotnet pack` the library; build a
+   throwaway console project that references `DabblerPdf` at that version
+   from the pack's output folder as a local source; then push the
+   `.nupkg` and `.snupkg` to nuget.org through trusted publishing
+   (`id-token: write`, `NuGet/login`, owner `darndestdabbler`). A
+   `workflow_dispatch` run does everything but pushes to GitHub Packages
+   instead of nuget.org. Check: a `node -e` check confirms the tag
+   trigger, the version gate, the smoke consumer and both push targets.
+   Operator, before this session closes: create the nuget.org
+   trusted-publishing policy with *Workflow File* `publish.yml`, and run
+   the `workflow_dispatch` dry run once; its run is linked in the notes.
+
+### Session 7: Packaging
+
+1. Register.
+2. Write the `packaging:` block in `dabbler.yaml` and nothing else: `pack`
+   argv `["dotnet", "pack", "src/DabblerPdf/DabblerPdf.csproj", "-c",
+   "Release", "-o", "{output}"]`, the version coming from the csproj's
+   `<Version>` that the CI gate reads, and no nuget.org push with a
+   credential — nuget.org publication is CI's on the tag. If the framework
+   refuses a block without a push, report the step blocked with the
+   refusal rather than adding a credential. Check: `dabbler packaging
+   --rehearse` exits 0.
+
+### Session 8: Maintainer guide
+
+1. Register.
+2. Write `docs/MAINTAINING.md`: clone, build, test (the whole suite,
+   `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m`), run the samples,
+   pack, release by `nuget-v<version>` tag through `publish.yml`, how a
+   consumer pins a version, and a redistributor's LGPL-2.1/MPL-2.0
+   obligations; import what still holds from `project-guidance.md` and
+   `lessons-learned.md` (listed in the plan's *What carries over*). Then
+   delete `docs/planning/project-guidance.md`,
+   `docs/planning/lessons-learned.md` and `docs/planning/project-status.md`,
+   and repoint the links to `project-guidance.md` in `README.md` and in
+   `tests/DabblerPdf.Tests/Pdf/RenderingVisibilityDisciplineTests.cs`'s doc
+   comment to `docs/MAINTAINING.md`. Check: a `node -e` check confirms no
+   tracked file outside `docs/session-sets/_archived/` and
+   `docs/transcripts/` names the three deleted files.
+3. Add the README section "If this library stops being maintained" (vendor
+   the source under either license, keep the notices), link
+   `docs/MAINTAINING.md` from the README and from the project note in
+   `AGENTS.md`, and fix the `LICENSE` attribution line that names
+   "openpdf-dotnet contributors" to name `darndestdabbler`. Check: a
+   `node -e` check confirms the README heading exists and `LICENSE` no
+   longer contains `openpdf-dotnet`.
+
+### Session 9: Bump the version to 1.1.3
+
+1. Register.
+2. Set `<Version>` to `1.1.3` and rewrite `PackageReleaseNotes` in
+   `src/DabblerPdf/DabblerPdf.csproj`, and add a `1.1.3` entry to
+   `CHANGELOG.md`: no API change; first release built, validated and
+   published from CI through trusted publishing. Check: `dotnet pack
+   src/DabblerPdf/DabblerPdf.csproj -c Release -o <scratch dir>` exits 0
+   and produces `DabblerPdf.1.1.3.nupkg`.
+
+### Session 10: Release 1.1.3 (release: 1.1.3)
+
+Proposed version: **1.1.3 (patch)** — Sessions 3–9 change no public
+surface. Publication is the annotated `nuget-v1.1.3` tag, from which
+`publish.yml` publishes to nuget.org; the operator creates the tag by hand
+until the framework's tagging can name a `nuget-v` tag, and holds the
+release if the close cannot see the publication.
