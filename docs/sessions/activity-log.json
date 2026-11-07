@@ -57,6 +57,13 @@
       "dateTime": "2026-11-07T13:21:52.772000-05:00",
       "task": "Make the 17 TrueType tests pass on any OS by vendoring Liberation Sans Regular (SIL OFL 1.1, metric-compatible with Arial, from the liberationfonts/liberation-fonts 2.1.5 release) with its LICENSE under tests/DabblerPdf.Tests/Fonts/, copied to the test output directory, and pointing TrueTypeFontTests.cs and MvpValidationTests.cs at that fixture relative to AppContext.BaseDirectory. SkipIfNoArial is replaced by a precondition that fails naming the fixture path when it is missing; the PostScript-name and /BaseFont assertions that expect ArialMT (the PostscriptName check, Scenario 8, and the two other /ArialMT content assertions in TrueTypeFontTests that would otherwise fail) expect LiberationSans; the TrueTypeFontTests class doc comment is rewritten. Width and metric tolerances stay as they are. The whole suite then passes with 614 passed and 0 skipped, and no tracked file under tests/ names Windows\\Fonts.",
       "releasable": false
+    },
+    {
+      "kind": "task-declaration",
+      "sessionNumber": 9,
+      "dateTime": "2026-11-07T13:46:30.320000-05:00",
+      "task": "Write docs/MAINTAINING.md, the one maintainer document: how to clone, build, run the whole test suite (`dotnet test DabblerPdf.slnx --blame-hang-timeout 5m`), run the samples, pack, release by pushing a `nuget-v<version>` tag that `publish.yml` publishes, how a consumer pins a version, and what a redistributor owes under LGPL-2.1-only or MPL-2.0. It also takes in what still holds from the v1 project guidance and lessons learned, as listed in the solution plan's *What carries over*. Then delete the three v1 planning documents (docs/planning/project-guidance.md, docs/planning/lessons-learned.md, docs/planning/project-status.md) and repoint the two links to the guidance file, in README.md and in the doc comment of RenderingVisibilityDisciplineTests.cs, to docs/MAINTAINING.md. Last, add a README section \"If this library stops being maintained\" (vendor the source under either license and keep the notices), link docs/MAINTAINING.md from the README and from AGENTS.md's project note (outside the managed fence), and change the LICENSE attribution line from \"openpdf-dotnet contributors\" to `darndestdabbler`. The no-remaining-references check also skips the plan records that describe this retirement: docs/sessions/ (the framework's records and the session plan) and docs/planning/brief.md and solution-plan.md. Those names are history there, not links, and the plan records are not this session's to rewrite.",
+      "releasable": false
     }
   ]
 }

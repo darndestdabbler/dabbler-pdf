@@ -14,8 +14,9 @@ dotnet build DabblerPdf.slnx
 dotnet test tests/DabblerPdf.Tests/DabblerPdf.Tests.csproj
 ```
 
-See `README.md` for the library overview and `docs/planning/solution-plan.md`
-for the solution's plan.
+See `README.md` for the library overview, `docs/MAINTAINING.md` for how to
+build, test and release it, and `docs/planning/solution-plan.md` for the
+solution's plan.
 
 <!-- dabbler:managed:start -->
 # AI orchestrator instructions — `dabbler-pdf`

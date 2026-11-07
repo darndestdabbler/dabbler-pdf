@@ -15,8 +15,8 @@ namespace DabblerPdf.Tests.Pdf;
 
 /// <summary>
 /// Demonstrates the rendering-visibility test discipline captured in
-/// <c>docs/planning/project-guidance.md</c> → Testing Conventions →
-/// "Visibility assertions go through a rendering-aware parser".
+/// <c>docs/MAINTAINING.md</c> → Testing →
+/// "Bytes prove wiring; parsers prove rendering".
 ///
 /// <para>
 /// The sibling class <see cref="MultipageDirectContentRenderingTests"/> covers

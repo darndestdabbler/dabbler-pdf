@@ -252,8 +252,7 @@ rendering-aware parser (PdfPig) that reports per-physical-page text with boundin
 not a raw byte grep of the content stream. A byte grep proves the text-showing operator is
 present; it cannot detect that the text was overdrawn by a later fill, clipped, placed
 off-page, or rendered in an unavailable font. The discipline and its motivating field incident
-are captured in [`docs/planning/project-guidance.md`](docs/planning/project-guidance.md) →
-Conventions → Testing Conventions.
+are captured in [`docs/MAINTAINING.md`](docs/MAINTAINING.md) → Testing.
 
 Byte-level stream assertions are still used for *structural* properties (object IDs,
 `/Info` dictionary keys, cross-reference-table validity) where a parser would add nothing.
@@ -274,6 +273,10 @@ DabblerPdf is dual-licensed under the [LGPL-2.1](https://www.gnu.org/licenses/ol
 
 See [LICENSE](LICENSE) for full details.
 
+## If this library stops being maintained
+
+Vendor the source. Copy `src/DabblerPdf` into your own repository (or fork this one), reference it with a `<ProjectReference>`, and maintain it yourself under either license. Keep the [LICENSE](LICENSE) file and the license header on every source file, and keep the copyright notices intact. [`docs/MAINTAINING.md`](docs/MAINTAINING.md) explains how to build, test and release it, and what a redistributor owes under each license.
+
 ## Contributing
 
-Issues and pull requests are welcome. Please open an issue first for significant changes so we can discuss the approach.
+Issues and pull requests are welcome. Please open an issue first for significant changes so we can discuss the approach. [`docs/MAINTAINING.md`](docs/MAINTAINING.md) covers building, testing and releasing.
