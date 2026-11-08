@@ -1,0 +1,203 @@
+{
+  "sessionSetName": "pdf-info-metadata-api",
+  "createdDate": "2026-04-18T08:22:25.325815+00:00",
+  "totalSessions": 3,
+  "entries": [
+    {
+      "sessionNumber": 1,
+      "stepNumber": 1,
+      "stepKey": "session-1/read-planning",
+      "dateTime": "2026-04-18T08:22:25.326813+00:00",
+      "description": "Read docs/planning/project-guidance.md and docs/planning/lessons-learned.md. Confirmed E2E standards (real UI + DB), UAT per-set checklist convention, end-of-set reorg review, and the \"send related files to verifier\" convention.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 2,
+      "stepKey": "session-1/read-dabbler-pdf",
+      "dateTime": "2026-04-18T08:22:25.327814+00:00",
+      "description": "Read ../dabbler-pdf/CLAUDE.md. Confirmed: scoped OpenPDF port, namespaces DabblerPdf.{Document,Pdf,Text,Image,Utilities}, nullable enabled, PascalCase public, _camelCase private, Async suffix on event handlers, LGPL-2.1/MPL-2.0 license headers required on every source file. Session-set workflow mirrors this repo.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 3,
+      "stepKey": "session-1/read-source",
+      "dateTime": "2026-04-18T08:22:25.327814+00:00",
+      "description": "Re-read src/DabblerPdf/Pdf/PdfWriter.cs (Close() writes /Producer into /Info at lines 261-264), src/DabblerPdf/Document/Document.cs (no metadata API; lifecycle is Open/NewPage/Close with EnsureOpen guard), src/DabblerPdf/Pdf/PdfName.cs (has Info, Producer, CreationDate; missing Title, Author, Subject, Keywords, Creator, ModDate). Also read src/DabblerPdf/Pdf/PdfString.cs \u2014 PdfString.WriteLiteral already escapes \\, (, ), CR, LF, so info strings require no new escaping work.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 4,
+      "stepKey": "session-1/survey-openpdf",
+      "dateTime": "2026-04-18T08:22:25.328814+00:00",
+      "description": "Surveyed upstream OpenPDF com.lowagie.text.Document metadata API: addTitle(String), addAuthor(String), addSubject(String), addKeywords(String), addCreator(String), addProducer() (no-arg; sets producer), addCreationDate() (no-arg; sets to now). All return boolean indicating success. Values are staged on Document; PdfWriter consumes them when writing the info dictionary at close time.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 5,
+      "stepKey": "session-1/compare-options",
+      "dateTime": "2026-04-18T08:22:25.328814+00:00",
+      "description": "Compared Option A (AddXxx methods) vs Option B (properties): lineage favours A (matches OpenPDF); .NET idiom favours B (object-initialiser); testability roughly equal (both need an internal read-back for tests); forward-compat favours A (overloads for AddCreationDate are natural). DabblerPdf already mixes verbs and state (Open/NewPage/Close are methods, PageSize/PageNumber are properties), so either fits the existing surface.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 6,
+      "stepKey": "session-1/decide",
+      "dateTime": "2026-04-18T08:22:25.329430+00:00",
+      "description": "Decision: Option A. See session-reviews/session-001.md for the full rationale and API sketch. Summary: AddTitle/AddAuthor/AddSubject/AddKeywords/AddCreator/AddCreationDate(), SuppressCreationDate() opt-out, auto-stage CreationDate at Close(), null => ArgumentNullException, empty/whitespace => silent no-op, InvalidOperationException after Close(), last-write-wins for repeated calls, internal Document.GetMetadata() accessor, new DabblerPdf.Utilities.PdfDate helper for PDF-spec-formatted date strings.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 7,
+      "stepKey": "session-1/api-sketch",
+      "dateTime": "2026-04-18T08:22:25.329430+00:00",
+      "description": "Embedded full API sketch + behavioural rules + code snippets in the Session 1 verification prompt so the verifier evaluates it and the raw output becomes the permanent design artifact at session-reviews/session-001.md.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 8,
+      "stepKey": "session-1/companion-plan",
+      "dateTime": "2026-04-18T08:22:25.329430+00:00",
+      "description": "Companion ../dabbler-pdf/docs/session-sets/pdf-info-metadata-api/ will contain a single session (Session 1 of 1) corresponding to this set's Session 2. One session is sufficient: the work is additive, single-repo, and tightly scoped \u2014 add PdfName constants, Document API, writer wire-up, date helper, tests, changelog, pack 1.1.0. Session 2 of this set creates that companion spec + activity log.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 9,
+      "stepKey": "session-1/build-and-test",
+      "dateTime": "2026-04-18T08:22:25.329430+00:00",
+      "description": "dotnet build Dabbler.Platform.sln: succeeded, 0 errors, 2 warnings (pre-existing: MUD0002 Dense on MudToggleGroup in DenyAllowSwitch.razor; CS8604 nullable in WebGuardrailTests.cs). dotnet test Dabbler.Platform.sln: 905 passed, 4 pre-existing failures \u2014 AcmeCoffeeOnline.Web.Tests.WorkflowAssetSmokeTests.AiRouterConfig_LoadsNestedPromptTemplates (1); AcmeCoffeeOnline.Playwright SmokeTests, SecurityDashboardUserAssignmentsTests, and EdgeCaseTests Playwright tests (3, need Docker host). Session 1 is strictly read-only and touched no code, so none of these failures originate here.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 1,
+      "stepNumber": 10,
+      "stepKey": "session-1/verification",
+      "dateTime": "2026-04-18T08:23:07.191193+00:00",
+      "description": "Cross-provider verification via ai-router (round 1). Model: opus. Tokens in/out: 4213/1867. Raw verdict saved to session-reviews/session-001.md.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "opus",
+          "taskType": "session-verification",
+          "inputTokens": 4213,
+          "outputTokens": 1867,
+          "costUsd": 0.20321999999999998
+        }
+      ]
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 1,
+      "stepKey": "session-2/companion-set",
+      "dateTime": "2026-04-21T22:46:19.877927+00:00",
+      "description": "Companion session set already imported: spec.md + activity-log.json + session-reviews/session-001.md were copied into this dabbler-pdf repo by the human, so Session 2 inherits the design context. No new spec.md was generated; the imported one is treated as authoritative for this session's work.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 2,
+      "stepKey": "session-2/pdfnames",
+      "dateTime": "2026-04-21T22:46:19.878380+00:00",
+      "description": "Added PdfName constants: Title, Author, Subject, Keywords, Creator, ModDate (ModDate reserved; not yet written by PdfWriter). Touched src/DabblerPdf/Pdf/PdfName.cs.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 3,
+      "stepKey": "session-2/document-api",
+      "dateTime": "2026-04-21T22:46:19.878380+00:00",
+      "description": "Made Document partial. Added Document.Metadata.cs with AddTitle/AddAuthor/AddSubject/AddKeywords/AddCreator (each null -> ArgumentNullException, empty/whitespace -> silent no-op returning false, last-write-wins), AddCreationDate()/AddCreationDate(DateTime)/SuppressCreationDate(), and internal GetMetadata(). Added EnsureNotClosed guard on Document so post-Close calls throw. Added internal sealed record DocumentMetadata.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 4,
+      "stepKey": "session-2/writer-close",
+      "dateTime": "2026-04-21T22:46:19.879482+00:00",
+      "description": "Extended PdfWriter.Close() to consume Document.GetMetadata() and put non-null Title/Author/Subject/Keywords/Creator into /Info. CreationDate logic: explicit value wins, else DateTime.UtcNow at close time, unless SuppressCreationDate() was called. Producer entry preserved.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 5,
+      "stepKey": "session-2/date-helper",
+      "dateTime": "2026-04-21T22:46:19.879482+00:00",
+      "description": "Added DabblerPdf.Utilities.PdfDate.Format(DateTime) implementing PDF 1.7 \u00a77.9.4 (D:YYYYMMDDHHmmSS with Z, +HH'mm', or -HH'mm'). Utc -> Z; Local -> local UTC offset; Unspecified treated as Local. Zero-offset Local emits Z.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 6,
+      "stepKey": "session-2/tests",
+      "dateTime": "2026-04-21T22:46:19.880692+00:00",
+      "description": "Added tests/DabblerPdf.Tests/Utilities/PdfDateTests.cs (UTC/Local/Unspecified, regex compliance, apostrophe-separated offsets), tests/DabblerPdf.Tests/Document/DocumentMetadataTests.cs (every Add* method, null/whitespace/post-close, last-write-wins, Get/Suppress interaction), and tests/DabblerPdf.Tests/Pdf/PdfInfoDictionaryTests.cs (parses real PDF bytes and asserts /Info contents under several staging combinations, including the SuppressCreationDate() backward-compat case).",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 7,
+      "stepKey": "session-2/changelog-pack",
+      "dateTime": "2026-04-21T22:46:19.880692+00:00",
+      "description": "Bumped src/DabblerPdf/DabblerPdf.csproj <Version> from 1.0.0 to 1.1.0; rewrote <PackageReleaseNotes>. Added 1.1.0 entry to CHANGELOG.md with Added/Changed/Behavioural notes sections. Packed nupkg/DabblerPdf.1.1.0.nupkg + .snupkg via dotnet pack -c Release.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 8,
+      "stepKey": "session-2/build-and-test",
+      "dateTime": "2026-04-21T22:46:19.881695+00:00",
+      "description": "Rounds 1 (initial) and 2 (post Issue-2 fix): dotnet build DabblerPdf.slnx \u2014 0 warnings 0 errors. dotnet test \u2014 601 passed / 0 failed / 0 skipped.",
+      "status": "complete",
+      "routedApiCalls": []
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 9,
+      "stepKey": "session-2/verification",
+      "dateTime": "2026-04-21T22:46:19.881695+00:00",
+      "description": "Cross-provider verification via ai-router (round 1). Model: gemini-pro (Google), as cross-provider verifier for Anthropic-Opus orchestrator. Verdict: ISSUES_FOUND with 2 minor issues. Issue 1 (TFM dismissal) adjudicated as orchestrator-correct (option b). Issue 2 (duplicate test helper) fixed in PdfDateTests.cs. Raw verdict at session-reviews/session-002.md. Issue dispositions at issue-logs/session-002-issues.json. Re-run of dotnet test post-fix: 601 / 601 still passing.",
+      "status": "complete",
+      "routedApiCalls": [
+        {
+          "model": "gemini-pro",
+          "taskType": "session-verification",
+          "inputTokens": 29423,
+          "outputTokens": 423,
+          "costUsd": 0.041
+        }
+      ]
+    },
+    {
+      "sessionNumber": 2,
+      "stepNumber": 10,
+      "stepKey": "session-2/consumer-smoke-test",
+      "dateTime": "2026-04-21T23:42:50.747979+00:00",
+      "description": "Post-commit belt-and-suspenders consumer smoke test. Created a throwaway console project at C:\\temp\\dabblerpdf-smoke-1.1.0 with <PackageReference Include=\"DabblerPdf\" Version=\"1.1.0\" /> resolving from the local nupkg/ folder feed (NOT a project reference). Restore pulled DabblerPdf 1.1.0 (95232-byte DLL) into ~/.nuget/packages/dabblerpdf/1.1.0/. Ran 19 end-to-end checks against the consumed package: PdfDate.Format(UTC) round-trip; default (Producer+auto-CreationDate); SuppressCreationDate restores 1.0.0 shape; all five AddXxx methods produce correct /Info entries; explicit AddCreationDate round-trips byte-exact; AddTitle(null) throws ArgumentNullException; empty/whitespace returns false; post-Close throws InvalidOperationException; produced PDF starts with %PDF- and ends with %%EOF. All 19/19 passed. Smoke project deleted after verification.",
+      "status": "complete",
+      "routedApiCalls": []
+    }
+  ]
+}
