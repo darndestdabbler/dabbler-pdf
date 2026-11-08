@@ -296,3 +296,30 @@ surface. Publication is the annotated `nuget-v1.1.3` tag, from which
 `publish.yml` publishes to nuget.org; the operator creates the tag by hand
 until the framework's tagging can name a `nuget-v` tag, and holds the
 release if the close cannot see the publication.
+
+### Session 12: Make the publish smoke test restore from the packed output
+
+1. Register.
+2. In `.github/workflows/publish.yml`, step "Smoke-test the package": the
+   `dotnet add package --source "$GITHUB_WORKSPACE/out"` call records the
+   reference, but the `dotnet build` that follows restores with the default
+   sources only, so a version that is not yet on nuget.org fails with
+   `NU1102` (the 2026-11-08 `workflow_dispatch` dry run, run 42482132357,
+   failed exactly there, and a `nuget-v1.1.3` tag would have failed the same
+   way). Give the smoke project its own `nuget.config` that names
+   `$GITHUB_WORKSPACE/out` as a source beside nuget.org (`dotnet new
+   nugetconfig` then `dotnet nuget add source`), or restore with explicit
+   `--source` arguments and build `--no-restore`. The step's check is a
+   `workflow_dispatch` run of `publish.yml` that reaches "Push to GitHub
+   Packages" green; record the run id in the step's notes.
+3. Cross-provider verification.
+4. The `dotnet` suite once against the verified tree, recorded as the run of
+   record.
+5. Close-out.
+
+After the session has pushed and its dry run is green, the operator tags
+`nuget-v1.1.3` by hand and confirms 1.1.3 on nuget.org. Session 11's
+framework-made `session-011` tag published nothing: with a `pack`-only
+declaration and no `version.json`, the router falls back to a session tag
+and records the release as published (deferred cut 12 in `dabbler-platform`
+tracks the framework fix).
