@@ -23,6 +23,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 9 | Maintainer guide | no | 2026-11-07 |
 | 10 | Bump the version to 1.1.3 | no | 2026-11-07 |
 | 11 | Release 1.1.3 (release: 1.1.3) | yes | 2026-11-07 |
+| 12 | Make the publish smoke test restore from the packed output | no | 2026-11-08 |
 
 ### Session 1 — Author or import the solution plan
 
@@ -89,3 +90,9 @@ Bump DabblerPdf to version 1.1.3: set <Version> to 1.1.3 and rewrite PackageRele
 **Releasable: yes.**
 
 Release 1.1.3: the framework packs and publishes what is on the trunk.
+
+### Session 12 — Make the publish smoke test restore from the packed output
+
+**Releasable: no.**
+
+Fix the "Smoke-test the package" step of .github/workflows/publish.yml so the consumer project restores DabblerPdf from the freshly packed output instead of from the default sources only. Today `dotnet add package --source out` records the reference but the following `dotnet build` restores against nuget.org alone, so a version not yet published there (1.1.3) fails with NU1102, as dry run 42482132357 did. The step will add the reference without restoring, restore explicitly with `--source "$GITHUB_WORKSPACE/out"` beside nuget.org into the separate packages folder, and build with `--no-restore`. The fix is proven by a workflow_dispatch run of publish.yml on the changed workflow that reaches "Push to GitHub Packages" green; its run id is recorded in the step's notes.

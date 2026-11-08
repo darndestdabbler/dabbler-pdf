@@ -40,15 +40,18 @@ jobs:
       - run: dotnet test DabblerPdf.slnx -c Release --no-build --blame-hang-timeout 5m
       - run: dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release --no-build -o out
 
-      # A separate packages folder, so the consumer restores the package just
-      # packed rather than the baseline that package validation downloaded.
+      # The consumer restores from the packed output beside nuget.org, since
+      # the version is not on nuget.org yet, into a separate packages folder,
+      # so it gets the package just packed rather than the baseline that
+      # package validation downloaded. The build then restores nothing.
       - name: Smoke-test the package
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           dotnet new console -o "$RUNNER_TEMP/smoke"
-          dotnet add "$RUNNER_TEMP/smoke" package DabblerPdf --version "$VERSION" --source "$GITHUB_WORKSPACE/out" --package-directory "$RUNNER_TEMP/smoke-packages"
-          dotnet build "$RUNNER_TEMP/smoke"
+          dotnet add "$RUNNER_TEMP/smoke" package DabblerPdf --version "$VERSION" --no-restore
+          dotnet restore "$RUNNER_TEMP/smoke" --source "$GITHUB_WORKSPACE/out" --source https://api.nuget.org/v3/index.json --packages "$RUNNER_TEMP/smoke-packages"
+          dotnet build "$RUNNER_TEMP/smoke" --no-restore
 
       - name: Log in to nuget.org
         if: github.event_name == 'push'
