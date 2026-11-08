@@ -22,7 +22,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 8 | Make the TrueType tests run on Linux | no | 2026-11-07 |
 | 9 | Maintainer guide | no | 2026-11-07 |
 | 10 | Bump the version to 1.1.3 | no | 2026-11-07 |
-| 11 | Release 1.1.3 (release: 1.1.3) | — | not declared |
+| 11 | Release 1.1.3 (release: 1.1.3) | yes | 2026-11-07 |
 
 ### Session 1 — Author or import the solution plan
 
@@ -83,3 +83,9 @@ Write docs/MAINTAINING.md, the one maintainer document: how to clone, build, run
 **Releasable: no.**
 
 Bump DabblerPdf to version 1.1.3: set <Version> to 1.1.3 and rewrite PackageReleaseNotes in src/DabblerPdf/DabblerPdf.csproj, and add a 1.1.3 entry at the top of CHANGELOG.md stating that there is no API change and that this is the first release built, validated and published from CI through trusted publishing. The step is proved by packing the project in Release to a scratch directory and confirming DabblerPdf.1.1.3.nupkg is produced.
+
+### Session 11 — Release 1.1.3 (release: 1.1.3)
+
+**Releasable: yes.**
+
+Release 1.1.3: the framework packs and publishes what is on the trunk.
