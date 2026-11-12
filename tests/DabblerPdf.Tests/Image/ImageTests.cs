@@ -1,0 +1,444 @@
+// DabblerPdf.NET — A .NET port of OpenPDF (https://github.com/LibrePDF/OpenPDF)
+// Original work Copyright (C) 1999-2024 by Bruno Lowagie and Paulo Soares.
+// Ported to C# under the same license terms.
+//
+// SPDX-License-Identifier: LGPL-2.1-only AND MPL-2.0
+
+using DabblerPdf.Image;
+using Xunit;
+
+namespace DabblerPdf.Tests.Image;
+
+public class ImageTests
+{
+    // ─── JPEG Parsing ──────────────────────────────────────────────
+
+    [Fact]
+    public void Jpeg_ParsesDimensionsFromSOF0()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(320, 240);
+        var image = new Jpeg(jpegBytes);
+
+        Assert.Equal(320, image.PixelWidth);
+        Assert.Equal(240, image.PixelHeight);
+        Assert.Equal(8, image.BitsPerComponent);
+        Assert.Equal(3, image.ColorComponents);
+    }
+
+    [Fact]
+    public void Jpeg_DefaultScaledDimensionsMatchPixels()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(200, 100);
+        var image = new Jpeg(jpegBytes);
+
+        Assert.Equal(200.0, image.ScaledWidth);
+        Assert.Equal(100.0, image.ScaledHeight);
+    }
+
+    [Fact]
+    public void Jpeg_GrayscaleHasOneComponent()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(50, 50, components: 1);
+        var image = new Jpeg(jpegBytes);
+
+        Assert.Equal(1, image.ColorComponents);
+    }
+
+    [Fact]
+    public void Jpeg_RawDataIsPreserved()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(10, 10);
+        var image = new Jpeg(jpegBytes);
+
+        Assert.Equal(jpegBytes, image.RawData);
+    }
+
+    [Fact]
+    public void Jpeg_InvalidDataThrows()
+    {
+        Assert.Throws<ArgumentException>(() => new Jpeg([0x00, 0x00, 0x00]));
+    }
+
+    // ─── PNG Parsing ───────────────────────────────────────────────
+
+    [Fact]
+    public void Png_ParsesRgbDimensions()
+    {
+        var pngBytes = ImageTestHelpers.CreateMinimalPng(100, 80);
+        var image = PngImage.GetImage(pngBytes);
+
+        Assert.Equal(100, image.PixelWidth);
+        Assert.Equal(80, image.PixelHeight);
+        Assert.Equal(8, image.BitsPerComponent);
+        Assert.Equal(3, image.ColorComponents);
+    }
+
+    [Fact]
+    public void Png_DecompressesRgbPixels()
+    {
+        var pngBytes = ImageTestHelpers.CreateMinimalPng(2, 2, r: 255, g: 0, b: 0);
+        var image = PngImage.GetImage(pngBytes);
+
+        // 2x2 RGB = 12 bytes
+        Assert.Equal(12, image.DecompressedPixels.Length);
+        // First pixel should be red
+        Assert.Equal(255, image.DecompressedPixels[0]); // R
+        Assert.Equal(0, image.DecompressedPixels[1]);   // G
+        Assert.Equal(0, image.DecompressedPixels[2]);   // B
+        Assert.Null(image.AlphaChannel);
+    }
+
+    [Fact]
+    public void Png_RgbaHasAlphaChannel()
+    {
+        var pngBytes = ImageTestHelpers.CreateMinimalRgbaPng(3, 3, a: 128);
+        var image = PngImage.GetImage(pngBytes);
+
+        Assert.Equal(3, image.PixelWidth);
+        Assert.Equal(3, image.PixelHeight);
+        Assert.Equal(3, image.ColorComponents); // RGB (alpha separated)
+        Assert.Equal(27, image.DecompressedPixels.Length); // 3x3x3
+        Assert.NotNull(image.AlphaChannel);
+        Assert.Equal(9, image.AlphaChannel!.Length); // 3x3
+        Assert.All(image.AlphaChannel, a => Assert.Equal(128, a));
+    }
+
+    [Fact]
+    public void Png_GrayscaleParsesCorrectly()
+    {
+        var pngBytes = ImageTestHelpers.CreateMinimalGrayscalePng(4, 4, gray: 200);
+        var image = PngImage.GetImage(pngBytes);
+
+        Assert.Equal(4, image.PixelWidth);
+        Assert.Equal(4, image.PixelHeight);
+        Assert.Equal(1, image.ColorComponents);
+        Assert.Equal(16, image.DecompressedPixels.Length); // 4x4x1
+        Assert.All(image.DecompressedPixels, p => Assert.Equal(200, p));
+    }
+
+    [Fact]
+    public void Png_InvalidSignatureThrows()
+    {
+        Assert.Throws<ArgumentException>(() => PngImage.GetImage([0x00, 0x00]));
+    }
+
+    [Fact]
+    public void Png_TruncatedChunk_Throws()
+    {
+        // Create a PNG with valid signature + IHDR but truncated IDAT chunk
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        // PNG signature
+        bw.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        // Valid IHDR
+        var ihdr = new byte[13];
+        ihdr[3] = 2; // Width = 2
+        ihdr[7] = 2; // Height = 2
+        ihdr[8] = 8; // Bit depth
+        ihdr[9] = 2; // RGB
+
+        // Write IHDR chunk (length + type + data + CRC)
+        WriteUInt32BE(bw, 13);
+        bw.Write(System.Text.Encoding.ASCII.GetBytes("IHDR"));
+        bw.Write(ihdr);
+        WriteUInt32BE(bw, 0); // CRC placeholder
+
+        // Truncated IDAT: declare 100 bytes but only write 5
+        WriteUInt32BE(bw, 100);
+        bw.Write(System.Text.Encoding.ASCII.GetBytes("IDAT"));
+        bw.Write(new byte[] { 0x78, 0x01, 0x00, 0x00, 0x00 });
+        // Missing data and CRC — chunk is truncated
+
+        Assert.Throws<ArgumentException>(() => PngImage.GetImage(ms.ToArray()));
+    }
+
+    [Fact]
+    public void Png_4BitGrayscale_ParsesCorrectly()
+    {
+        // 4-bit grayscale: 2 pixels per byte
+        var pngBytes = ImageTestHelpers.CreateSubBytePng(4, 2, bitDepth: 4, colorType: 0);
+        var image = PngImage.GetImage(pngBytes);
+
+        Assert.Equal(4, image.PixelWidth);
+        Assert.Equal(2, image.PixelHeight);
+        Assert.Equal(1, image.ColorComponents);
+        Assert.Equal(8, image.BitsPerComponent); // Expanded from 4 to 8
+        Assert.Equal(8, image.DecompressedPixels.Length); // 4x2 = 8 pixels
+    }
+
+    private static void WriteUInt32BE(BinaryWriter bw, uint value)
+    {
+        bw.Write((byte)(value >> 24));
+        bw.Write((byte)(value >> 16));
+        bw.Write((byte)(value >> 8));
+        bw.Write((byte)value);
+    }
+
+    // ─── Security: PNG Dimension Limits ─────────────────────────────
+
+    [Fact]
+    public void Png_ExcessiveDimensions_Throws()
+    {
+        // Create a PNG with dimensions exceeding the 32767 limit
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        bw.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        var ihdr = new byte[13];
+        // Width = 40000 (exceeds 32767 limit)
+        WriteBEUInt32ToArray(ihdr, 0, 40000);
+        WriteBEUInt32ToArray(ihdr, 4, 100);
+        ihdr[8] = 8;
+        ihdr[9] = 2; // RGB
+
+        WritePngChunkHelper(bw, "IHDR", ihdr);
+        WritePngChunkHelper(bw, "IEND", []);
+
+        Assert.Throws<ArgumentException>(() => PngImage.GetImage(ms.ToArray()));
+    }
+
+    [Fact]
+    public void Png_ZeroDimensions_Throws()
+    {
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        bw.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        var ihdr = new byte[13];
+        WriteBEUInt32ToArray(ihdr, 0, 0); // Width = 0
+        WriteBEUInt32ToArray(ihdr, 4, 10);
+        ihdr[8] = 8;
+        ihdr[9] = 2;
+
+        WritePngChunkHelper(bw, "IHDR", ihdr);
+        WritePngChunkHelper(bw, "IEND", []);
+
+        Assert.Throws<ArgumentException>(() => PngImage.GetImage(ms.ToArray()));
+    }
+
+    // ─── Security: JPEG Bounds Checking ───────────────────────────
+
+    [Fact]
+    public void Jpeg_SegmentExceedingFileLength_Throws()
+    {
+        using var ms = new MemoryStream();
+        var bw = new BinaryWriter(ms);
+
+        // SOI
+        bw.Write((byte)0xFF);
+        bw.Write((byte)0xD8);
+
+        // APP0 marker with segment length pointing beyond EOF
+        bw.Write((byte)0xFF);
+        bw.Write((byte)0xE0);
+        // Segment length = 5000 but we only have a few bytes left
+        bw.Write((byte)0x13);
+        bw.Write((byte)0x88); // 5000 in big-endian
+        bw.Write(new byte[4]); // Only 4 bytes of data
+
+        Assert.Throws<ArgumentException>(() => new Jpeg(ms.ToArray()));
+    }
+
+    private static void WriteBEUInt32ToArray(byte[] arr, int offset, uint value)
+    {
+        arr[offset] = (byte)(value >> 24);
+        arr[offset + 1] = (byte)(value >> 16);
+        arr[offset + 2] = (byte)(value >> 8);
+        arr[offset + 3] = (byte)value;
+    }
+
+    private static void WritePngChunkHelper(BinaryWriter bw, string type, byte[] data)
+    {
+        WriteUInt32BE(bw, (uint)data.Length);
+        var typeBytes = System.Text.Encoding.ASCII.GetBytes(type);
+        bw.Write(typeBytes);
+        bw.Write(data);
+        WriteUInt32BE(bw, 0); // CRC placeholder
+    }
+
+    // ─── Image.GetInstance (format detection) ──────────────────────
+
+    [Fact]
+    public void GetInstance_DetectsJpegFromBytes()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(10, 10);
+        var image = DabblerPdf.Image.Image.GetInstance(jpegBytes);
+
+        Assert.IsType<Jpeg>(image);
+    }
+
+    [Fact]
+    public void GetInstance_DetectsPngFromBytes()
+    {
+        var pngBytes = ImageTestHelpers.CreateMinimalPng(10, 10);
+        var image = DabblerPdf.Image.Image.GetInstance(pngBytes);
+
+        Assert.IsType<PngImage>(image);
+    }
+
+    [Fact]
+    public void GetInstance_UnrecognizedFormatThrows()
+    {
+        Assert.Throws<NotSupportedException>(() =>
+            DabblerPdf.Image.Image.GetInstance([0x00, 0x01, 0x02, 0x03]));
+    }
+
+    // ─── Scaling ───────────────────────────────────────────────────
+
+    [Fact]
+    public void ScaleToFit_PreservesAspectRatio()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(400, 200);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFit(200, 200);
+
+        // 400:200 = 2:1 aspect ratio. Fitting into 200x200, width is limiting.
+        Assert.Equal(200.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(100.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFit_ImageAlreadySmaller_DoesNotScaleUp()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(100, 50);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFit(200, 200);
+
+        // Image is already smaller than target — should not scale up
+        Assert.Equal(100.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(50.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFit_HeightLimiting()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(200, 400);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFit(300, 200);
+
+        // 200:400 = 1:2 aspect ratio. Fitting into 300x200, height is limiting.
+        Assert.Equal(100.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(200.0, image.ScaledHeight, precision: 1);
+    }
+
+    // ─── ScaleToFill ─────────────────────────────────────────────
+
+    [Fact]
+    public void ScaleToFill_ScalesUp_WhenImageSmaller()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(100, 50);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFill(200, 200);
+
+        // 100:50 = 2:1 aspect ratio. To fill 200x200, heightRatio=4 > widthRatio=2
+        Assert.Equal(400.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(200.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFill_ScalesDown_WhenImageLarger()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(400, 200);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFill(100, 100);
+
+        // 400:200 = 2:1. To fill 100x100, heightRatio=0.5 > widthRatio=0.25
+        Assert.Equal(200.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(100.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFill_ExactFit_NoChange()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(200, 100);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFill(200, 100);
+
+        Assert.Equal(200.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(100.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleToFill_PreservesAspectRatio()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(300, 200);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleToFill(150, 150);
+
+        // Original ratio: 300:200 = 3:2
+        // widthRatio = 150/300 = 0.5, heightRatio = 150/200 = 0.75
+        // Max = 0.75 → 300*0.75 = 225, 200*0.75 = 150
+        Assert.Equal(225.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(150.0, image.ScaledHeight, precision: 1);
+
+        // Verify aspect ratio preserved
+        double originalRatio = 300.0 / 200.0;
+        double scaledRatio = image.ScaledWidth / image.ScaledHeight;
+        Assert.Equal(originalRatio, scaledRatio, precision: 6);
+    }
+
+    [Fact]
+    public void ScaleToFill_AsymmetricTarget_WidthLimiting()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(100, 100);
+        var image = new Jpeg(jpegBytes);
+
+        // Wide target: widthRatio=3 > heightRatio=1
+        image.ScaleToFill(300, 100);
+
+        Assert.Equal(300.0, image.ScaledWidth, precision: 1);
+        Assert.Equal(300.0, image.ScaledHeight, precision: 1);
+    }
+
+    [Fact]
+    public void ScaleAbsolute_SetsExactDimensions()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(100, 100);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScaleAbsolute(50, 75);
+
+        Assert.Equal(50.0, image.ScaledWidth);
+        Assert.Equal(75.0, image.ScaledHeight);
+    }
+
+    [Fact]
+    public void ScalePercent_ScalesFromOriginalPixelDimensions()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(200, 100);
+        var image = new Jpeg(jpegBytes);
+
+        image.ScalePercent(50);
+
+        Assert.Equal(100.0, image.ScaledWidth);
+        Assert.Equal(50.0, image.ScaledHeight);
+    }
+
+    // ─── Positioning ───────────────────────────────────────────────
+
+    [Fact]
+    public void SetAbsolutePosition_SetsCoordinates()
+    {
+        var jpegBytes = ImageTestHelpers.CreateMinimalJpeg(10, 10);
+        var image = new Jpeg(jpegBytes);
+
+        Assert.False(image.HasAbsolutePosition);
+
+        image.SetAbsolutePosition(72.0, 650.0);
+
+        Assert.True(image.HasAbsolutePosition);
+        Assert.Equal(72.0, image.AbsoluteX);
+        Assert.Equal(650.0, image.AbsoluteY);
+    }
+}
