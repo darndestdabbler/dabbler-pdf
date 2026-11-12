@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session 015 transcript</title>
+<style>
+:root {
+  --page: #ffffff;
+  --ink: #1f1f1f;
+  --faint: #e4e4e4;
+  --panel: #f6f6f6;
+  --tone-milestone: #2a5db0;
+  --tone-good: #256029;
+  --tone-warn: #8a6100;
+  --tone-bad: #a31515;
+  --tone-muted: #6b6b6b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #1e1e1e;
+    --ink: #d4d4d4;
+    --faint: #3a3a3a;
+    --panel: #252526;
+  --tone-milestone: #3874db;
+  --tone-good: #54a33b;
+  --tone-warn: #b79427;
+  --tone-bad: #f14c4c;
+  --tone-muted: #8c8c8c;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 64px;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.6 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+main { max-width: 68rem; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.05rem; margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--faint); padding-bottom: .3rem; }
+.stamp { color: var(--tone-muted); font-size: .85rem; margin: 0 0 .25rem; }
+.mono, pre, code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.lines { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+.line { white-space: pre-wrap; word-break: break-word; padding-left: 10.5ch; text-indent: -10.5ch; }
+.at { color: var(--tone-muted); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--faint); vertical-align: top; }
+th { color: var(--tone-muted); font-weight: 600; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; }
+td details { margin: 0; }
+tr:has(details:not([open])) + tr.findings { display: none; }
+tr.findings > td { padding: 0 0 .5rem 1.5rem; }
+pre { background: var(--panel); padding: .75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font-size: 12.5px; }
+.stop, .cancelled { border-left: 3px solid var(--tone-bad); background: var(--panel); padding: .6rem .9rem; }
+.milestone { color: var(--tone-milestone); }
+.good { color: var(--tone-good); }
+.warn { color: var(--tone-warn); }
+.bad { color: var(--tone-bad); }
+.muted { color: var(--tone-muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Session 015 transcript</h1>
+<p class="stamp">Rendered 2026-11-12T17:06:17.181Z by dabbler-ai-router 3.32.4 at 55fcc568b34c62300fa6dfa3b4fd6ba64952375b.</p>
+<p class="stamp">Engine cli, last phase <span class="milestone">log</span>, started 2026-11-12T12:04:13.932-05:00.</p>
+<h2>Session Plan</h2>
+<h3>Session 15: Bump the version to 1.2.0</h3>
+<ol><li>Register.</li><li>Set <code>&lt;Version&gt;</code> to <code>1.2.0</code> and rewrite <code>PackageReleaseNotes</code> in <code>src/DabblerPdf/DabblerPdf.csproj</code>, set <code>PackageValidationBaselineVersion</code> to <code>1.1.3</code> (the last published version), and add a <code>1.2.0</code> entry to <code>CHANGELOG.md</code>: added, <code>PdfWriter.CompressContentStreams</code>; changed, <code>TextLayout.WrapText</code> (and <code>CountLines</code>, <code>MeasureHeight</code>, <code>DrawText</code> through it) keeps runs of spaces, so text that relied on the collapse wraps and measures differently; fixed, Base 14 widths for Windows-1252 codes 128–159, and Base 14 and TrueType fonts measure a character outside Windows-1252 as the <code>?</code> they draw (both change measured widths, so wrapped text can break differently); documented, the 128-byte compression rule and the Windows-1252 replacement with <code>?</code>. The step's check: <code>dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release -o &lt;scratch dir&gt;</code> exits 0, package validation against 1.1.3 included, and produces <code>DabblerPdf.1.2.0.nupkg</code>.</li><li>Cross-provider verification.</li><li>The <code>dotnet</code> suite once against the verified tree, recorded as the run of record.</li><li>Close-out.</li></ol>
+<p>Proposed version: <strong>1.2.0 (minor)</strong>. <code>CompressContentStreams</code> is an added public member, and the <code>WrapText</code> and width changes are fixes that alter output, which a patch should not do silently.</p>
+<p>There is no <code>(release: 1.2.0)</code> session: Session 11 showed that with a pack-only declaration the router makes a <code>session-&lt;N&gt;</code> tag that publishes nothing. After this session has pushed, the operator runs the dry run (<code>gh workflow run publish.yml</code>), and when it is green tags by hand as <code>docs/MAINTAINING.md</code> → *Release* says (<code>git tag -a nuget-v1.2.0 -m &quot;Release 1.2.0&quot;</code>, <code>git push origin nuget-v1.2.0</code>) and confirms 1.2.0 on nuget.org. TRIMS takes 1.2.0, and <code>dabbler-platform</code> Session 27 waits for it.</p>
+<h2>Work Plan</h2>
+<p>Bump DabblerPdf to 1.2.0 (minor). In src/DabblerPdf/DabblerPdf.csproj set &lt;Version&gt; to 1.2.0, rewrite PackageReleaseNotes for 1.2.0, and set PackageValidationBaselineVersion to 1.1.3, the last published version. Add a 1.2.0 entry at the top of CHANGELOG.md: Added, PdfWriter.CompressContentStreams; Changed, TextLayout.WrapText (and CountLines, MeasureHeight and DrawText through it) keeps runs of spaces, so text that relied on the collapse wraps and measures differently; Fixed, Base 14 widths for Windows-1252 codes 128-159, and Base 14 and TrueType fonts measure a character outside Windows-1252 as the '?' they draw (both change measured widths, so wrapped text can break differently); Documented, the 128-byte compression rule and the Windows-1252 replacement with '?'. The check is that a Release pack, with package validation against 1.1.3, exits 0 and produces DabblerPdf.1.2.0.nupkg.</p>
+<p>Landed <a href="https://github.com/darndestdabbler/dabbler-pdf/commit/19ae9eab6046a7ee68b229c911ce080a2ec8c72c"><code>19ae9eab6046a7ee68b229c911ce080a2ec8c72c</code></a>.</p>
+<table>
+<tr><th>Step</th><th>Ask</th><th>Files</th><th>Checks</th><th>Accepted</th></tr>
+<tr><td>Bump version</td><td><p>In src/DabblerPdf/DabblerPdf.csproj set &lt;Version&gt; to 1.2.0, rewrite PackageReleaseNotes as a 1.2.0 summary (adds PdfWriter.CompressContentStreams; WrapText keeps runs of spaces; Windows-1252 width fixes; see CHANGELOG.md), and set PackageValidationBaselineVersion to 1.1.3. Add a '## 1.2.0' entry above '## 1.1.3' in CHANGELOG.md with Added (PdfWriter.CompressContentStreams), Changed (TextLayout.WrapText, and CountLines, MeasureHeight and DrawText through it, keeps runs of spaces, so text that relied on the collapse wraps and measures differently), Fixed (Base 14 widths for Windows-1252 codes 128-159; Base 14 and TrueType fonts measure a character outside Windows-1252 as the '?' they draw; both change measured widths, so wrapped text can break differently) and Documented (the 128-byte compression rule; the Windows-1252 replacement with '?').</p></td><td><span class="mono">src/DabblerPdf/DabblerPdf.csproj</span><br><span class="mono">CHANGELOG.md</span></td><td><code>dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release -o .dabbler/scratch/pack-1.2.0</code><br><code>pwsh -NoProfile -Command if (-not (Test-Path .dabbler/scratch/pack-1.2.0/DabblerPdf.1.2.0.nupkg)) { exit 1 }</code></td><td>yes</td></tr>
+</table>
+<p>Non-goals:</p>
+<ul><li>No library source or test changes: only the version, release notes, validation baseline and changelog.</li><li>No publish and no tag: the operator runs the publish dry run and tags nuget-v1.2.0 by hand after this session pushes, as docs/MAINTAINING.md describes.</li><li>No packaging: block in dabbler.yaml.</li><li>No Unicode TrueType fonts or subsetting (Sessions 16 and 17), and no 1.3.0 bump (Session 18).</li></ul>
+<h2>What the framework said</h2>
+<div class="lines"><div class="line"><span class="at">[17:04:13]</span> <span class="muted">run-started</span> session=015 mode=pull</div>
+<div class="line"><span class="at">[17:04:13]</span> <span class="muted">instruction-issued</span> seq=1 kind=step step=plan</div>
+<div class="line"><span class="at">[17:04:55]</span> <span class="muted">run-resumed</span> session=015 phase=<span class="milestone">plan</span> mode=pull</div>
+<div class="line"><span class="at">[17:04:55]</span> <span class="muted">plan-accepted</span> steps=[&quot;bump-version&quot;] non_goals=4</div>
+<div class="line"><span class="at">[17:04:55]</span> <span class="milestone">phase</span> phase=<span class="milestone">work</span></div>
+<div class="line"><span class="at">[17:04:55]</span> <span class="muted">instruction-issued</span> seq=2 kind=step step=bump-version</div>
+<div class="line"><span class="at">[17:05:33]</span> <span class="muted">run-resumed</span> session=015 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[17:05:35]</span> <span class="muted">check-passed</span> step=bump-version argv=[&quot;dotnet&quot;,&quot;pack&quot;,&quot;src/DabblerPdf/DabblerPdf.csproj&quot;,&quot;-c&quot;,&quot;Release&quot;,&quot;-o&quot;,&quot;.dabbler/scratch/pack-1.2.0&quot;]</div>
+<div class="line"><span class="at">[17:05:35]</span> <span class="muted">check-passed</span> step=bump-version argv=[&quot;pwsh&quot;,&quot;-NoProfile&quot;,&quot;-Command&quot;,&quot;if (-not (Test-Path .dabbler/scratch/pack-1.2.0/DabblerPdf.1.2.0.nupkg)) { exit 1 }&quot;]</div>
+<div class="line"><span class="at">[17:05:35]</span> <span class="muted">report-accepted</span> seq=2 step=bump-version files=[&quot;src/DabblerPdf/DabblerPdf.csproj&quot;,&quot;CHANGELOG.md&quot;] notes=Version 1.2.0, release notes rewritten, validation baseline 1.1.3, CHANGELOG 1.2.0 entry; Release pack with validation against 1.1.3 produces DabblerPdf.1.2.0.nupkg</div>
+<div class="line"><span class="at">[17:05:35]</span> <span class="milestone">phase</span> phase=<span class="milestone">preverify</span></div>
+<div class="line"><span class="at">[17:05:35]</span> <span class="milestone">phase</span> phase=<span class="milestone">verify</span></div>
+<div class="line"><span class="at">[17:05:36]</span> <span class="muted">job-started</span> name=verification pid=60840 log=.dabbler/runs/s15/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:06:00]</span> <span class="muted">job-finished</span> name=verification exit=<span class="good">0</span> log=.dabbler/runs/s15/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:06:00]</span> <span class="muted">verification-passed</span></div>
+<div class="line"><span class="at">[17:06:00]</span> <span class="milestone">phase</span> phase=<span class="milestone">run-of-record</span></div>
+<div class="line"><span class="at">[17:06:01]</span> <span class="muted">run-of-record</span> suite=dotnet stage=final-full why=the last whole run of dotnet took 4s, within 60s command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</div>
+<div class="line"><span class="at">[17:06:01]</span> <span class="muted">job-started</span> name=run of record: dotnet pid=61488 log=.dabbler/runs/s15/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:06:07]</span> <span class="muted">job-finished</span> name=run of record: dotnet exit=<span class="good">0</span> log=.dabbler/runs/s15/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:06:07]</span> <span class="milestone">phase</span> phase=<span class="milestone">land</span></div>
+<div class="line"><span class="at">[17:06:11]</span> <span class="muted">landed</span> commit=19ae9eab6046a7ee68b229c911ce080a2ec8c72c</div>
+<div class="line"><span class="at">[17:06:11]</span> <span class="milestone">phase</span> phase=<span class="milestone">publish</span></div>
+<div class="line"><span class="at">[17:06:11]</span> <span class="muted">publish-skipped</span> reason=an ordinary session never publishes</div>
+<div class="line"><span class="at">[17:06:11]</span> <span class="milestone">phase</span> phase=<span class="milestone">close</span></div>
+<div class="line"><span class="at">[17:06:11]</span> <span class="muted">job-started</span> name=close pid=54776 log=.dabbler/runs/s15/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:06:17]</span> <span class="muted">job-finished</span> name=close exit=<span class="good">0</span> log=.dabbler/runs/s15/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:06:17]</span> <span class="milestone">phase</span> phase=<span class="milestone">log</span></div></div>
+<h2>Verification</h2>
+<table>
+<tr><th>Round</th><th>Phase</th><th>Verdict</th><th>Reviewer</th><th>Provider</th><th>Transport</th><th>Findings</th></tr>
+<tr><td>1</td><td>full</td><td><span class="good">VERIFIED</span></td><td>gpt-5.6-terra</td><td>openai</td><td>api</td><td>0</td></tr>
+</table>
+<h2>Test runs</h2>
+<table>
+<tr><th>Suite</th><th>Stage</th><th>Outcome</th><th>Duration</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Command</th></tr>
+<tr><td>dotnet</td><td>final-full</td><td><span class="good">passed</span></td><td>5s</td><td>677</td><td>0</td><td>0</td><td><span class="mono">dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</span></td></tr>
+</table>
+<h2>Jobs</h2>
+<div><strong>close</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>run-of-record-dotnet</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>verification</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+</main>
+</body>
+</html>
