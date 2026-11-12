@@ -1,0 +1,73 @@
+name: publish
+
+# A nuget-v<version> tag publishes that version to nuget.org through trusted
+# publishing. A manual run does everything else, then pushes to GitHub
+# Packages instead, as a dry run.
+on:
+  push:
+    tags: ['nuget-v*']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Read version
+        id: version
+        run: echo "version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/DabblerPdf/DabblerPdf.csproj)" >> "$GITHUB_OUTPUT"
+
+      - name: Check tag matches version
+        if: github.event_name == 'push'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ "${GITHUB_REF_NAME#nuget-v}" != "$VERSION" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match <Version> $VERSION in the csproj"
+            exit 1
+          fi
+
+      - run: dotnet restore
+      - run: dotnet build DabblerPdf.slnx -c Release --no-restore
+      - run: dotnet test DabblerPdf.slnx -c Release --no-build --blame-hang-timeout 5m
+      - run: dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release --no-build -o out
+
+      # The consumer restores from the packed output beside nuget.org, since
+      # the version is not on nuget.org yet, into a separate packages folder,
+      # so it gets the package just packed rather than the baseline that
+      # package validation downloaded. The build then restores nothing.
+      - name: Smoke-test the package
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          dotnet new console -o "$RUNNER_TEMP/smoke"
+          dotnet add "$RUNNER_TEMP/smoke" package DabblerPdf --version "$VERSION" --no-restore
+          dotnet restore "$RUNNER_TEMP/smoke" --source "$GITHUB_WORKSPACE/out" --source https://api.nuget.org/v3/index.json --packages "$RUNNER_TEMP/smoke-packages"
+          dotnet build "$RUNNER_TEMP/smoke" --no-restore
+
+      - name: Log in to nuget.org
+        if: github.event_name == 'push'
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: darndestdabbler
+
+      - name: Push to nuget.org
+        if: github.event_name == 'push'
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "out/*.nupkg" --no-symbols --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
+          dotnet nuget push "out/*.snupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
+
+      - name: Push to GitHub Packages
+        if: github.event_name == 'workflow_dispatch'
+        run: dotnet nuget push "out/*.nupkg" --api-key "${{ secrets.GITHUB_TOKEN }}" --source https://nuget.pkg.github.com/darndestdabbler/index.json --skip-duplicate

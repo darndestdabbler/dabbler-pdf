@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/DabblerPdf/DabblerPdf.csproj" />
+  <Project Path="tests/DabblerPdf.Tests/DabblerPdf.Tests.csproj" />
+  <Project Path="DabblerPdf.Samples/DabblerPdf.Samples.csproj" />
+</Solution>
