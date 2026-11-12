@@ -323,3 +323,106 @@ framework-made `session-011` tag published nothing: with a `pack`-only
 declaration and no `version.json`, the router falls back to a session tag
 and records the release as published (deferred cut 12 in `dabbler-platform`
 tracks the framework fix).
+
+### Session 13: WrapText keeps interior spaces, and content-stream compression can be turned off
+
+1. Register.
+2. `TextLayout.WrapText` (`src/DabblerPdf/Text/TextLayout.cs`) splits each
+   paragraph with `Split(' ', StringSplitOptions.RemoveEmptyEntries)` and
+   rejoins the words with one space, so every run of spaces becomes a single
+   space even when the text already fits: `"New Address Eff:  03/01/2024"`
+   comes back as `"New Address Eff: 03/01/2024"`. Change it so that:
+   - a paragraph that fits within `maxWidth` is returned exactly as given,
+     leading, interior and trailing spaces included;
+   - a paragraph that does not fit breaks only at a run of spaces; the run at
+     which a break is taken is dropped (no line ends or starts with it), and
+     every other run is kept at its full length;
+   - explicit `\n` breaks, the empty-string result and the character-level
+     break of a word wider than `maxWidth` behave as they do today.
+
+   `CountLines`, `MeasureHeight` and `DrawText` follow, because they call
+   `WrapText`. Say in the XML doc of `WrapText` what happens to spaces. In
+   `tests/DabblerPdf.Tests/Text/TextLayoutTests.cs` add tests for: a
+   double-spaced line that fits is unchanged; `"CT  06516"` keeps both
+   spaces; a break taken at a double space leaves neither line with a
+   leading or trailing space; a double space elsewhere on a wrapped line
+   survives; `DrawText` emits the double space in its `Tj` operand. The
+   step's check: `dotnet test DabblerPdf.slnx --filter
+   "FullyQualifiedName~TextLayoutTests"` passes, the 21 existing tests
+   unchanged in what they assert.
+3. `PdfWriter.FlushCurrentPage` and `PdfTemplate` deflate a content stream
+   only when its uncompressed length is over 128 bytes, so a small page is
+   written as plain operators and the same page with one more line is
+   written with `/Filter /FlateDecode`; nothing documents this and nothing
+   turns it off. Add a public `bool CompressContentStreams` property to
+   `PdfWriter`, default `true`, read when a page or a template created by
+   that writer is flushed: `false` writes page and template content streams
+   uncompressed whatever their length. Font programs and images are not
+   affected. In `tests/DabblerPdf.Tests/Pdf/PdfWriterTests.cs` and
+   `PdfTemplateTests.cs` add tests for: default settings, a content stream of
+   128 bytes or fewer has no `/Filter` and one over 128 bytes has
+   `/FlateDecode`; with `CompressContentStreams = false` a page and a
+   template over 128 bytes have no `/Filter` and their text is found in the
+   file's bytes. In `README.md`, state the 128-byte rule and the property in
+   the section that describes testing generated PDFs, and say that a
+   byte-level text search needs one or the other. The step's check: `dotnet
+   test DabblerPdf.slnx --filter
+   "FullyQualifiedName~PdfWriterTests|FullyQualifiedName~PdfTemplateTests"`
+   passes.
+4. Pin what the maintainer findings left unverified. `BaseFont`'s XML doc
+   says a character outside Windows-1252 is replaced with `?`; no test
+   proves it for drawn text. Add tests (in
+   `tests/DabblerPdf.Tests/Text/BaseFontTests.cs` or
+   `tests/DabblerPdf.Tests/Pdf/TextIntegrationTests.cs`) that a Base 14 font
+   with `WinAnsiEncoding` draws a Polish and a Cyrillic string without
+   throwing, that each character outside Windows-1252 is written as `?`,
+   and that `GetWidthPoint` measures it as `?`. If the code does something
+   else, change the code to do what the doc says. State the limit in
+   `README.md` where fonts are described. (`WrapText` on a single word wider
+   than `maxWidth` is already covered by `SingleLongWord_CharacterBroken`.)
+   The step's check: the new tests pass.
+5. Cross-provider verification.
+6. The `dotnet` suite once against the verified tree, recorded as the run of
+   record.
+7. Close-out.
+
+Non-goals: no encoding beyond Windows-1252 and no font embedding change; no
+compression-level option, only on or off; no change to how fonts or images
+are compressed; no version change (Session 14's).
+
+Why now (2026-11-12): the TRIMS application, building on DabblerPdf 1.1.3,
+reported that `WrapText` destroys the double-space separators its legacy
+label format depends on, and that byte-level tests pass for a small page and
+fail when the page grows past the undocumented compression threshold. Both
+were confirmed in the source. `dabbler-platform` takes this release before
+its own `2.0.0`.
+
+### Session 14: Bump the version to 1.2.0
+
+1. Register.
+2. Set `<Version>` to `1.2.0` and rewrite `PackageReleaseNotes` in
+   `src/DabblerPdf/DabblerPdf.csproj`, set `PackageValidationBaselineVersion`
+   to `1.1.3` (the last published version), and add a `1.2.0` entry to
+   `CHANGELOG.md`: added, `PdfWriter.CompressContentStreams`; changed,
+   `TextLayout.WrapText` (and `CountLines`, `MeasureHeight`, `DrawText`
+   through it) keeps runs of spaces, so text that relied on the collapse
+   wraps and measures differently; documented, the 128-byte compression rule
+   and the Windows-1252 replacement with `?`. The step's check: `dotnet pack
+   src/DabblerPdf/DabblerPdf.csproj -c Release -o <scratch dir>` exits 0,
+   package validation against 1.1.3 included, and produces
+   `DabblerPdf.1.2.0.nupkg`.
+3. Cross-provider verification.
+4. The `dotnet` suite once against the verified tree, recorded as the run of
+   record.
+5. Close-out.
+
+Proposed version: **1.2.0 (minor)**. `CompressContentStreams` is an added
+public member, and the `WrapText` change is a fix that alters output for
+text with runs of spaces, which a patch should not do silently.
+
+There is no `(release: 1.2.0)` session: Session 11 showed that with a
+pack-only declaration the router makes a `session-<N>` tag that publishes
+nothing. After this session has pushed, the operator runs the dry run
+(`gh workflow run publish.yml`), and when it is green tags by hand as
+`docs/MAINTAINING.md` → *Release* says (`git tag -a nuget-v1.2.0 -m "Release
+1.2.0"`, `git push origin nuget-v1.2.0`) and confirms 1.2.0 on nuget.org.
