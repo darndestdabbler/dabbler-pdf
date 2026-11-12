@@ -17,7 +17,8 @@ namespace DabblerPdf.Text;
 /// </summary>
 internal class TrueTypeFont : BaseFont
 {
-    private readonly byte[] _fontData;
+    /// <summary>The whole .ttf file.</summary>
+    private protected readonly byte[] FontData;
     private readonly int[] _widths; // WinAnsi char code (0–255) → width in 1/1000 em
 
     /// <summary>Every glyph's advance width in 1/1000 em, indexed by glyph ID.</summary>
@@ -37,7 +38,7 @@ internal class TrueTypeFont : BaseFont
     /// </summary>
     internal TrueTypeFont(string postscriptName, byte[] fontData) : base(postscriptName)
     {
-        _fontData = fontData;
+        FontData = fontData;
         var reader = new TtfReader(fontData);
 
         // Read the offset table to locate individual tables
@@ -137,7 +138,7 @@ internal class TrueTypeFont : BaseFont
     internal PdfDictionary CreateFontDictionary(PdfWriter writer)
     {
         // 1–2. Embed the font file and write its FontDescriptor
-        var descriptorRef = AddFontDescriptor(writer);
+        var descriptorRef = AddFontDescriptor(writer, FontData, PostscriptName);
 
         // 3. Build the Widths array (FirstChar=32, LastChar=255)
         var widthsArray = new PdfArray();
@@ -158,18 +159,18 @@ internal class TrueTypeFont : BaseFont
     }
 
     /// <summary>
-    /// Writes the whole font file as a <c>FontFile2</c> stream and the FontDescriptor that
-    /// names it, and returns the descriptor's reference.
+    /// Writes <paramref name="fontProgram"/> as a <c>FontFile2</c> stream and the FontDescriptor
+    /// that names it <paramref name="fontName"/>, and returns the descriptor's reference.
     /// </summary>
-    private protected PdfIndirectReference AddFontDescriptor(PdfWriter writer)
+    private protected PdfIndirectReference AddFontDescriptor(PdfWriter writer, byte[] fontProgram, string fontName)
     {
-        var fontStream = new PdfStream(_fontData);
+        var fontStream = new PdfStream(fontProgram);
         fontStream.FlateCompress();
-        fontStream.Put(PdfName.Length1, new PdfNumber(_fontData.Length));
+        fontStream.Put(PdfName.Length1, new PdfNumber(fontProgram.Length));
         var fontStreamRef = writer.AddIndirectObject(fontStream);
 
         var descriptorDict = new PdfDictionary(PdfName.FontDescriptor);
-        descriptorDict.Put(PdfName.FontName, new PdfName(PostscriptName));
+        descriptorDict.Put(PdfName.FontName, new PdfName(fontName));
         descriptorDict.Put(new PdfName("Flags"), new PdfNumber(_flags));
         descriptorDict.Put(new PdfName("FontBBox"), new PdfArray(
             _descriptor.BBoxLLX, _descriptor.BBoxLLY,
@@ -221,24 +222,24 @@ internal class TrueTypeFont : BaseFont
     // ═══════════════════════════════════════════════════════════════════
 
     /// <summary>Table directory entry: tag, checksum, offset, length.</summary>
-    private readonly record struct TableEntry(int Offset, int Length);
+    internal readonly record struct TableEntry(int Offset, int Length);
 
     [Flags]
-    private enum TtfMacStyle : ushort
+    internal enum TtfMacStyle : ushort
     {
         None = 0,
         Bold = 1,
         Italic = 2,
     }
 
-    private readonly record struct HeadTable(
+    internal readonly record struct HeadTable(
         int UnitsPerEm, TtfMacStyle MacStyle,
         short XMin, short YMin, short XMax, short YMax,
         short IndexToLocFormat);
 
-    private readonly record struct HheaTable(short Ascent, short Descent, int NumOfLongHorMetrics);
+    internal readonly record struct HheaTable(short Ascent, short Descent, int NumOfLongHorMetrics);
 
-    private sealed class Os2Table
+    internal sealed class Os2Table
     {
         public short STypoAscender { get; init; }
         public short STypoDescender { get; init; }
@@ -247,13 +248,13 @@ internal class TrueTypeFont : BaseFont
         public byte[]? Panose { get; init; }
     }
 
-    private sealed class PostTable
+    internal sealed class PostTable
     {
         public double ItalicAngle { get; init; }
         public int IsFixedPitch { get; init; }
     }
 
-    private sealed class NameTable
+    internal sealed class NameTable
     {
         public string? FamilyName { get; init; }
         public string? PostscriptName { get; init; }
@@ -262,7 +263,7 @@ internal class TrueTypeFont : BaseFont
     /// <summary>
     /// Low-level reader for big-endian TrueType binary data.
     /// </summary>
-    private readonly ref struct TtfReader
+    internal readonly ref struct TtfReader
     {
         private readonly ReadOnlySpan<byte> _data;
 

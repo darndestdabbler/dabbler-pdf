@@ -221,6 +221,11 @@ whether the font has a glyph for `c`; a character it lacks is drawn and measured
 `.notdef` glyph (usually an empty box). One `.ttf` can be loaded with both encodings, and each
 is its own font in the document.
 
+Identity-H fonts are subset: a document embeds only the glyphs it draws (and the glyphs they
+are built from), so one word in a large CJK font costs kilobytes, not megabytes. The embedded
+font is named with a subset tag, six uppercase letters and `+` (for example
+`ABCDEF+LiberationSans`). A TrueType font loaded with `WinAnsiEncoding` embeds the whole file.
+
 Limits:
 
 - No shaping, ligatures or right-to-left layout, so Arabic, Hebrew, Indic and Thai text does
@@ -228,8 +233,6 @@ Limits:
 - No characters beyond U+FFFF (emoji, rarer CJK): each draws as `.notdef`.
 - No fallback to another font for a missing glyph.
 - TrueType (`.ttf`) fonts only, not OpenType CFF (`.otf`); horizontal writing only.
-- The whole font file is embedded in each document that uses it; subsetting it to the glyphs
-  used is planned for Session 17.
 - The 14 standard fonts cannot use `IdentityH`: `CreateFont` throws `ArgumentException`.
 
 ## Samples

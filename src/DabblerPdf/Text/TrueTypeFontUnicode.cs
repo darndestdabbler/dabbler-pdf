@@ -13,7 +13,8 @@ namespace DabblerPdf.Text;
 /// <summary>
 /// A TrueType font drawn with Identity-H encoding: each character is written as its
 /// 2-byte glyph ID, so any character the font has a glyph for is drawn. Ported from
-/// OpenPDF's <c>TrueTypeFontUnicode</c>, without subsetting.
+/// OpenPDF's <c>TrueTypeFontUnicode</c>. The font program embedded is a subset holding only
+/// the glyphs the document drew (<see cref="TrueTypeFontSubSet"/>).
 /// </summary>
 /// <remarks>
 /// A character the font has no glyph for, and each surrogate pair (a character beyond
@@ -63,11 +64,13 @@ internal sealed class TrueTypeFontUnicode : TrueTypeFont
 
     /// <summary>
     /// Writes the Type0 font at <paramref name="fontRef"/>, with its CIDFontType2 descendant,
-    /// font descriptor, font file and ToUnicode CMap, for the glyphs one document drew.
+    /// font descriptor, subset font file and ToUnicode CMap, for the glyphs one document drew.
+    /// The font's names carry the subset's tag.
     /// </summary>
     internal void WriteFont(PdfWriter writer, PdfIndirectReference fontRef, SortedDictionary<int, char> usedGlyphs)
     {
-        var descriptorRef = AddFontDescriptor(writer);
+        string subsetName = TrueTypeFontSubSet.SubsetTag(usedGlyphs.Keys) + PostscriptName;
+        var descriptorRef = AddFontDescriptor(writer, TrueTypeFontSubSet.Create(FontData, usedGlyphs.Keys), subsetName);
 
         var systemInfo = new PdfDictionary();
         systemInfo.Put(new PdfName("Registry"), new PdfString("Adobe"));
@@ -83,7 +86,7 @@ internal sealed class TrueTypeFontUnicode : TrueTypeFont
 
         var cidFont = new PdfDictionary(PdfName.Font);
         cidFont.Put(PdfName.Subtype, new PdfName("CIDFontType2"));
-        cidFont.Put(PdfName.BaseFont, new PdfName(PostscriptName));
+        cidFont.Put(PdfName.BaseFont, new PdfName(subsetName));
         cidFont.Put(new PdfName("CIDSystemInfo"), systemInfo);
         cidFont.Put(PdfName.FontDescriptor, descriptorRef);
         cidFont.Put(new PdfName("CIDToGIDMap"), new PdfName("Identity"));
@@ -97,7 +100,7 @@ internal sealed class TrueTypeFontUnicode : TrueTypeFont
 
         var type0 = new PdfDictionary(PdfName.Font);
         type0.Put(PdfName.Subtype, new PdfName("Type0"));
-        type0.Put(PdfName.BaseFont, new PdfName($"{PostscriptName}-{IdentityH}"));
+        type0.Put(PdfName.BaseFont, new PdfName($"{subsetName}-{IdentityH}"));
         type0.Put(PdfName.Encoding, new PdfName(IdentityH));
         type0.Put(new PdfName("DescendantFonts"), new PdfArray(cidFontRef));
         type0.Put(new PdfName("ToUnicode"), toUnicodeRef);
