@@ -26,7 +26,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 12 | Make the publish smoke test restore from the packed output | no | 2026-11-08 |
 | 13 | WrapText keeps interior spaces, and content-stream compression can be turned off | no | 2026-11-12 |
 | 14 | Windows-1252 characters measure at their real width | no | 2026-11-12 |
-| 15 | Bump the version to 1.2.0 | — | not declared |
+| 15 | Bump the version to 1.2.0 | no | 2026-11-12 |
 | 16 | TrueType fonts with Identity-H draw any character the font has | — | not declared |
 | 17 | Embed only the glyphs an Identity-H font uses | — | not declared |
 | 18 | Bump the version to 1.3.0 | — | not declared |
@@ -114,3 +114,9 @@ Fix three behaviours that TRIMS reported or that the maintainer findings left un
 **Releasable: no.**
 
 Make Windows-1252 characters measure at their real width. In src/DabblerPdf/Text/BuiltinFonts.cs, fill codes 128-159 of the twelve Base 14 text fonts (Helvetica, Times and Courier families) from the Adobe Core 14 AFM metrics OpenPDF ships (pdf/fonts/*.afm), taking each code's width by its Windows-1252 glyph name (unencoded C -1 entries count), citing the source in a comment, leaving the undefined codes 129, 141, 143, 144 and 157 at 0, and correcting any of codes 32-127 and 160-255 that differ from those files; BuiltinFontsTests gains tests that no defined code 32-255 has width 0 in any of the twelve fonts and that the euro, en and em dashes, bullet and right quotes have the AFM widths in Helvetica, Times-Roman and Courier. Then make TrueTypeFont measure the way Type1Font does (through the Windows-1252 code, '?' when there is none), with that code lookup in one place (PdfEncodings) both classes use; TrueTypeFontTests asserts GetCharWidth(300) is the width of '?' and adds Liberation Sans tests that the euro measures as the font's Euro advance and that l-stroke and Zhe measure as '?'; README's Font Support section says a TrueType font with WinAnsiEncoding has the same Windows-1252 limit.
+
+### Session 15 — Bump the version to 1.2.0
+
+**Releasable: no.**
+
+Bump DabblerPdf to 1.2.0 (minor). In src/DabblerPdf/DabblerPdf.csproj set <Version> to 1.2.0, rewrite PackageReleaseNotes for 1.2.0, and set PackageValidationBaselineVersion to 1.1.3, the last published version. Add a 1.2.0 entry at the top of CHANGELOG.md: Added, PdfWriter.CompressContentStreams; Changed, TextLayout.WrapText (and CountLines, MeasureHeight and DrawText through it) keeps runs of spaces, so text that relied on the collapse wraps and measures differently; Fixed, Base 14 widths for Windows-1252 codes 128-159, and Base 14 and TrueType fonts measure a character outside Windows-1252 as the '?' they draw (both change measured widths, so wrapped text can break differently); Documented, the 128-byte compression rule and the Windows-1252 replacement with '?'. The check is that a Release pack, with package validation against 1.1.3, exits 0 and produces DabblerPdf.1.2.0.nupkg.

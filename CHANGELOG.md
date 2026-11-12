@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.2.0
+
+### Added
+- `PdfWriter.CompressContentStreams` (default `true`): set it to `false` to
+  write page and template content streams uncompressed. Font programs and
+  images are compressed as before.
+
+### Changed
+- `TextLayout.WrapText` keeps runs of spaces instead of collapsing them to
+  one, and so do `CountLines`, `MeasureHeight` and `DrawText`, which wrap
+  through it. Text that relied on the collapse wraps and measures
+  differently.
+
+### Fixed
+- The Base 14 Helvetica, Times and Courier fonts measure Windows-1252 codes
+  128–159 (the euro sign, dashes, typographic quotes, bullet and the rest)
+  at their Adobe metrics widths instead of 0.
+- Base 14 and TrueType fonts measure a character outside Windows-1252 as
+  the `?` they draw for it.
+- Both fixes change measured widths, so wrapped text can break differently.
+
+### Documented
+- A page or template content stream is Flate-compressed only when its
+  uncompressed length is over 128 bytes; one of 128 bytes or fewer is
+  written as plain operators (README → *Content-stream compression*).
+- A character outside Windows-1252 is written and measured as `?` in the
+  Base 14 fonts and in a TrueType font with `WinAnsiEncoding` (README →
+  *Font Support*).
+
 ## 1.1.3
 
 No API changes; the library surface is identical to 1.1.2.
