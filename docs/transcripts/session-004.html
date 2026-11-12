@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session 004 transcript</title>
+<style>
+:root {
+  --page: #ffffff;
+  --ink: #1f1f1f;
+  --faint: #e4e4e4;
+  --panel: #f6f6f6;
+  --tone-milestone: #2a5db0;
+  --tone-good: #256029;
+  --tone-warn: #8a6100;
+  --tone-bad: #a31515;
+  --tone-muted: #6b6b6b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #1e1e1e;
+    --ink: #d4d4d4;
+    --faint: #3a3a3a;
+    --panel: #252526;
+  --tone-milestone: #3874db;
+  --tone-good: #54a33b;
+  --tone-warn: #b79427;
+  --tone-bad: #f14c4c;
+  --tone-muted: #8c8c8c;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 64px;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.6 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+main { max-width: 68rem; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.05rem; margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--faint); padding-bottom: .3rem; }
+.stamp { color: var(--tone-muted); font-size: .85rem; margin: 0 0 .25rem; }
+.mono, pre, code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.lines { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+.line { white-space: pre-wrap; word-break: break-word; padding-left: 10.5ch; text-indent: -10.5ch; }
+.at { color: var(--tone-muted); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--faint); vertical-align: top; }
+th { color: var(--tone-muted); font-weight: 600; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; }
+td details { margin: 0; }
+tr:has(details:not([open])) + tr.findings { display: none; }
+tr.findings > td { padding: 0 0 .5rem 1.5rem; }
+pre { background: var(--panel); padding: .75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font-size: 12.5px; }
+.stop, .cancelled { border-left: 3px solid var(--tone-bad); background: var(--panel); padding: .6rem .9rem; }
+.milestone { color: var(--tone-milestone); }
+.good { color: var(--tone-good); }
+.warn { color: var(--tone-warn); }
+.bad { color: var(--tone-bad); }
+.muted { color: var(--tone-muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Session 004 transcript</h1>
+<p class="stamp">Rendered 2026-11-07T17:03:22.791Z by dabbler-ai-router 3.29.0 at d44f9a255e25fb3dd014e47de6e382e3c16e2b52.</p>
+<p class="stamp">Engine cli, last phase <span class="milestone">log</span>, started 2026-11-07T11:53:14.949-05:00.</p>
+<h2>Session Plan</h2>
+<h3>Session 4: Repository hygiene</h3>
+<p>Precondition (operator, GitHub): the default branch is <code>main</code> and <code>master</code> is renamed to <code>archive/openpdf-port-2026-03</code>.</p>
+<ol><li>Register.</li><li>Delete the v1 relics: <code>ai-router/</code>, <code>utils/</code>, <code>docs/ai-led-session-workflow.md</code>, <code>docs/claude-instructions/</code>, <code>docs/gemini-instructions/</code> and <code>GEMINI.md</code>, and any <code>.gitignore</code> lines that only served them. Check: <code>dotnet build DabblerPdf.slnx</code> exits 0 and a <code>node -e</code> check confirms none of those paths exists.</li><li>Move every <code>docs/session-sets/&lt;set&gt;/</code> to <code>docs/session-sets/_archived/&lt;set&gt;/</code> with <code>git mv</code>, and add <code>docs/session-sets/_archived/README.md</code> saying they are the v1 workflow's history, closed, and not to be resumed or migrated. Check: a <code>node -e</code> check confirms <code>docs/session-sets/</code> holds only <code>_archived/</code>.</li><li>Rewrite the v1 text above the managed fence in <code>AGENTS.md</code> and above <code>@AGENTS.md</code> in <code>CLAUDE.md</code> as a short project note: what DabblerPdf is, that it is a scoped port, the build and test commands, and pointers to <code>README.md</code> and <code>docs/planning/solution-plan.md</code>. Leave the managed body and engine tails untouched. Check: a <code>node -e</code> check confirms neither file mentions <code>ai-router</code> or <code>ai-led-session-workflow</code>.</li></ol>
+<h2>Work Plan</h2>
+<p>Clean the repository of the v1 AI-led workflow: delete the v1 relics (ai-router/, utils/, docs/ai-led-session-workflow.md, docs/claude-instructions/, docs/gemini-instructions/, GEMINI.md) and the .gitignore lines that only served them (the router-state.db entry); move every docs/session-sets/&lt;set&gt;/ under docs/session-sets/_archived/ with git mv and add an _archived/README.md marking them as closed v1 history not to be resumed or migrated; and replace the v1 text above the managed fence in AGENTS.md and CLAUDE.md with a short project note (what DabblerPdf is, that it is a scoped port of OpenPDF, the build and test commands, and pointers to README.md and docs/planning/solution-plan.md), leaving the managed bodies and engine tails untouched.</p>
+<p>Landed <a href="https://github.com/darndestdabbler/dabbler-pdf/commit/25148bc333b236dea400c0229b058d1746554f5b"><code>25148bc333b236dea400c0229b058d1746554f5b</code></a>.</p>
+<table>
+<tr><th>Step</th><th>Ask</th><th>Files</th><th>Checks</th><th>Accepted</th></tr>
+<tr><td>Delete relics</td><td><p>git rm the v1 relics ai-router/, utils/, docs/ai-led-session-workflow.md, docs/claude-instructions/, docs/gemini-instructions/ and GEMINI.md, remove any untracked leftovers (such as __pycache__) so the directories are gone from disk, and drop the '# AI Router state' / 'router-state.db' lines from .gitignore.</p></td><td><span class="mono">.gitignore</span><br><span class="mono">GEMINI.md</span><br><span class="mono">ai-router/__init__.py</span><br><span class="mono">ai-router/config.py</span><br><span class="mono">ai-router/metrics.py</span><br><span class="mono">ai-router/models.py</span><br><span class="mono">ai-router/notifications.py</span><br><span class="mono">ai-router/prompt-templates/system-prompts.md</span><br><span class="mono">ai-router/prompt-templates/task-prompts.md</span><br><span class="mono">ai-router/prompt-templates/verification.md</span><br><span class="mono">ai-router/prompting.py</span><br><span class="mono">ai-router/providers.py</span><br><span class="mono">ai-router/report.py</span><br><span class="mono">ai-router/requirements.txt</span><br><span class="mono">ai-router/router-config.yaml</span><br><span class="mono">ai-router/router-metrics.jsonl</span><br><span class="mono">ai-router/session_log.py</span><br><span class="mono">ai-router/utils.py</span><br><span class="mono">ai-router/verification.py</span><br><span class="mono">docs/ai-led-session-workflow.md</span><br><span class="mono">docs/claude-instructions/api-calling.md</span><br><span class="mono">docs/claude-instructions/git.md</span><br><span class="mono">docs/gemini-instructions/api-calling.md</span><br><span class="mono">utils/kill_conhost.py</span><br><span class="mono">utils/load_env.py</span></td><td><code>dotnet build DabblerPdf.slnx</code><br><code>node -e const fs=require('fs');const p=[&quot;ai-router&quot;,&quot;utils&quot;,&quot;docs/ai-led-session-workflow.md&quot;,&quot;docs/claude-instructions&quot;,&quot;docs/gemini-instructions&quot;,&quot;GEMINI.md&quot;].filter(x=&gt;fs.existsSync(x));if(p.length){console.error('still present: '+p.join(', '));process.exit(1)}</code></td><td>yes</td></tr>
+<tr><td>Archive session sets</td><td><p>git mv every docs/session-sets/&lt;set&gt;/ to docs/session-sets/_archived/&lt;set&gt;/ and add docs/session-sets/_archived/README.md stating these are the v1 workflow's history, closed, and not to be resumed or migrated.</p></td><td></td><td><code>node -e const fs=require('fs');const e=fs.readdirSync('docs/session-sets');if(e.length!==1||e[0]!=='_archived'||!fs.existsSync('docs/session-sets/_archived/README.md')){console.error('docs/session-sets holds: '+e.join(', '));process.exit(1)}</code></td><td>yes</td></tr>
+<tr><td>Rewrite agent notes</td><td><p>Replace the v1 text above &lt;!-- dabbler:managed:start --&gt; in AGENTS.md and CLAUDE.md with a short project note: what DabblerPdf is, that it is a scoped port of OpenPDF, the build and test commands, and pointers to README.md and docs/planning/solution-plan.md. Leave the managed bodies and engine tails byte-for-byte unchanged.</p></td><td><span class="mono">AGENTS.md</span><br><span class="mono">CLAUDE.md</span></td><td><code>node -e const fs=require('fs');const bad=['AGENTS.md','CLAUDE.md'].filter(f=&gt;/ai-router|ai-led-session-workflow/.test(fs.readFileSync(f,'utf8')));if(bad.length){console.error('still mentions v1: '+bad.join(', '));process.exit(1)}</code></td><td>yes</td></tr>
+</table>
+<p>Non-goals:</p>
+<ul><li>Does not edit or delete docs/planning/project-guidance.md, lessons-learned.md or project-status.md, nor repoint their links, even where they mention the v1 workflow -- Session 8 (Maintainer guide) does that.</li><li>Does not touch the library, test or sample code or DabblerPdf.slnx.</li><li>Does not change the managed fence content or engine tails of AGENTS.md and CLAUDE.md.</li><li>Does not rename branches on GitHub; that precondition is the operator's.</li><li>Does not remove the .venv/, __pycache__/ or .env ignore lines, which still guard local files on disk.</li><li>Does not rewrite the contents of the archived session sets or the transcripts.</li></ul>
+<h2>What the framework said</h2>
+<div class="lines"><div class="line"><span class="at">[16:53:14]</span> <span class="muted">run-started</span> session=004 mode=pull</div>
+<div class="line"><span class="at">[16:53:15]</span> <span class="muted">instruction-issued</span> seq=1 kind=step step=plan</div>
+<div class="line"><span class="at">[16:55:00]</span> <span class="muted">run-resumed</span> session=004 phase=<span class="milestone">plan</span> mode=pull</div>
+<div class="line"><span class="at">[16:55:00]</span> <span class="muted">plan-accepted</span> steps=[&quot;delete-relics&quot;,&quot;archive-session-sets&quot;,&quot;rewrite-agent-notes&quot;] non_goals=6</div>
+<div class="line"><span class="at">[16:55:08]</span> <span class="milestone">phase</span> phase=<span class="milestone">work</span></div>
+<div class="line"><span class="at">[16:55:08]</span> <span class="muted">instruction-issued</span> seq=2 kind=step step=delete-relics</div>
+<div class="line"><span class="at">[16:56:30]</span> <span class="muted">run-resumed</span> session=004 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[16:56:48]</span> <span class="muted">check-passed</span> step=delete-relics argv=[&quot;dotnet&quot;,&quot;build&quot;,&quot;DabblerPdf.slnx&quot;]</div>
+<div class="line"><span class="at">[16:56:48]</span> <span class="muted">check-passed</span> step=delete-relics argv=[&quot;node&quot;,&quot;-e&quot;,&quot;const fs=require('fs');const p=[\&quot;ai-router\&quot;,\&quot;utils\&quot;,\&quot;docs/ai-led-session-workflow.md\&quot;,\&quot;docs/claude-instructions\&quot;,\&quot;docs/gemini-instructions\&quot;,\&quot;GEMINI.md\&quot;].filter(x=&gt;fs.existsSync(x));if(p.length){console.error('still present: '+p.join(', '));process.exit(1)}&quot;]</div>
+<div class="line"><span class="at">[16:56:52]</span> <span class="muted">report-accepted</span> seq=2 step=delete-relics files=[&quot;.gitignore&quot;,&quot;GEMINI.md&quot;,&quot;ai-router/__init__.py&quot;,&quot;ai-router/config.py&quot;,&quot;ai-router/metrics.py&quot;,&quot;ai-router/models.py&quot;,&quot;ai-router/notifications.py&quot;,&quot;ai-router/prompt-templates/system-prompts.md&quot;,&quot;ai-router/prompt-templates/task-prompts.md&quot;,&quot;ai-router/prompt-templates/verification.md&quot;,&quot;ai-router/prompting.py&quot;,&quot;ai-router/providers.py&quot;,&quot;ai-router/report.py&quot;,&quot;ai-router/requirements.txt&quot;,&quot;ai-router/router-config.yaml&quot;,&quot;ai-router/router-metrics.jsonl&quot;,&quot;ai-router/session_log.py&quot;,&quot;ai-router/utils.py&quot;,&quot;ai-router/verification.py&quot;,&quot;docs/ai-led-session-workflow.md&quot;,&quot;docs/claude-instructions/api-calling.md&quot;,&quot;docs/claude-instructions/git.md&quot;,&quot;docs/gemini-instructions/api-calling.md&quot;,&quot;utils/kill_conhost.py&quot;,&quot;utils/load_env.py&quot;] notes=Removed the v1 relics with git rm (plus untracked __pycache__) and dropped the router-state.db ignore lines.</div>
+<div class="line"><span class="at">[16:56:52]</span> <span class="muted">instruction-issued</span> seq=3 kind=step step=archive-session-sets</div>
+<div class="line"><span class="at">[16:58:07]</span> <span class="muted">run-resumed</span> session=004 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[16:58:10]</span> <span class="muted">report-rejected</span> seq=3 step=archive-session-sets rejection=1 reasons=[&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/activity-log.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/change-log.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/issue-logs/session-002.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/issue-logs/session-004.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/session-reviews/session-001.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/session-reviews/session-002.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/session-reviews/session-003.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/session-reviews/session-004.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/api-gap-enhancements/spec.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/activity-log.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/change-log.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/issue-logs/session-001.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/issue-logs/session-002.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/issue-logs/session-003.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/session-reviews/session-001.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/session-reviews/session-002.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/session-reviews/session-003.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-nuget-release/spec.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-samples/activity-log.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-samples/change-log.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-samples/issue-logs/session-001.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-samples/session-reviews/session-001.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/dabbler-pdf-samples/spec.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/directcontent-multipage-fix-and-tests/activity-log.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/directcontent-multipage-fix-and-tests/change-log.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/directcontent-multipage-fix-and-tests/session-reviews/session-001.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/directcontent-multipage-fix-and-tests/session-reviews/session-002.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/directcontent-multipage-fix-and-tests/spec.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/orders-style-sample-and-title-investigation/activity-log.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/orders-style-sample-and-title-investigation/change-log.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/orders-style-sample-and-title-investigation/session-reviews/session-001.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/orders-style-sample-and-title-investigation/spec.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/pdf-info-metadata-api/activity-log.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/pdf-info-metadata-api/change-log.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/pdf-info-metadata-api/issue-logs/session-002-issues.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/pdf-info-metadata-api/session-reviews/session-001.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/pdf-info-metadata-api/session-reviews/session-002.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/pdf-info-metadata-api/spec.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/sample-visual-fixes/activity-log.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/sample-visual-fixes/change-log.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/sample-visual-fixes/issue-logs/session-001.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/sample-visual-fixes/issue-logs/session-002.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/sample-visual-fixes/session-reviews/session-001.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/sample-visual-fixes/session-reviews/session-002.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/sample-visual-fixes/spec.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/activity-log.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/change-log.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/issue-logs/session-002.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/issue-logs/session-004.json', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/session-reviews/session-001.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/session-reviews/session-002.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/session-reviews/session-003.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/session-reviews/session-004.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/session-reviews/session-005.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/session-reviews/session-006.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/session-reviews/session-007.md', which does not exist&quot;,&quot;[files-changed-missing-file] files_changed names 'docs/session-sets/verification-validation/spec.md', which does not exist&quot;]</div>
+<div class="line"><span class="at">[16:58:10]</span> <span class="muted">instruction-issued</span> seq=4 kind=rejection step=archive-session-sets reasons=57</div>
+<div class="line"><span class="at">[16:58:43]</span> <span class="muted">run-resumed</span> session=004 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/activity-log.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/change-log.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/issue-logs/session-002.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/issue-logs/session-004.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/session-reviews/session-001.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/session-reviews/session-002.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/session-reviews/session-003.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/session-reviews/session-004.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/api-gap-enhancements/spec.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/activity-log.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/change-log.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/issue-logs/session-001.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/issue-logs/session-002.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/issue-logs/session-003.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/session-reviews/session-001.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/session-reviews/session-002.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/session-reviews/session-003.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-nuget-release/spec.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-samples/activity-log.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-samples/change-log.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-samples/issue-logs/session-001.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-samples/session-reviews/session-001.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/dabbler-pdf-samples/spec.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/directcontent-multipage-fix-and-tests/activity-log.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/directcontent-multipage-fix-and-tests/change-log.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/directcontent-multipage-fix-and-tests/session-reviews/session-001.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/directcontent-multipage-fix-and-tests/session-reviews/session-002.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/directcontent-multipage-fix-and-tests/spec.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/orders-style-sample-and-title-investigation/activity-log.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/orders-style-sample-and-title-investigation/change-log.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/orders-style-sample-and-title-investigation/session-reviews/session-001.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/orders-style-sample-and-title-investigation/spec.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/pdf-info-metadata-api/activity-log.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/pdf-info-metadata-api/change-log.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/pdf-info-metadata-api/issue-logs/session-002-issues.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/pdf-info-metadata-api/session-reviews/session-001.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/pdf-info-metadata-api/session-reviews/session-002.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/pdf-info-metadata-api/spec.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/sample-visual-fixes/activity-log.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/sample-visual-fixes/change-log.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/sample-visual-fixes/issue-logs/session-001.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/sample-visual-fixes/issue-logs/session-002.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/sample-visual-fixes/session-reviews/session-001.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/sample-visual-fixes/session-reviews/session-002.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/sample-visual-fixes/spec.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/activity-log.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/change-log.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/issue-logs/session-002.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/issue-logs/session-004.json</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/session-reviews/session-001.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/session-reviews/session-002.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/session-reviews/session-003.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/session-reviews/session-004.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/session-reviews/session-005.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/session-reviews/session-006.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/session-reviews/session-007.md</div>
+<div class="line"><span class="at">[16:58:48]</span> <span class="muted">step-file-unchanged</span> step=archive-session-sets file=docs/session-sets/verification-validation/spec.md</div>
+<div class="line"><span class="at">[16:58:52]</span> <span class="muted">check-passed</span> step=archive-session-sets argv=[&quot;node&quot;,&quot;-e&quot;,&quot;const fs=require('fs');const e=fs.readdirSync('docs/session-sets');if(e.length!==1||e[0]!=='_archived'||!fs.existsSync('docs/session-sets/_archived/README.md')){console.error('docs/session-sets holds: '+e.join(', '));process.exit(1)}&quot;]</div>
+<div class="line"><span class="at">[16:58:55]</span> <span class="muted">report-accepted</span> seq=4 step=archive-session-sets files=[] notes=git mv'd all eight v1 session sets under docs/session-sets/_archived/ and added its README marking them closed history; files left to the framework, since moved-away source paths were refused by name.</div>
+<div class="line"><span class="at">[16:58:55]</span> <span class="muted">instruction-issued</span> seq=5 kind=step step=rewrite-agent-notes</div>
+<div class="line"><span class="at">[17:00:09]</span> <span class="muted">run-resumed</span> session=004 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[17:00:19]</span> <span class="muted">check-passed</span> step=rewrite-agent-notes argv=[&quot;node&quot;,&quot;-e&quot;,&quot;const fs=require('fs');const bad=['AGENTS.md','CLAUDE.md'].filter(f=&gt;/ai-router|ai-led-session-workflow/.test(fs.readFileSync(f,'utf8')));if(bad.length){console.error('still mentions v1: '+bad.join(', '));process.exit(1)}&quot;]</div>
+<div class="line"><span class="at">[17:00:24]</span> <span class="muted">report-accepted</span> seq=5 step=rewrite-agent-notes files=[&quot;AGENTS.md&quot;,&quot;CLAUDE.md&quot;] notes=Replaced the v1 text above the managed fence in AGENTS.md and CLAUDE.md with a short project note; managed bodies and engine tails untouched.</div>
+<div class="line"><span class="at">[17:00:24]</span> <span class="milestone">phase</span> phase=<span class="milestone">preverify</span></div>
+<div class="line"><span class="at">[17:00:25]</span> <span class="milestone">phase</span> phase=<span class="milestone">verify</span></div>
+<div class="line"><span class="at">[17:00:30]</span> <span class="muted">job-started</span> name=verification pid=17396 log=.dabbler/runs/s4/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:01:26]</span> <span class="muted">job-finished</span> name=verification exit=<span class="good">0</span> log=.dabbler/runs/s4/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:01:26]</span> <span class="muted">verification-passed</span></div>
+<div class="line"><span class="at">[17:01:26]</span> <span class="milestone">phase</span> phase=<span class="milestone">run-of-record</span></div>
+<div class="line"><span class="at">[17:01:31]</span> <span class="muted">run-of-record</span> suite=dotnet stage=final-full why=the last whole run of dotnet took 10s, within 60s command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</div>
+<div class="line"><span class="at">[17:01:31]</span> <span class="muted">job-started</span> name=run of record: dotnet pid=55748 log=.dabbler/runs/s4/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:01:51]</span> <span class="muted">job-finished</span> name=run of record: dotnet exit=<span class="good">0</span> log=.dabbler/runs/s4/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:01:51]</span> <span class="milestone">phase</span> phase=<span class="milestone">land</span></div>
+<div class="line"><span class="at">[17:02:21]</span> <span class="muted">landed</span> commit=25148bc333b236dea400c0229b058d1746554f5b</div>
+<div class="line"><span class="at">[17:02:21]</span> <span class="milestone">phase</span> phase=<span class="milestone">publish</span></div>
+<div class="line"><span class="at">[17:02:23]</span> <span class="muted">publish-skipped</span> reason=an ordinary session never publishes</div>
+<div class="line"><span class="at">[17:02:23]</span> <span class="milestone">phase</span> phase=<span class="milestone">close</span></div>
+<div class="line"><span class="at">[17:02:26]</span> <span class="muted">job-started</span> name=close pid=51228 log=.dabbler/runs/s4/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:03:22]</span> <span class="muted">job-finished</span> name=close exit=<span class="good">0</span> log=.dabbler/runs/s4/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:03:22]</span> <span class="milestone">phase</span> phase=<span class="milestone">log</span></div></div>
+<h2>Verification</h2>
+<table>
+<tr><th>Round</th><th>Phase</th><th>Verdict</th><th>Reviewer</th><th>Provider</th><th>Transport</th><th>Findings</th></tr>
+<tr><td>1</td><td>full</td><td><span class="good">VERIFIED</span></td><td>gpt-5.6-terra</td><td>openai</td><td>api</td><td>0</td></tr>
+</table>
+<h2>Test runs</h2>
+<table>
+<tr><th>Suite</th><th>Stage</th><th>Outcome</th><th>Duration</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Command</th></tr>
+<tr><td>dotnet</td><td>final-full</td><td><span class="good">passed</span></td><td>12s</td><td>614</td><td>0</td><td>0</td><td><span class="mono">dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</span></td></tr>
+</table>
+<h2>Jobs</h2>
+<div><strong>close</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>run-of-record-dotnet</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>verification</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+</main>
+</body>
+</html>

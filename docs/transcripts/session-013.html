@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session 013 transcript</title>
+<style>
+:root {
+  --page: #ffffff;
+  --ink: #1f1f1f;
+  --faint: #e4e4e4;
+  --panel: #f6f6f6;
+  --tone-milestone: #2a5db0;
+  --tone-good: #256029;
+  --tone-warn: #8a6100;
+  --tone-bad: #a31515;
+  --tone-muted: #6b6b6b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #1e1e1e;
+    --ink: #d4d4d4;
+    --faint: #3a3a3a;
+    --panel: #252526;
+  --tone-milestone: #3874db;
+  --tone-good: #54a33b;
+  --tone-warn: #b79427;
+  --tone-bad: #f14c4c;
+  --tone-muted: #8c8c8c;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 64px;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.6 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+main { max-width: 68rem; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.05rem; margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--faint); padding-bottom: .3rem; }
+.stamp { color: var(--tone-muted); font-size: .85rem; margin: 0 0 .25rem; }
+.mono, pre, code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.lines { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+.line { white-space: pre-wrap; word-break: break-word; padding-left: 10.5ch; text-indent: -10.5ch; }
+.at { color: var(--tone-muted); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--faint); vertical-align: top; }
+th { color: var(--tone-muted); font-weight: 600; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; }
+td details { margin: 0; }
+tr:has(details:not([open])) + tr.findings { display: none; }
+tr.findings > td { padding: 0 0 .5rem 1.5rem; }
+pre { background: var(--panel); padding: .75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font-size: 12.5px; }
+.stop, .cancelled { border-left: 3px solid var(--tone-bad); background: var(--panel); padding: .6rem .9rem; }
+.milestone { color: var(--tone-milestone); }
+.good { color: var(--tone-good); }
+.warn { color: var(--tone-warn); }
+.bad { color: var(--tone-bad); }
+.muted { color: var(--tone-muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Session 013 transcript</h1>
+<p class="stamp">Rendered 2026-11-12T16:31:00.669Z by dabbler-ai-router 3.32.4 at dc5f3e107bfe6fb6da666a19fe2c06e4151d2daf.</p>
+<p class="stamp">Engine cli, last phase <span class="milestone">log</span>, started 2026-11-12T11:23:46.248-05:00.</p>
+<h2>Session Plan</h2>
+<h3>Session 13: WrapText keeps interior spaces, and content-stream compression can be turned off</h3>
+<ol><li>Register.</li><li><code>TextLayout.WrapText</code> (<code>src/DabblerPdf/Text/TextLayout.cs</code>) splits each paragraph with <code>Split(' ', StringSplitOptions.RemoveEmptyEntries)</code> and rejoins the words with one space, so every run of spaces becomes a single space even when the text already fits: <code>&quot;New Address Eff:  03/01/2024&quot;</code> comes back as <code>&quot;New Address Eff: 03/01/2024&quot;</code>. Change it so that:</li></ol>
+<ul><li>a paragraph that fits within <code>maxWidth</code> is returned exactly as given, leading, interior and trailing spaces included;</li><li>a paragraph that does not fit breaks only at a run of spaces; the run at which a break is taken is dropped (no line ends or starts with it), and every other run is kept at its full length;</li><li>explicit <code>\n</code> breaks, the empty-string result and the character-level break of a word wider than <code>maxWidth</code> behave as they do today.</li></ul>
+<p><code>CountLines</code>, <code>MeasureHeight</code> and <code>DrawText</code> follow, because they call <code>WrapText</code>. Say in the XML doc of <code>WrapText</code> what happens to spaces. In <code>tests/DabblerPdf.Tests/Text/TextLayoutTests.cs</code> add tests for: a double-spaced line that fits is unchanged; <code>&quot;CT  06516&quot;</code> keeps both spaces; a break taken at a double space leaves neither line with a leading or trailing space; a double space elsewhere on a wrapped line survives; <code>DrawText</code> emits the double space in its <code>Tj</code> operand. The step's check: <code>dotnet test DabblerPdf.slnx --filter &quot;FullyQualifiedName~TextLayoutTests&quot;</code> passes, the 21 existing tests unchanged in what they assert.</p>
+<ol><li><code>PdfWriter.FlushCurrentPage</code> and <code>PdfTemplate</code> deflate a content stream only when its uncompressed length is over 128 bytes, so a small page is written as plain operators and the same page with one more line is written with <code>/Filter /FlateDecode</code>; nothing documents this and nothing turns it off. Add a public <code>bool CompressContentStreams</code> property to <code>PdfWriter</code>, default <code>true</code>, read when a page or a template created by that writer is flushed: <code>false</code> writes page and template content streams uncompressed whatever their length. Font programs and images are not affected. In <code>tests/DabblerPdf.Tests/Pdf/PdfWriterTests.cs</code> and <code>PdfTemplateTests.cs</code> add tests for: default settings, a content stream of 128 bytes or fewer has no <code>/Filter</code> and one over 128 bytes has <code>/FlateDecode</code>; with <code>CompressContentStreams = false</code> a page and a template over 128 bytes have no <code>/Filter</code> and their text is found in the file's bytes. In <code>README.md</code>, state the 128-byte rule and the property in the section that describes testing generated PDFs, and say that a byte-level text search needs one or the other. The step's check: <code>dotnet test DabblerPdf.slnx --filter &quot;FullyQualifiedName~PdfWriterTests|FullyQualifiedName~PdfTemplateTests&quot;</code> passes.</li><li>Pin what the maintainer findings left unverified. <code>BaseFont</code>'s XML doc says a character outside Windows-1252 is replaced with <code>?</code>; no test proves it for drawn text. Add tests (in <code>tests/DabblerPdf.Tests/Text/BaseFontTests.cs</code> or <code>tests/DabblerPdf.Tests/Pdf/TextIntegrationTests.cs</code>) that a Base 14 font with <code>WinAnsiEncoding</code> draws a Polish and a Cyrillic string without throwing, that each character outside Windows-1252 is written as <code>?</code>, and that <code>GetWidthPoint</code> measures it as <code>?</code>. If the code does something else, change the code to do what the doc says. State the limit in <code>README.md</code> where fonts are described. (<code>WrapText</code> on a single word wider than <code>maxWidth</code> is already covered by <code>SingleLongWord_CharacterBroken</code>.) The step's check: the new tests pass.</li><li>Cross-provider verification.</li><li>The <code>dotnet</code> suite once against the verified tree, recorded as the run of record.</li><li>Close-out.</li></ol>
+<p>Non-goals: no encoding beyond Windows-1252 and no font embedding change; no compression-level option, only on or off; no change to how fonts or images are compressed; no version change (Session 14's).</p>
+<p>Why now (2026-11-12): the TRIMS application, building on DabblerPdf 1.1.3, reported that <code>WrapText</code> destroys the double-space separators its legacy label format depends on, and that byte-level tests pass for a small page and fail when the page grows past the undocumented compression threshold. Both were confirmed in the source. <code>dabbler-platform</code> takes this release before its own <code>2.0.0</code>.</p>
+<h2>Work Plan</h2>
+<p>Fix three behaviours that TRIMS reported or that the maintainer findings left unverified, without a version change. TextLayout.WrapText stops collapsing runs of spaces: a paragraph that fits is returned exactly as given, and a paragraph that does not fit breaks only at a run of spaces, dropping only the run where the break is taken and keeping every other run at full length; explicit \n breaks, the empty-string result and character-level breaking of an oversized word are unchanged, and CountLines, MeasureHeight and DrawText follow. PdfWriter gains a public bool CompressContentStreams property (default true) that PdfWriter.FlushCurrentPage and PdfTemplate read when flushing: true keeps today's deflate-over-128-bytes rule, false writes page and template content streams uncompressed; the README's testing section documents the 128-byte rule and the property. Finally, tests pin that a Base 14 WinAnsi font draws Polish and Cyrillic text without throwing, writes each character outside Windows-1252 as '?', and measures it as '?' -- Type1Font.GetCharWidth currently indexes its width table by the raw Unicode code (giving 0 for such characters), so it is changed to measure through the Windows-1252 mapping with '?' as the fallback, and the README's font section states the limit.</p>
+<p>Landed <a href="https://github.com/darndestdabbler/dabbler-pdf/commit/3228b81b92c42d012037a7e42fdfdaf126ef5c23"><code>3228b81b92c42d012037a7e42fdfdaf126ef5c23</code></a>.</p>
+<table>
+<tr><th>Step</th><th>Ask</th><th>Files</th><th>Checks</th><th>Accepted</th></tr>
+<tr><td>Wrap text spaces</td><td><p>Rewrite TextLayout.WrapText so that a paragraph that fits within maxWidth is returned unchanged (leading, interior and trailing spaces included), and a paragraph that does not fit breaks only at a run of spaces, dropping the run where the break is taken and keeping every other run at its full length; keep \n handling, the empty-string result and BreakWord's character-level break as today. Document the space handling in WrapText's XML doc. Add TextLayoutTests for: a double-spaced line that fits is unchanged; &quot;CT  06516&quot; keeps both spaces; a break at a double space leaves neither line with a leading or trailing space; a double space elsewhere on a wrapped line survives; DrawText emits the double space in its Tj operand. The 21 existing tests stay unchanged in what they assert.</p></td><td><span class="mono">src/DabblerPdf/Text/TextLayout.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Text/TextLayoutTests.cs</span></td><td><code>dotnet test DabblerPdf.slnx --filter FullyQualifiedName~TextLayoutTests</code></td><td>yes</td></tr>
+<tr><td>Compress content streams</td><td><p>Add a public bool CompressContentStreams property to PdfWriter, default true, with an XML doc stating the 128-byte rule. PdfWriter.FlushCurrentPage and PdfTemplate's flush deflate a content stream only when CompressContentStreams is true and its length is over 128 bytes. Add PdfWriterTests: with defaults a page content stream of 128 bytes or fewer has no /Filter and one over 128 bytes has /FlateDecode; with CompressContentStreams = false a page over 128 bytes has no /Filter and its text is found in the file bytes. Add the same pair for a template in PdfTemplateTests. In README.md's Testing section, state the 128-byte rule and the property, and that a byte-level text search needs a content stream of 128 bytes or fewer or CompressContentStreams = false.</p></td><td><span class="mono">src/DabblerPdf/Pdf/PdfWriter.cs</span><br><span class="mono">src/DabblerPdf/Pdf/PdfTemplate.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Pdf/PdfWriterTests.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Pdf/PdfTemplateTests.cs</span><br><span class="mono">README.md</span></td><td><code>dotnet test DabblerPdf.slnx --filter FullyQualifiedName~PdfWriterTests|FullyQualifiedName~PdfTemplateTests</code></td><td>yes</td></tr>
+<tr><td>Winansi fallback</td><td><p>Make a Base 14 font measure a character the way it is written: Type1Font.GetCharWidth maps the character through PdfEncodings.CharToWinAnsi and uses the width of '?' when the character is outside Windows-1252. Add TextIntegrationTests that a Base 14 WinAnsi font draws a Polish and a Cyrillic string without throwing and that each character outside Windows-1252 is written as '?' in the content stream; add a BaseFontTests test that GetWidthPoint measures such a string as the same number of '?'; add a Type1FontTests test for GetCharWidth on an unmappable character and on a 128-159 Windows-1252 character such as the euro sign. State the Windows-1252 limit and the '?' replacement in README.md's Font Support section.</p></td><td><span class="mono">src/DabblerPdf/Text/Type1Font.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Text/Type1FontTests.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Text/BaseFontTests.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Pdf/TextIntegrationTests.cs</span><br><span class="mono">README.md</span></td><td><code>dotnet test DabblerPdf.slnx --filter FullyQualifiedName~TextIntegrationTests|FullyQualifiedName~BaseFontTests|FullyQualifiedName~Type1FontTests</code></td><td>yes</td></tr>
+</table>
+<p>Non-goals:</p>
+<ul><li>No encoding beyond Windows-1252 and no font embedding change.</li><li>No compression-level option: CompressContentStreams is only on or off.</li><li>No change to how font programs or images are compressed.</li><li>No version change: the bump to 1.2.0 is Session 14's.</li><li>No change to TrueType font measurement.</li></ul>
+<h2>What the framework said</h2>
+<div class="lines"><div class="line"><span class="at">[16:23:46]</span> <span class="muted">run-started</span> session=013 mode=pull</div>
+<div class="line"><span class="at">[16:23:46]</span> <span class="muted">instruction-issued</span> seq=1 kind=step step=plan</div>
+<div class="line"><span class="at">[16:24:46]</span> <span class="muted">run-resumed</span> session=013 phase=<span class="milestone">plan</span> mode=pull</div>
+<div class="line"><span class="at">[16:24:46]</span> <span class="muted">plan-accepted</span> steps=[&quot;wrap-text-spaces&quot;,&quot;compress-content-streams&quot;,&quot;winansi-fallback&quot;] non_goals=5</div>
+<div class="line"><span class="at">[16:24:46]</span> <span class="milestone">phase</span> phase=<span class="milestone">work</span></div>
+<div class="line"><span class="at">[16:24:46]</span> <span class="muted">instruction-issued</span> seq=2 kind=step step=wrap-text-spaces</div>
+<div class="line"><span class="at">[16:26:09]</span> <span class="muted">run-resumed</span> session=013 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[16:26:12]</span> <span class="muted">check-passed</span> step=wrap-text-spaces argv=[&quot;dotnet&quot;,&quot;test&quot;,&quot;DabblerPdf.slnx&quot;,&quot;--filter&quot;,&quot;FullyQualifiedName~TextLayoutTests&quot;]</div>
+<div class="line"><span class="at">[16:26:16]</span> <span class="muted">named-tests-passed</span> step=wrap-text-spaces suite=dotnet command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter TextLayoutTests</div>
+<div class="line"><span class="at">[16:26:16]</span> <span class="muted">report-accepted</span> seq=2 step=wrap-text-spaces files=[&quot;src/DabblerPdf/Text/TextLayout.cs&quot;,&quot;tests/DabblerPdf.Tests/Text/TextLayoutTests.cs&quot;] notes=WrapText returns a fitting paragraph verbatim and breaks a non-fitting one only at space runs, dropping the run broken at; 6 new tests, 21 existing unchanged</div>
+<div class="line"><span class="at">[16:26:16]</span> <span class="muted">instruction-issued</span> seq=3 kind=step step=compress-content-streams</div>
+<div class="line"><span class="at">[16:27:31]</span> <span class="muted">run-resumed</span> session=013 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[16:27:34]</span> <span class="muted">check-passed</span> step=compress-content-streams argv=[&quot;dotnet&quot;,&quot;test&quot;,&quot;DabblerPdf.slnx&quot;,&quot;--filter&quot;,&quot;FullyQualifiedName~PdfWriterTests|FullyQualifiedName~PdfTemplateTests&quot;]</div>
+<div class="line"><span class="at">[16:27:37]</span> <span class="muted">named-tests-passed</span> step=compress-content-streams suite=dotnet command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter &quot;PdfTemplateTests|PdfWriterTests&quot;</div>
+<div class="line"><span class="at">[16:27:38]</span> <span class="muted">report-accepted</span> seq=3 step=compress-content-streams files=[&quot;src/DabblerPdf/Pdf/PdfWriter.cs&quot;,&quot;src/DabblerPdf/Pdf/PdfTemplate.cs&quot;,&quot;tests/DabblerPdf.Tests/Pdf/PdfWriterTests.cs&quot;,&quot;tests/DabblerPdf.Tests/Pdf/PdfTemplateTests.cs&quot;,&quot;README.md&quot;] notes=PdfWriter.CompressContentStreams (default true) gates the &gt;128-byte deflate of page and template content streams; boundary tests at 128/129 bytes and off-case tests; README documents rule and property</div>
+<div class="line"><span class="at">[16:27:38]</span> <span class="muted">instruction-issued</span> seq=4 kind=step step=winansi-fallback</div>
+<div class="line"><span class="at">[16:29:40]</span> <span class="muted">run-resumed</span> session=013 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[16:29:43]</span> <span class="muted">check-passed</span> step=winansi-fallback argv=[&quot;dotnet&quot;,&quot;test&quot;,&quot;DabblerPdf.slnx&quot;,&quot;--filter&quot;,&quot;FullyQualifiedName~TextIntegrationTests|FullyQualifiedName~BaseFontTests|FullyQualifiedName~Type1FontTests&quot;]</div>
+<div class="line"><span class="at">[16:29:46]</span> <span class="muted">named-tests-passed</span> step=winansi-fallback suite=dotnet command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter &quot;BaseFontTests|TextIntegrationTests|Type1FontTests&quot;</div>
+<div class="line"><span class="at">[16:29:46]</span> <span class="muted">report-accepted</span> seq=4 step=winansi-fallback files=[&quot;src/DabblerPdf/Text/Type1Font.cs&quot;,&quot;tests/DabblerPdf.Tests/Text/Type1FontTests.cs&quot;,&quot;tests/DabblerPdf.Tests/Text/BaseFontTests.cs&quot;,&quot;tests/DabblerPdf.Tests/Pdf/TextIntegrationTests.cs&quot;,&quot;README.md&quot;] notes=Type1Font.GetCharWidth measures via the Windows-1252 code, '?' when unmappable (was 0); drawing already wrote '?' as \077; two out-of-range tests updated from 0 to '?' width; README states the limit. Note: built-in width tables hold 0 for codes 128-159, untouched here</div>
+<div class="line"><span class="at">[16:29:46]</span> <span class="milestone">phase</span> phase=<span class="milestone">preverify</span></div>
+<div class="line"><span class="at">[16:29:46]</span> <span class="milestone">phase</span> phase=<span class="milestone">verify</span></div>
+<div class="line"><span class="at">[16:29:47]</span> <span class="muted">job-started</span> name=verification pid=23464 log=.dabbler/runs/s13/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[16:30:47]</span> <span class="muted">job-finished</span> name=verification exit=<span class="good">0</span> log=.dabbler/runs/s13/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[16:30:47]</span> <span class="muted">verification-passed</span></div>
+<div class="line"><span class="at">[16:30:47]</span> <span class="milestone">phase</span> phase=<span class="milestone">run-of-record</span></div>
+<div class="line"><span class="at">[16:30:47]</span> <span class="muted">run-of-record</span> suite=dotnet stage=final-full why=the last whole run of dotnet took 14s, within 60s command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</div>
+<div class="line"><span class="at">[16:30:47]</span> <span class="muted">job-started</span> name=run of record: dotnet pid=37544 log=.dabbler/runs/s13/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[16:30:51]</span> <span class="muted">job-finished</span> name=run of record: dotnet exit=<span class="good">0</span> log=.dabbler/runs/s13/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[16:30:51]</span> <span class="milestone">phase</span> phase=<span class="milestone">land</span></div>
+<div class="line"><span class="at">[16:30:55]</span> <span class="muted">landed</span> commit=3228b81b92c42d012037a7e42fdfdaf126ef5c23</div>
+<div class="line"><span class="at">[16:30:55]</span> <span class="milestone">phase</span> phase=<span class="milestone">publish</span></div>
+<div class="line"><span class="at">[16:30:55]</span> <span class="muted">publish-skipped</span> reason=an ordinary session never publishes</div>
+<div class="line"><span class="at">[16:30:55]</span> <span class="milestone">phase</span> phase=<span class="milestone">close</span></div>
+<div class="line"><span class="at">[16:30:55]</span> <span class="muted">job-started</span> name=close pid=25200 log=.dabbler/runs/s13/driver/jobs/close.log</div>
+<div class="line"><span class="at">[16:31:00]</span> <span class="muted">job-finished</span> name=close exit=<span class="good">0</span> log=.dabbler/runs/s13/driver/jobs/close.log</div>
+<div class="line"><span class="at">[16:31:00]</span> <span class="milestone">phase</span> phase=<span class="milestone">log</span></div></div>
+<h2>Verification</h2>
+<table>
+<tr><th>Round</th><th>Phase</th><th>Verdict</th><th>Reviewer</th><th>Provider</th><th>Transport</th><th>Findings</th></tr>
+<tr><td>1</td><td>full</td><td><span class="good">VERIFIED</span></td><td>gpt-5.6-terra</td><td>openai</td><td>api</td><td><details><summary>2 findings</summary></details></td></tr><tr class="findings"><td colspan="7"><table>
+<tr><th>#</th><th>Severity</th><th>Finding</th><th>Response</th></tr>
+<tr><td>0</td><td><strong>minor</strong></td><td>**Nit:** `Type1Font.GetCharWidth` still returns `0` rather than the `?` width for an `int` Unicode scalar above `char.MaxValue`.</td><td>not answered</td></tr>
+<tr><td>1</td><td><strong>minor</strong></td><td>**Nit:** No visible test proves that `CompressContentStreams` is read at flush time rather than captured when a page/template is created.</td><td>not answered</td></tr>
+</table></td></tr>
+</table>
+<h2>Test runs</h2>
+<table>
+<tr><th>Suite</th><th>Stage</th><th>Outcome</th><th>Duration</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Command</th></tr>
+<tr><td>dotnet</td><td>final-full</td><td><span class="good">passed</span></td><td>3s</td><td>632</td><td>0</td><td>0</td><td><span class="mono">dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</span></td></tr>
+</table>
+<h2>Jobs</h2>
+<div><strong>close</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>run-of-record-dotnet</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>verification</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+</main>
+</body>
+</html>

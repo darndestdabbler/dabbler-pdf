@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session 017 transcript</title>
+<style>
+:root {
+  --page: #ffffff;
+  --ink: #1f1f1f;
+  --faint: #e4e4e4;
+  --panel: #f6f6f6;
+  --tone-milestone: #2a5db0;
+  --tone-good: #256029;
+  --tone-warn: #8a6100;
+  --tone-bad: #a31515;
+  --tone-muted: #6b6b6b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #1e1e1e;
+    --ink: #d4d4d4;
+    --faint: #3a3a3a;
+    --panel: #252526;
+  --tone-milestone: #3874db;
+  --tone-good: #54a33b;
+  --tone-warn: #b79427;
+  --tone-bad: #f14c4c;
+  --tone-muted: #8c8c8c;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 64px;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.6 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+main { max-width: 68rem; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.05rem; margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--faint); padding-bottom: .3rem; }
+.stamp { color: var(--tone-muted); font-size: .85rem; margin: 0 0 .25rem; }
+.mono, pre, code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.lines { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+.line { white-space: pre-wrap; word-break: break-word; padding-left: 10.5ch; text-indent: -10.5ch; }
+.at { color: var(--tone-muted); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--faint); vertical-align: top; }
+th { color: var(--tone-muted); font-weight: 600; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; }
+td details { margin: 0; }
+tr:has(details:not([open])) + tr.findings { display: none; }
+tr.findings > td { padding: 0 0 .5rem 1.5rem; }
+pre { background: var(--panel); padding: .75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font-size: 12.5px; }
+.stop, .cancelled { border-left: 3px solid var(--tone-bad); background: var(--panel); padding: .6rem .9rem; }
+.milestone { color: var(--tone-milestone); }
+.good { color: var(--tone-good); }
+.warn { color: var(--tone-warn); }
+.bad { color: var(--tone-bad); }
+.muted { color: var(--tone-muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Session 017 transcript</h1>
+<p class="stamp">Rendered 2026-11-12T17:37:37.005Z by dabbler-ai-router 3.32.4 at bc9109d41e80701bc5939f2cd423b6f49329753b.</p>
+<p class="stamp">Engine cli, last phase <span class="milestone">log</span>, started 2026-11-12T12:30:43.349-05:00.</p>
+<h2>Session Plan</h2>
+<h3>Session 17: Embed only the glyphs an Identity-H font uses</h3>
+<ol><li>Register.</li><li>A TrueType font is embedded as its whole file today, so a document that draws one word in a CJK font carries megabytes of glyphs. For an Identity-H font, write <code>FontFile2</code> at <code>Close</code> as a subset (ported from OpenPDF's <code>TrueTypeFontSubSet</code>): glyph 0, every glyph the writer recorded, and every component of a composite glyph among them, recursively; glyph IDs keep their numbers (an unused glyph's outline is empty), so <code>/CIDToGIDMap /Identity</code> and <code>/W</code> stand; the tables a PDF TrueType font program needs (<code>head</code>, <code>hhea</code>, <code>maxp</code>, <code>loca</code>, <code>glyf</code>, <code>hmtx</code>, and <code>cvt </code>, <code>fpgm</code> and <code>prep</code> when present) are written with their checksums. The font's <code>/BaseFont</code> and <code>/FontName</code> take a subset tag, six uppercase letters and <code>+</code> (ISO 32000-1, 9.6.4). The tests go in a file named after the subsetting class, with the Liberation Sans fixture: a document drawing &quot;Hello&quot; embeds a font program under a tenth of the full file's size; the subset parses back with <code>TtfReader</code> and keeps each used glyph's advance; a composite glyph's components are in the subset and PdfPig extracts the text that uses it; the tag has the required form; two documents drawing different text embed different subsets. The README's Font Support section says Identity-H fonts are subset. The step's check: <code>dotnet test DabblerPdf.slnx --filter &quot;FullyQualifiedName~TrueType&quot;</code> passes.</li><li>Cross-provider verification.</li><li>The <code>dotnet</code> suite once against the verified tree, recorded as the run of record.</li><li>Close-out.</li></ol>
+<p>Non-goals: no subsetting of <code>WinAnsiEncoding</code> TrueType fonts (a small file uses Identity-H); no option to turn subsetting off; no change to hinting instructions; no CFF fonts; no version change (Session 18's).</p>
+<p>Why now (2026-11-12): Unicode fonts are large, and without subsetting every generated PDF carries the whole file.</p>
+<h2>Work Plan</h2>
+<p>Embed only the glyphs an Identity-H TrueType font uses. A new internal class TrueTypeFontSubSet (src/DabblerPdf/Text/TrueTypeFontSubSet.cs), ported from OpenPDF's TrueTypeFontSubSet, builds a TrueType font program from the original file holding glyph 0, every glyph the writer recorded, and every component of a composite glyph among them, recursively; glyph IDs keep their numbers (an unused glyph's outline is empty in a rewritten loca/glyf), so /CIDToGIDMap /Identity and /W stand. It writes head (checkSumAdjustment recomputed), hhea, maxp, loca, glyf, hmtx, and cvt , fpgm and prep when present, each with its checksum, padded to four bytes, in a valid table directory. TrueTypeFontUnicode.WriteFont writes that subset as FontFile2 at Close, and its /BaseFont (CIDFont and Type0) and the descriptor's /FontName take a subset tag of six uppercase letters and '+' (ISO 32000-1, 9.6.4), derived from the used glyphs. TrueTypeFont's private TtfReader becomes internal so the tests can parse the subset back, and AddFontDescriptor takes the font program and name it embeds, so the WinAnsiEncoding path keeps embedding the whole file under its plain name. Tests in tests/DabblerPdf.Tests/Text/TrueTypeFontSubSetTests.cs, with the Liberation Sans fixture: a document drawing &quot;Hello&quot; embeds a font program under a tenth of the full file's size; the subset parses back with TtfReader and keeps each used glyph's advance; a composite glyph's components are in the subset and PdfPig extracts the text that uses it; the tag has the required form; two documents drawing different text embed different subsets. The README's Font Support section says Identity-H fonts are subset.</p>
+<p>Landed <a href="https://github.com/darndestdabbler/dabbler-pdf/commit/f3f738f2764a94bdac6aa5e455758f822fe2131b"><code>f3f738f2764a94bdac6aa5e455758f822fe2131b</code></a>.</p>
+<table>
+<tr><th>Step</th><th>Ask</th><th>Files</th><th>Checks</th><th>Accepted</th></tr>
+<tr><td>Subset identity h</td><td><p>Add TrueTypeFontSubSet (ported from OpenPDF's TrueTypeFontSubSet) that writes a TrueType font program with glyph 0, the used glyphs and their composite components recursively, glyph IDs preserved, and the tables head, hhea, maxp, loca, glyf, hmtx plus cvt , fpgm and prep when present, each with its checksum. Make TrueTypeFont's TtfReader internal and let AddFontDescriptor take the font program and font name to embed. In TrueTypeFontUnicode.WriteFont embed the subset as FontFile2 and give /BaseFont and /FontName a six-uppercase-letter subset tag and '+'. Add TrueTypeFontSubSetTests with the Liberation Sans fixture covering: 'Hello' embeds a program under a tenth of the full file's size; the subset parses back with TtfReader and keeps each used glyph's advance; a composite glyph's components are in the subset and PdfPig extracts the text that uses it; the tag's form; two documents with different text embed different subsets.</p></td><td><span class="mono">src/DabblerPdf/Text/TrueTypeFontSubSet.cs</span><br><span class="mono">src/DabblerPdf/Text/TrueTypeFont.cs</span><br><span class="mono">src/DabblerPdf/Text/TrueTypeFontUnicode.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Text/TrueTypeFontSubSetTests.cs</span></td><td><code>dotnet test DabblerPdf.slnx --filter FullyQualifiedName~TrueType</code></td><td>yes</td></tr>
+<tr><td>Readme subsetting</td><td><p>In README.md's Font Support section (its Unicode text subsection), say that Identity-H fonts are subset: only the glyphs a document draws are embedded, under a subset-tagged font name, while a WinAnsiEncoding TrueType font embeds the whole file.</p></td><td><span class="mono">README.md</span></td><td><code>git grep -n -i Identity-H fonts are subset -- README.md</code></td><td>yes</td></tr>
+</table>
+<p>Non-goals:</p>
+<ul><li>No subsetting of WinAnsiEncoding TrueType fonts: they keep embedding the whole file.</li><li>No option to turn subsetting off.</li><li>No change to hinting instructions: cvt, fpgm and prep are copied as they are.</li><li>No CFF (OpenType/CFF) fonts.</li><li>No version change: that is Session 18's.</li></ul>
+<h2>What the framework said</h2>
+<div class="lines"><div class="line"><span class="at">[17:30:43]</span> <span class="muted">run-started</span> session=017 mode=pull</div>
+<div class="line"><span class="at">[17:30:43]</span> <span class="muted">instruction-issued</span> seq=1 kind=step step=plan</div>
+<div class="line"><span class="at">[17:31:39]</span> <span class="muted">run-resumed</span> session=017 phase=<span class="milestone">plan</span> mode=pull</div>
+<div class="line"><span class="at">[17:31:39]</span> <span class="muted">plan-accepted</span> steps=[&quot;subset-identity-h&quot;,&quot;readme-subsetting&quot;] non_goals=5</div>
+<div class="line"><span class="at">[17:31:39]</span> <span class="milestone">phase</span> phase=<span class="milestone">work</span></div>
+<div class="line"><span class="at">[17:31:39]</span> <span class="muted">instruction-issued</span> seq=2 kind=step step=subset-identity-h</div>
+<div class="line"><span class="at">[17:35:42]</span> <span class="muted">run-resumed</span> session=017 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[17:35:47]</span> <span class="muted">check-passed</span> step=subset-identity-h argv=[&quot;dotnet&quot;,&quot;test&quot;,&quot;DabblerPdf.slnx&quot;,&quot;--filter&quot;,&quot;FullyQualifiedName~TrueType&quot;]</div>
+<div class="line"><span class="at">[17:35:50]</span> <span class="muted">named-tests-passed</span> step=subset-identity-h suite=dotnet command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter &quot;TrueTypeFontSubSetTests|TrueTypeFontTests|TrueTypeFontUnicodeTests&quot;</div>
+<div class="line"><span class="at">[17:35:51]</span> <span class="muted">report-accepted</span> seq=2 step=subset-identity-h files=[&quot;src/DabblerPdf/Text/TrueTypeFontSubSet.cs&quot;,&quot;src/DabblerPdf/Text/TrueTypeFont.cs&quot;,&quot;src/DabblerPdf/Text/TrueTypeFontUnicode.cs&quot;,&quot;tests/DabblerPdf.Tests/Text/TrueTypeFontSubSetTests.cs&quot;] notes=TrueTypeFontSubSet writes glyph 0, used glyphs and composite components (IDs kept) with checksums and head checkSumAdjustment; Identity-H fonts embed it under a deterministic six-letter subset tag</div>
+<div class="line"><span class="at">[17:35:51]</span> <span class="muted">instruction-issued</span> seq=3 kind=step step=readme-subsetting</div>
+<div class="line"><span class="at">[17:36:02]</span> <span class="muted">run-resumed</span> session=017 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[17:36:03]</span> <span class="muted">check-passed</span> step=readme-subsetting argv=[&quot;git&quot;,&quot;grep&quot;,&quot;-n&quot;,&quot;-i&quot;,&quot;Identity-H fonts are subset&quot;,&quot;--&quot;,&quot;README.md&quot;]</div>
+<div class="line"><span class="at">[17:36:03]</span> <span class="muted">report-accepted</span> seq=3 step=readme-subsetting files=[&quot;README.md&quot;] notes=README Unicode text section says Identity-H fonts are subset under a tagged name and WinAnsi TrueType embeds the whole file; removed the 'planned for Session 17' limit</div>
+<div class="line"><span class="at">[17:36:03]</span> <span class="milestone">phase</span> phase=<span class="milestone">preverify</span></div>
+<div class="line"><span class="at">[17:36:03]</span> <span class="milestone">phase</span> phase=<span class="milestone">verify</span></div>
+<div class="line"><span class="at">[17:36:04]</span> <span class="muted">job-started</span> name=verification pid=57036 log=.dabbler/runs/s17/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:37:19]</span> <span class="muted">job-finished</span> name=verification exit=<span class="good">0</span> log=.dabbler/runs/s17/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:37:19]</span> <span class="muted">verification-passed</span></div>
+<div class="line"><span class="at">[17:37:19]</span> <span class="milestone">phase</span> phase=<span class="milestone">run-of-record</span></div>
+<div class="line"><span class="at">[17:37:19]</span> <span class="muted">run-of-record</span> suite=dotnet stage=final-full why=the last whole run of dotnet took 4s, within 60s command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</div>
+<div class="line"><span class="at">[17:37:19]</span> <span class="muted">job-started</span> name=run of record: dotnet pid=58320 log=.dabbler/runs/s17/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:37:24]</span> <span class="muted">job-finished</span> name=run of record: dotnet exit=<span class="good">0</span> log=.dabbler/runs/s17/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:37:24]</span> <span class="milestone">phase</span> phase=<span class="milestone">land</span></div>
+<div class="line"><span class="at">[17:37:30]</span> <span class="muted">landed</span> commit=f3f738f2764a94bdac6aa5e455758f822fe2131b</div>
+<div class="line"><span class="at">[17:37:30]</span> <span class="milestone">phase</span> phase=<span class="milestone">publish</span></div>
+<div class="line"><span class="at">[17:37:30]</span> <span class="muted">publish-skipped</span> reason=an ordinary session never publishes</div>
+<div class="line"><span class="at">[17:37:30]</span> <span class="milestone">phase</span> phase=<span class="milestone">close</span></div>
+<div class="line"><span class="at">[17:37:31]</span> <span class="muted">job-started</span> name=close pid=17200 log=.dabbler/runs/s17/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:37:37]</span> <span class="muted">job-finished</span> name=close exit=<span class="good">0</span> log=.dabbler/runs/s17/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:37:37]</span> <span class="milestone">phase</span> phase=<span class="milestone">log</span></div></div>
+<h2>Verification</h2>
+<table>
+<tr><th>Round</th><th>Phase</th><th>Verdict</th><th>Reviewer</th><th>Provider</th><th>Transport</th><th>Findings</th></tr>
+<tr><td>1</td><td>full</td><td><span class="good">VERIFIED</span></td><td>gpt-5.6-terra</td><td>openai</td><td>api</td><td>0</td></tr>
+</table>
+<h2>Test runs</h2>
+<table>
+<tr><th>Suite</th><th>Stage</th><th>Outcome</th><th>Duration</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Command</th></tr>
+<tr><td>dotnet</td><td>final-full</td><td><span class="good">passed</span></td><td>4s</td><td>707</td><td>0</td><td>0</td><td><span class="mono">dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</span></td></tr>
+</table>
+<h2>Jobs</h2>
+<div><strong>close</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>run-of-record-dotnet</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>verification</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+</main>
+</body>
+</html>

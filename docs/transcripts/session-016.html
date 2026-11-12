@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session 016 transcript</title>
+<style>
+:root {
+  --page: #ffffff;
+  --ink: #1f1f1f;
+  --faint: #e4e4e4;
+  --panel: #f6f6f6;
+  --tone-milestone: #2a5db0;
+  --tone-good: #256029;
+  --tone-warn: #8a6100;
+  --tone-bad: #a31515;
+  --tone-muted: #6b6b6b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #1e1e1e;
+    --ink: #d4d4d4;
+    --faint: #3a3a3a;
+    --panel: #252526;
+  --tone-milestone: #3874db;
+  --tone-good: #54a33b;
+  --tone-warn: #b79427;
+  --tone-bad: #f14c4c;
+  --tone-muted: #8c8c8c;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 64px;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.6 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+main { max-width: 68rem; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.05rem; margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--faint); padding-bottom: .3rem; }
+.stamp { color: var(--tone-muted); font-size: .85rem; margin: 0 0 .25rem; }
+.mono, pre, code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.lines { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+.line { white-space: pre-wrap; word-break: break-word; padding-left: 10.5ch; text-indent: -10.5ch; }
+.at { color: var(--tone-muted); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--faint); vertical-align: top; }
+th { color: var(--tone-muted); font-weight: 600; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; }
+td details { margin: 0; }
+tr:has(details:not([open])) + tr.findings { display: none; }
+tr.findings > td { padding: 0 0 .5rem 1.5rem; }
+pre { background: var(--panel); padding: .75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font-size: 12.5px; }
+.stop, .cancelled { border-left: 3px solid var(--tone-bad); background: var(--panel); padding: .6rem .9rem; }
+.milestone { color: var(--tone-milestone); }
+.good { color: var(--tone-good); }
+.warn { color: var(--tone-warn); }
+.bad { color: var(--tone-bad); }
+.muted { color: var(--tone-muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Session 016 transcript</h1>
+<p class="stamp">Rendered 2026-11-12T17:27:26.999Z by dabbler-ai-router 3.32.4 at d897eae8a81becb9e030ce89355e0ce024d67b5f.</p>
+<p class="stamp">Engine cli, last phase <span class="milestone">log</span>, started 2026-11-12T12:17:43.590-05:00.</p>
+<h2>Session Plan</h2>
+<h3>Session 16: TrueType fonts with Identity-H draw any character the font has</h3>
+<ol><li>Register.</li><li><code>BaseFont.CreateFont(ttfPath, BaseFont.IdentityH, true)</code> today returns the same Windows-1252 font as <code>WinAnsiEncoding</code> (the encoding argument only keys the cache), and <code>BaseFont.IdentityH</code>'s doc says &quot;not yet implemented&quot;. Make it return a Unicode TrueType font, a new internal class beside <code>TrueTypeFont</code> (ported from OpenPDF's <code>TrueTypeFontUnicode</code>), that:</li></ol>
+<ul><li>measures each character by its own glyph's advance, through the font's <code>cmap</code> and its full <code>hmtx</code> (not a 256-entry table); a character the font has no glyph for, and a surrogate pair, is glyph 0 (<code>.notdef</code>) and measures as its advance; <code>CanEncode</code> is true exactly when the font has the glyph;</li><li>is drawn by <code>ShowText</code> as 2-byte glyph IDs in a hex string (<code>&lt;0024004B&gt; Tj</code>), which needs <code>PdfContentByte</code> to know the font set by <code>SetFontAndSize</code>;</li><li>is written as a Type0 font, <code>/Encoding /Identity-H</code>, whose descendant is a <code>CIDFontType2</code> with <code>/CIDSystemInfo</code> (Adobe, Identity, 0), <code>/CIDToGIDMap /Identity</code>, the font descriptor with the font file as <code>FontFile2</code>, a <code>/W</code> array for the glyphs used, and a <code>/ToUnicode</code> CMap that maps each used glyph back to its characters, so copying, searching and text extraction get the text.</li></ul>
+<p><code>/W</code> and <code>/ToUnicode</code> depend on everything the document draws, so the writer reserves the font's reference when the font is first set and writes its objects at <code>Close</code>, from the glyphs recorded for that writer. A <code>BaseFont</code> is shared across documents by <code>CreateFont</code>'s cache, so the used-glyph record lives in the writer, not the font. The writer keys font objects by PostScript name today, so the same <code>.ttf</code> used with both encodings in one document needs two resources: key them so it gets two. A Base 14 font with <code>IdentityH</code> throws <code>ArgumentException</code>: it has no glyphs to embed. The <code>WinAnsiEncoding</code> TrueType path is unchanged. The tests go in a file named after the new class, using the Liberation Sans fixture: a Polish, a Cyrillic and a Greek string are drawn and PdfPig extracts exactly that text from the page; the measured width of a string is the sum of its glyphs' advances; a character the font lacks (a CJK ideograph) measures as <code>.notdef</code> and <code>CanEncode</code> is false; one font drawn in two documents gives each document its own <code>/W</code>; the same file with both encodings in one document draws both texts; text drawn into a <code>PdfTemplate</code> is extracted too. Update <code>BaseFont</code>'s docs for <code>IdentityH</code>, <code>WinAnsiEncoding</code> and <code>CreateFont</code>, and the README's Font Support section: how to draw Unicode text, what it covers, and its limits (no shaping, no right-to-left, no characters beyond U+FFFF, the whole font file embedded until Session 17). The step's check: <code>dotnet test DabblerPdf.slnx --filter &quot;FullyQualifiedName~TrueType|FullyQualifiedName~TextIntegrationTests|FullyQualifiedName~BaseFontTests&quot;</code> passes.</p>
+<ol><li><code>TextLayout</code>'s character-level break (<code>BreakWord</code>) can cut a word between the two halves of a surrogate pair, or between a letter and its combining mark. Break between text elements (<code>StringInfo</code>) instead. Add tests to <code>tests/DabblerPdf.Tests/Text/TextLayoutTests.cs</code> that neither is split. The step's check: <code>dotnet test DabblerPdf.slnx --filter &quot;FullyQualifiedName~TextLayoutTests&quot;</code> passes.</li><li>Cross-provider verification.</li><li>The <code>dotnet</code> suite once against the verified tree, recorded as the run of record.</li><li>Close-out.</li></ol>
+<p>Non-goals: no shaping, ligatures or right-to-left text (Arabic, Hebrew, Indic and Thai scripts need a shaping engine, which this port does not take); no glyphs beyond U+FFFF (they draw as <code>.notdef</code>); no fallback from one font to another for a missing glyph; no OpenType CFF (<code>.otf</code>) fonts; no vertical writing; no subsetting (Session 17's); no change to the <code>WinAnsiEncoding</code> paths; no version change (Session 18's).</p>
+<p>Why now (2026-11-12): the operator asked for Unicode text. Every PDF viewer draws it from an embedded font with Identity-H encoding; DabblerPdf has the constant and the TrueType reader but writes only one-byte Windows-1252 fonts, so Polish, Cyrillic, Greek and CJK text comes out as <code>?</code>. <code>dabbler-platform</code> Session 28 builds report fonts on this.</p>
+<h2>Work Plan</h2>
+<p>Make BaseFont.CreateFont(ttfPath, BaseFont.IdentityH, true) return a Unicode TrueType font: a new internal class TrueTypeFontUnicode beside TrueTypeFont (ported from OpenPDF's TrueTypeFontUnicode, sharing TrueTypeFont's table reader) that measures each character by its own glyph's advance through the font's cmap and full hmtx, treats a character without a glyph and a surrogate pair as glyph 0 (.notdef), and answers CanEncode true exactly when the font has the glyph. PdfContentByte remembers the font set by SetFontAndSize and ShowText writes that font's text as 2-byte glyph IDs in a hex string. The writer reserves the font's reference when it is first set, records the glyphs that writer draws (in the writer, since CreateFont shares a BaseFont across documents), keys font objects so one .ttf used with both encodings gives two resources, and at Close writes a Type0 font with /Encoding /Identity-H whose descendant is a CIDFontType2 with /CIDSystemInfo (Adobe, Identity, 0), /CIDToGIDMap /Identity, a font descriptor with the whole font file as FontFile2, a /W array for the used glyphs and a /ToUnicode CMap mapping each used glyph back to its characters. A Base 14 font with IdentityH throws ArgumentException; the WinAnsiEncoding paths are unchanged. Tests in TrueTypeFontUnicodeTests use Liberation Sans: Polish, Cyrillic and Greek text extracted exactly by PdfPig, width equals the sum of glyph advances, a CJK ideograph measures as .notdef with CanEncode false, one font in two documents gives each its own /W, both encodings of one file in one document draw both texts, and text in a PdfTemplate is extracted. BaseFont's docs for IdentityH, WinAnsiEncoding and CreateFont and the README's Font Support section say how to draw Unicode text, what it covers and its limits. Then TextLayout's BreakWord breaks between text elements (StringInfo) so it never splits a surrogate pair or a letter from its combining mark, with tests in TextLayoutTests.</p>
+<p>Landed <a href="https://github.com/darndestdabbler/dabbler-pdf/commit/95cc384a435416a1d1ce025cc38e86dd38766ffc"><code>95cc384a435416a1d1ce025cc38e86dd38766ffc</code></a>.</p>
+<table>
+<tr><th>Step</th><th>Ask</th><th>Files</th><th>Checks</th><th>Accepted</th></tr>
+<tr><td>Truetype identity h</td><td><p>Add src/DabblerPdf/Text/TrueTypeFontUnicode.cs, an internal BaseFont ported from OpenPDF's TrueTypeFontUnicode, reusing TrueTypeFont's table reader (made reachable inside the assembly, its WinAnsi behaviour unchanged): it maps each char through the cmap to a glyph and measures it by that glyph's hmtx advance in 1/1000 em, uses glyph 0 (.notdef) for a char without a glyph and for each surrogate pair (measured once, as .notdef's advance), and CanEncode is true exactly when the font has the glyph (CanEncode becomes virtual on BaseFont, and GetWidthPoint measures a surrogate pair once). BaseFont.CreateFont returns it for a .ttf with IdentityH and throws ArgumentException for a Base 14 font with IdentityH; update the docs of IdentityH, WinAnsiEncoding and CreateFont. PdfContentByte keeps the font last set by SetFontAndSize; ShowText with a Unicode font writes &lt;glyph IDs as 4 hex digits&gt; Tj and records the glyphs and their chars in the writer. PdfWriter keys font objects so the same file with both encodings gets two resources, reserves a Unicode font's reference on first use and writes its Type0 font, CIDFontType2 descendant (CIDSystemInfo Adobe/Identity/0, CIDToGIDMap Identity, /W for the used glyphs, DW), font descriptor with FontFile2, and /ToUnicode CMap at Close from that writer's own glyph record. Add tests/DabblerPdf.Tests/Text/TrueTypeFontUnicodeTests.cs with the Liberation Sans tests the session plan lists (Polish, Cyrillic, Greek extraction by PdfPig; width is the sum of advances; CJK is .notdef and CanEncode false; two documents get their own /W; both encodings in one document draw both texts; template text is extracted), update BaseFontTests for the IdentityH ArgumentException and PdfWriterTests/PdfContentByteTests where the font keying and ShowText change, and update README.md's Font Support section: how to draw Unicode text, what it covers, and its limits (no shaping, no right-to-left, nothing beyond U+FFFF, the whole font file embedded until Session 17).</p></td><td><span class="mono">src/DabblerPdf/Text/TrueTypeFontUnicode.cs</span><br><span class="mono">src/DabblerPdf/Text/TrueTypeFont.cs</span><br><span class="mono">src/DabblerPdf/Text/BaseFont.cs</span><br><span class="mono">src/DabblerPdf/Pdf/PdfContentByte.cs</span><br><span class="mono">src/DabblerPdf/Pdf/PdfWriter.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Text/TrueTypeFontUnicodeTests.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Text/BaseFontTests.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Pdf/PdfWriterTests.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Pdf/PdfContentByteTests.cs</span><br><span class="mono">README.md</span></td><td><code>dotnet test DabblerPdf.slnx --filter FullyQualifiedName~TrueType|FullyQualifiedName~TextIntegrationTests|FullyQualifiedName~BaseFontTests</code></td><td>yes</td></tr>
+<tr><td>Text element break</td><td><p>In src/DabblerPdf/Text/TextLayout.cs, make BreakWord break between text elements (System.Globalization.StringInfo) instead of between chars, so a surrogate pair and a letter with its combining mark are never split. Add tests to tests/DabblerPdf.Tests/Text/TextLayoutTests.cs that wrapping a word too wide for its line splits neither a surrogate pair nor a letter from its combining mark.</p></td><td><span class="mono">src/DabblerPdf/Text/TextLayout.cs</span><br><span class="mono">tests/DabblerPdf.Tests/Text/TextLayoutTests.cs</span></td><td><code>dotnet test DabblerPdf.slnx --filter FullyQualifiedName~TextLayoutTests</code></td><td>yes</td></tr>
+</table>
+<p>Non-goals:</p>
+<ul><li>No shaping, ligatures or right-to-left text (Arabic, Hebrew, Indic, Thai).</li><li>No glyphs beyond U+FFFF: they draw and measure as .notdef.</li><li>No fallback from one font to another for a missing glyph.</li><li>No OpenType CFF (.otf) fonts and no vertical writing.</li><li>No subsetting: the whole font file is embedded (Session 17's work).</li><li>No change to the WinAnsiEncoding paths for Base 14 or TrueType fonts.</li><li>No version change (Session 18's work).</li></ul>
+<h2>What the framework said</h2>
+<div class="lines"><div class="line"><span class="at">[17:17:43]</span> <span class="muted">run-started</span> session=016 mode=pull</div>
+<div class="line"><span class="at">[17:17:43]</span> <span class="muted">instruction-issued</span> seq=1 kind=step step=plan</div>
+<div class="line"><span class="at">[17:18:59]</span> <span class="muted">run-resumed</span> session=016 phase=<span class="milestone">plan</span> mode=pull</div>
+<div class="line"><span class="at">[17:18:59]</span> <span class="muted">plan-accepted</span> steps=[&quot;truetype-identity-h&quot;,&quot;text-element-break&quot;] non_goals=7</div>
+<div class="line"><span class="at">[17:18:59]</span> <span class="milestone">phase</span> phase=<span class="milestone">work</span></div>
+<div class="line"><span class="at">[17:18:59]</span> <span class="muted">instruction-issued</span> seq=2 kind=step step=truetype-identity-h</div>
+<div class="line"><span class="at">[17:24:51]</span> <span class="muted">run-resumed</span> session=016 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[17:24:55]</span> <span class="muted">check-passed</span> step=truetype-identity-h argv=[&quot;dotnet&quot;,&quot;test&quot;,&quot;DabblerPdf.slnx&quot;,&quot;--filter&quot;,&quot;FullyQualifiedName~TrueType|FullyQualifiedName~TextIntegrationTests|FullyQualifiedName~BaseFontTests&quot;]</div>
+<div class="line"><span class="at">[17:24:59]</span> <span class="muted">named-tests-passed</span> step=truetype-identity-h suite=dotnet command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter &quot;BaseFontTests|PdfContentByteTests|PdfWriterTests|TrueTypeFontTests|TrueTypeFontUnicodeTests&quot;</div>
+<div class="line"><span class="at">[17:24:59]</span> <span class="muted">report-accepted</span> seq=2 step=truetype-identity-h files=[&quot;src/DabblerPdf/Text/TrueTypeFontUnicode.cs&quot;,&quot;src/DabblerPdf/Text/TrueTypeFont.cs&quot;,&quot;src/DabblerPdf/Text/BaseFont.cs&quot;,&quot;src/DabblerPdf/Pdf/PdfContentByte.cs&quot;,&quot;src/DabblerPdf/Pdf/PdfWriter.cs&quot;,&quot;tests/DabblerPdf.Tests/Text/TrueTypeFontUnicodeTests.cs&quot;,&quot;tests/DabblerPdf.Tests/Text/BaseFontTests.cs&quot;,&quot;tests/DabblerPdf.Tests/Pdf/PdfWriterTests.cs&quot;,&quot;tests/DabblerPdf.Tests/Pdf/PdfContentByteTests.cs&quot;,&quot;README.md&quot;] notes=TrueTypeFontUnicode (subclass of TrueTypeFont) draws Identity-H hex glyph IDs; writer reserves its ref, records glyphs per document and writes Type0/CIDFontType2/W/ToUnicode at Close; Base 14 + IdentityH throws; README Unicode section.</div>
+<div class="line"><span class="at">[17:24:59]</span> <span class="muted">instruction-issued</span> seq=3 kind=step step=text-element-break</div>
+<div class="line"><span class="at">[17:25:54]</span> <span class="muted">run-resumed</span> session=016 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[17:25:57]</span> <span class="muted">check-passed</span> step=text-element-break argv=[&quot;dotnet&quot;,&quot;test&quot;,&quot;DabblerPdf.slnx&quot;,&quot;--filter&quot;,&quot;FullyQualifiedName~TextLayoutTests&quot;]</div>
+<div class="line"><span class="at">[17:26:00]</span> <span class="muted">named-tests-passed</span> step=text-element-break suite=dotnet command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter TextLayoutTests</div>
+<div class="line"><span class="at">[17:26:01]</span> <span class="muted">report-accepted</span> seq=3 step=text-element-break files=[&quot;src/DabblerPdf/Text/TextLayout.cs&quot;,&quot;tests/DabblerPdf.Tests/Text/TextLayoutTests.cs&quot;] notes=BreakWord iterates StringInfo text elements; tests cover surrogate pairs, combining marks, and element-boundary line filling.</div>
+<div class="line"><span class="at">[17:26:01]</span> <span class="milestone">phase</span> phase=<span class="milestone">preverify</span></div>
+<div class="line"><span class="at">[17:26:01]</span> <span class="milestone">phase</span> phase=<span class="milestone">verify</span></div>
+<div class="line"><span class="at">[17:26:01]</span> <span class="muted">job-started</span> name=verification pid=57264 log=.dabbler/runs/s16/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:27:11]</span> <span class="muted">job-finished</span> name=verification exit=<span class="good">0</span> log=.dabbler/runs/s16/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:27:11]</span> <span class="muted">verification-passed</span></div>
+<div class="line"><span class="at">[17:27:11]</span> <span class="milestone">phase</span> phase=<span class="milestone">run-of-record</span></div>
+<div class="line"><span class="at">[17:27:11]</span> <span class="muted">run-of-record</span> suite=dotnet stage=final-full why=the last whole run of dotnet took 5s, within 60s command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</div>
+<div class="line"><span class="at">[17:27:11]</span> <span class="muted">job-started</span> name=run of record: dotnet pid=17640 log=.dabbler/runs/s16/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:27:15]</span> <span class="muted">job-finished</span> name=run of record: dotnet exit=<span class="good">0</span> log=.dabbler/runs/s16/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:27:15]</span> <span class="milestone">phase</span> phase=<span class="milestone">land</span></div>
+<div class="line"><span class="at">[17:27:21]</span> <span class="muted">landed</span> commit=95cc384a435416a1d1ce025cc38e86dd38766ffc</div>
+<div class="line"><span class="at">[17:27:21]</span> <span class="milestone">phase</span> phase=<span class="milestone">publish</span></div>
+<div class="line"><span class="at">[17:27:21]</span> <span class="muted">publish-skipped</span> reason=an ordinary session never publishes</div>
+<div class="line"><span class="at">[17:27:21]</span> <span class="milestone">phase</span> phase=<span class="milestone">close</span></div>
+<div class="line"><span class="at">[17:27:21]</span> <span class="muted">job-started</span> name=close pid=58000 log=.dabbler/runs/s16/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:27:26]</span> <span class="muted">job-finished</span> name=close exit=<span class="good">0</span> log=.dabbler/runs/s16/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:27:26]</span> <span class="milestone">phase</span> phase=<span class="milestone">log</span></div></div>
+<h2>Verification</h2>
+<table>
+<tr><th>Round</th><th>Phase</th><th>Verdict</th><th>Reviewer</th><th>Provider</th><th>Transport</th><th>Findings</th></tr>
+<tr><td>1</td><td>full</td><td><span class="good">VERIFIED</span></td><td>gpt-5.6-terra</td><td>openai</td><td>api</td><td><details><summary>1 finding</summary></details></td></tr><tr class="findings"><td colspan="7"><table>
+<tr><th>#</th><th>Severity</th><th>Finding</th><th>Response</th></tr>
+<tr><td>0</td><td><strong>minor</strong></td><td>**Nit:** `TrueTypeFont` still obtains its cmap exclusively through `ReadCmapFormat4` (`src/DabblerPdf/Text/TrueTypeFont.cs`). A valid `.ttf` whose BMP mappings exist only in a cmap format 12 subtable would therefore not meet “any character the font has” despite being a TrueType font. Add a test with such a font (or a constructed format-12-only cmap): creating it with `IdentityH`, drawing a mapped BMP character, and asserting `CanEncode` is true, the emitted glyph is nonzero, and extraction returns that character.</td><td>not answered</td></tr>
+</table></td></tr>
+</table>
+<h2>Test runs</h2>
+<table>
+<tr><th>Suite</th><th>Stage</th><th>Outcome</th><th>Duration</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Command</th></tr>
+<tr><td>dotnet</td><td>final-full</td><td><span class="good">passed</span></td><td>4s</td><td>701</td><td>0</td><td>0</td><td><span class="mono">dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</span></td></tr>
+</table>
+<h2>Jobs</h2>
+<div><strong>close</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>run-of-record-dotnet</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>verification</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+</main>
+</body>
+</html>
