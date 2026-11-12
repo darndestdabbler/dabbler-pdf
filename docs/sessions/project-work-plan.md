@@ -24,6 +24,8 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 10 | Bump the version to 1.1.3 | no | 2026-11-07 |
 | 11 | Release 1.1.3 (release: 1.1.3) | yes | 2026-11-07 |
 | 12 | Make the publish smoke test restore from the packed output | no | 2026-11-08 |
+| 13 | WrapText keeps interior spaces, and content-stream compression can be turned off | no | 2026-11-12 |
+| 14 | Bump the version to 1.2.0 | — | not declared |
 
 ### Session 1 — Author or import the solution plan
 
@@ -96,3 +98,9 @@ Release 1.1.3: the framework packs and publishes what is on the trunk.
 **Releasable: no.**
 
 Fix the "Smoke-test the package" step of .github/workflows/publish.yml so the consumer project restores DabblerPdf from the freshly packed output instead of from the default sources only. Today `dotnet add package --source out` records the reference but the following `dotnet build` restores against nuget.org alone, so a version not yet published there (1.1.3) fails with NU1102, as dry run 42482132357 did. The step will add the reference without restoring, restore explicitly with `--source "$GITHUB_WORKSPACE/out"` beside nuget.org into the separate packages folder, and build with `--no-restore`. The fix is proven by a workflow_dispatch run of publish.yml on the changed workflow that reaches "Push to GitHub Packages" green; its run id is recorded in the step's notes.
+
+### Session 13 — WrapText keeps interior spaces, and content-stream compression can be turned off
+
+**Releasable: no.**
+
+Fix three behaviours that TRIMS reported or that the maintainer findings left unverified, without a version change. TextLayout.WrapText stops collapsing runs of spaces: a paragraph that fits is returned exactly as given, and a paragraph that does not fit breaks only at a run of spaces, dropping only the run where the break is taken and keeping every other run at full length; explicit \n breaks, the empty-string result and character-level breaking of an oversized word are unchanged, and CountLines, MeasureHeight and DrawText follow. PdfWriter gains a public bool CompressContentStreams property (default true) that PdfWriter.FlushCurrentPage and PdfTemplate read when flushing: true keeps today's deflate-over-128-bytes rule, false writes page and template content streams uncompressed; the README's testing section documents the 128-byte rule and the property. Finally, tests pin that a Base 14 WinAnsi font draws Polish and Cyrillic text without throwing, writes each character outside Windows-1252 as '?', and measures it as '?' -- Type1Font.GetCharWidth currently indexes its width table by the raw Unicode code (giving 0 for such characters), so it is changed to measure through the Windows-1252 mapping with '?' as the fallback, and the README's font section states the limit.

@@ -143,6 +143,51 @@ public class TextLayoutTests
             Assert.Equal("b", lines[1]);
             Assert.Equal("c", lines[2]);
         }
+
+        [Fact]
+        public void DoubleSpacedLineThatFits_Unchanged()
+        {
+            var font = Helvetica;
+            var lines = TextLayout.WrapText("New Address Eff:  03/01/2024", font, 12, 500);
+            Assert.Single(lines);
+            Assert.Equal("New Address Eff:  03/01/2024", lines[0]);
+        }
+
+        [Fact]
+        public void LineThatFits_KeepsLeadingAndTrailingSpaces()
+        {
+            var font = Helvetica;
+            var lines = TextLayout.WrapText("  indented  ", font, 12, 500);
+            Assert.Single(lines);
+            Assert.Equal("  indented  ", lines[0]);
+        }
+
+        [Fact]
+        public void StateAndZip_KeepsBothSpaces()
+        {
+            var font = Helvetica;
+            var lines = TextLayout.WrapText("CT  06516", font, 12, 500);
+            Assert.Single(lines);
+            Assert.Equal("CT  06516", lines[0]);
+        }
+
+        [Fact]
+        public void BreakAtDoubleSpace_DropsTheRun()
+        {
+            var font = Helvetica;
+            double maxWidth = font.GetWidthPoint("alpha", 12) + 1;
+            var lines = TextLayout.WrapText("alpha  beta", font, 12, maxWidth);
+            Assert.Equal(["alpha", "beta"], lines);
+        }
+
+        [Fact]
+        public void DoubleSpaceElsewhereOnWrappedLine_Survives()
+        {
+            var font = Helvetica;
+            double maxWidth = font.GetWidthPoint("aa  bb", 12);
+            var lines = TextLayout.WrapText("aa  bb cc", font, 12, maxWidth);
+            Assert.Equal(["aa  bb", "cc"], lines);
+        }
     }
 
     // ─── MeasureHeight Tests ──────────────────────────────────────
@@ -293,6 +338,17 @@ public class TextLayoutTests
 
             double ascent = font.GetFontDescriptor(BaseFont.ASCENT, fontSize);
             Assert.Equal(720 - ascent - fontSize * 1.2, returnedY, 0.001);
+        }
+
+        [Fact]
+        public void DrawText_DoubleSpace_EmittedInTjOperand()
+        {
+            var (cb, writer, ms) = CreateContentByte();
+
+            TextLayout.DrawText(cb, "CT  06516", Helvetica, 12, 72, 720, 500);
+
+            var content = Encoding.ASCII.GetString(cb.ToByteArray());
+            Assert.Contains("(CT  06516) Tj", content);
         }
     }
 }

@@ -56,6 +56,16 @@ public sealed class PdfWriter
     /// </summary>
     public IPdfPageEvent? PageEvent { get; set; }
 
+    /// <summary>
+    /// Gets or sets whether page and template content streams are Flate-compressed.
+    /// When <c>true</c> (the default), a content stream is compressed only when its
+    /// uncompressed length is over 128 bytes; one of 128 bytes or fewer is written as plain
+    /// operators. When <c>false</c>, every page and template content stream is written
+    /// uncompressed, whatever its length. Read when each page or template is flushed.
+    /// Font programs and images are not affected.
+    /// </summary>
+    public bool CompressContentStreams { get; set; } = true;
+
     private PdfWriter(Stream outputStream)
     {
         _outputStream = outputStream;
@@ -292,7 +302,7 @@ public sealed class PdfWriter
         // Serialize templates (Form XObjects) — content may have been written after placement
         foreach (var template in _templates)
         {
-            var formXObject = template.ToFormXObject();
+            var formXObject = template.ToFormXObject(CompressContentStreams);
             _body.Add(formXObject, template.Reference, _outputStream);
         }
 
@@ -346,7 +356,7 @@ public sealed class PdfWriter
         // Create the content stream from DirectContent bytes
         var contentBytes = DirectContent.ToByteArray();
         var contentStream = new PdfStream(contentBytes);
-        if (contentBytes.Length > 128)
+        if (CompressContentStreams && contentBytes.Length > 128)
             contentStream.FlateCompress();
         var contentRef = _body.Add(contentStream, _outputStream);
 

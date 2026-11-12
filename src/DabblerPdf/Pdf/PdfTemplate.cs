@@ -65,7 +65,9 @@ public class PdfTemplate
     /// Serializes this template into a PDF Form XObject stream.
     /// Called by <see cref="PdfWriter.Close"/> after all content has been written.
     /// </summary>
-    internal PdfStream ToFormXObject()
+    /// <param name="compress">The writer's <see cref="PdfWriter.CompressContentStreams"/>:
+    /// when true, content over 128 bytes is Flate-compressed.</param>
+    internal PdfStream ToFormXObject(bool compress)
     {
         var contentBytes = Content.ToByteArray();
         var stream = new PdfStream(contentBytes);
@@ -85,7 +87,7 @@ public class PdfTemplate
             stream.Put(PdfName.Resources, resources);
         }
 
-        if (contentBytes.Length > 128)
+        if (compress && contentBytes.Length > 128)
             stream.FlateCompress();
 
         return stream;

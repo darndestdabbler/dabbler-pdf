@@ -152,4 +152,31 @@ public class TextIntegrationTests
         Assert.Contains("/Count 3", pdfText);
         Assert.Contains("/Courier-Bold", pdfText);
     }
+
+    // A character above 127 is written as an octal escape: '?' as \077, ó (in Windows-1252) as \363.
+    [Theory]
+    [InlineData("Zażółć gęślą jaźń", @"(Za\077\363\077\077 g\077\077l\077 ja\077\077) Tj")]
+    [InlineData("Привет", @"(\077\077\077\077\077\077) Tj")]
+    public void Base14WinAnsi_TextOutsideWindows1252_WrittenAsQuestionMarks(string text, string expectedOperator)
+    {
+        using var ms = new MemoryStream();
+        using var doc = new DabblerPdf.Document.Document(PageSize.Letter);
+        var writer = PdfWriter.GetInstance(doc, ms);
+        writer.CompressContentStreams = false;
+        doc.Open();
+        doc.NewPage();
+
+        var font = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
+        var cb = writer.DirectContent;
+        cb.BeginText();
+        cb.SetFontAndSize(font, 12);
+        cb.SetTextMatrix(72, 720);
+        cb.ShowText(text);
+        cb.EndText();
+
+        doc.Close();
+
+        var pdfText = Encoding.ASCII.GetString(ms.ToArray());
+        Assert.Contains(expectedOperator, pdfText);
+    }
 }

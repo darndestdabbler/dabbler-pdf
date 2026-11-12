@@ -56,10 +56,23 @@ public class Type1FontTests
         }
 
         [Fact]
-        public void GetCharWidth_IndexBeyondArray_ReturnsZero()
+        public void GetCharWidth_BeyondWindows1252_MeasuredAsQuestionMark()
         {
             var font = new Type1Font(BaseFont.Helvetica);
-            Assert.Equal(0, font.GetCharWidth(300));
+            int question = font.GetCharWidth('?');
+            Assert.Equal(556, question);
+            Assert.Equal(question, font.GetCharWidth(300));    // U+012C, outside Windows-1252
+            Assert.Equal(question, font.GetCharWidth('Ж'));    // Cyrillic
+            Assert.Equal(question, font.GetCharWidth('ł'));    // Polish
+            Assert.Equal(question, font.GetCharWidth(0x81));   // undefined in Windows-1252
+        }
+
+        [Fact]
+        public void GetCharWidth_Windows1252SpecialChar_MeasuredAtItsCode()
+        {
+            var font = new Type1Font(BaseFont.Helvetica);
+            // The euro sign is U+20AC, written as Windows-1252 code 128
+            Assert.Equal(BuiltinFonts.GetWidths(BaseFont.Helvetica)[128], font.GetCharWidth('€'));
         }
 
         [Fact]

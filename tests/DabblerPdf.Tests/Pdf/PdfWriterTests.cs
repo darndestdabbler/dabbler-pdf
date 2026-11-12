@@ -357,4 +357,68 @@ public class PdfWriterTests
             Assert.DoesNotContain("/FlateDecode", output);
         }
     }
+
+    public class CompressContentStreamsTests
+    {
+        // Writes one page showing `text`; returns the file and the page content stream's length.
+        private static (string Pdf, int ContentLength) WritePage(string text, bool? compress = null)
+        {
+            var (writer, ms, doc) = CreateWriter();
+            if (compress is bool c) writer.CompressContentStreams = c;
+            doc.Open();
+            doc.NewPage();
+
+            var font = DabblerPdf.Text.BaseFont.CreateFont(
+                DabblerPdf.Text.BaseFont.Helvetica, DabblerPdf.Text.BaseFont.WinAnsiEncoding, false);
+            var cb = writer.DirectContent;
+            cb.BeginText();
+            cb.SetFontAndSize(font, 12);
+            cb.SetTextMatrix(72, 720);
+            cb.ShowText(text);
+            cb.EndText();
+            int length = cb.ToByteArray().Length;
+
+            doc.Close();
+            return (Encoding.ASCII.GetString(ms.ToArray()), length);
+        }
+
+        [Fact]
+        public void CompressContentStreams_DefaultsToTrue()
+        {
+            var (writer, _, _) = CreateWriter();
+            Assert.True(writer.CompressContentStreams);
+        }
+
+        [Fact]
+        public void Default_ContentStreamOf128Bytes_HasNoFilter()
+        {
+            int baseline = WritePage("").ContentLength;
+            var (pdf, length) = WritePage(new string('x', 128 - baseline));
+
+            Assert.Equal(128, length);
+            Assert.DoesNotContain("/Filter", pdf);
+        }
+
+        [Fact]
+        public void Default_ContentStreamOver128Bytes_IsFlateDecoded()
+        {
+            int baseline = WritePage("").ContentLength;
+            var (pdf, length) = WritePage(new string('x', 129 - baseline));
+
+            Assert.Equal(129, length);
+            Assert.Contains("/Filter /FlateDecode", pdf);
+        }
+
+        [Fact]
+        public void CompressContentStreamsFalse_PageOver128Bytes_HasNoFilterAndTextIsInBytes()
+        {
+            string text = "Uncompressed page text that is long enough to pass the threshold " +
+                          new string('x', 128);
+            var (pdf, length) = WritePage(text, compress: false);
+
+            Assert.True(length > 128);
+            Assert.DoesNotContain("/Filter", pdf);
+            Assert.Contains($"({text}) Tj", pdf);
+        }
+    }
 }

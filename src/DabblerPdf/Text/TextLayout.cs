@@ -29,8 +29,16 @@ public static class TextLayout
 
     /// <summary>
     /// Breaks text into lines that fit within the given width.
-    /// Handles explicit line breaks (\n) and word-wrapping at word boundaries.
+    /// Handles explicit line breaks (\n) and word-wrapping at runs of spaces.
     /// </summary>
+    /// <remarks>
+    /// Spaces are preserved. A paragraph (the text between explicit line breaks) that fits
+    /// within <paramref name="maxWidth"/> is returned exactly as given, including leading,
+    /// interior and trailing spaces. A paragraph that does not fit is broken only at a run of
+    /// spaces: the run at which a line break is taken is dropped, so no line starts or ends
+    /// with it, and every other run is kept at its full length. A word wider than
+    /// <paramref name="maxWidth"/> is broken at character boundaries.
+    /// </remarks>
     /// <param name="text">The text to wrap.</param>
     /// <param name="font">The font used for measurement.</param>
     /// <param name="fontSize">The font size in points.</param>
@@ -50,62 +58,69 @@ public static class TextLayout
         var paragraphs = text.Split('\n');
         foreach (var para in paragraphs)
         {
-            if (string.IsNullOrEmpty(para))
+            if (para.Length == 0 || font.GetWidthPoint(para, fontSize) <= maxWidth)
             {
-                lines.Add("");
+                lines.Add(para);
                 continue;
             }
 
-            var words = para.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length == 0)
-            {
-                lines.Add("");
-                continue;
-            }
-
-            var currentLine = "";
-            for (int i = 0; i < words.Length; i++)
-            {
-                var word = words[i];
-                if (currentLine.Length == 0)
-                {
-                    // First word on the line — check if it exceeds maxWidth
-                    if (font.GetWidthPoint(word, fontSize) > maxWidth)
-                    {
-                        // Character-level breaking for oversized word
-                        currentLine = BreakWord(word, font, fontSize, maxWidth, lines);
-                    }
-                    else
-                    {
-                        currentLine = word;
-                    }
-                }
-                else
-                {
-                    var testLine = currentLine + " " + word;
-                    if (font.GetWidthPoint(testLine, fontSize) <= maxWidth)
-                    {
-                        currentLine = testLine;
-                    }
-                    else
-                    {
-                        lines.Add(currentLine);
-                        // Check if the new word itself exceeds maxWidth
-                        if (font.GetWidthPoint(word, fontSize) > maxWidth)
-                        {
-                            currentLine = BreakWord(word, font, fontSize, maxWidth, lines);
-                        }
-                        else
-                        {
-                            currentLine = word;
-                        }
-                    }
-                }
-            }
-            lines.Add(currentLine);
+            WrapParagraph(para, font, fontSize, maxWidth, lines);
         }
 
         return lines;
+    }
+
+    /// <summary>
+    /// Wraps one paragraph that does not fit, breaking only at runs of spaces.
+    /// Completed lines, including the last, are added to <paramref name="lines"/>.
+    /// </summary>
+    private static void WrapParagraph(string para, BaseFont font, double fontSize, double maxWidth, List<string> lines)
+    {
+        var currentLine = "";
+        bool hasWord = false;
+        int i = 0;
+        while (i < para.Length)
+        {
+            // Each piece is a run of spaces (possibly empty) followed by a word (possibly empty)
+            int runStart = i;
+            while (i < para.Length && para[i] == ' ') i++;
+            int wordStart = i;
+            while (i < para.Length && para[i] != ' ') i++;
+            var run = para[runStart..wordStart];
+            var word = para[wordStart..i];
+
+            if (!hasWord)
+            {
+                // A paragraph of spaces only that does not fit yields an empty line
+                if (word.Length == 0) break;
+                // Leading spaces stay with the first word: no break is taken before it
+                currentLine = PlaceWord(run + word, font, fontSize, maxWidth, lines);
+                hasWord = true;
+            }
+            else if (font.GetWidthPoint(currentLine + run + word, fontSize) <= maxWidth)
+            {
+                currentLine += run + word;
+            }
+            else if (word.Length > 0)
+            {
+                // Break at this run and drop it
+                lines.Add(currentLine);
+                currentLine = PlaceWord(word, font, fontSize, maxWidth, lines);
+            }
+            // else: a trailing run that does not fit is where the break is taken, so it is dropped
+        }
+        lines.Add(currentLine);
+    }
+
+    /// <summary>
+    /// Starts a line with <paramref name="word"/>, breaking it at character boundaries
+    /// when it is wider than <paramref name="maxWidth"/>.
+    /// </summary>
+    private static string PlaceWord(string word, BaseFont font, double fontSize, double maxWidth, List<string> lines)
+    {
+        return font.GetWidthPoint(word, fontSize) > maxWidth
+            ? BreakWord(word, font, fontSize, maxWidth, lines)
+            : word;
     }
 
     /// <summary>

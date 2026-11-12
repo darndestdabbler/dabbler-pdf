@@ -193,6 +193,12 @@ DabblerPdf includes the 14 standard PDF fonts (Base 14). These are built into ev
 
 TrueType fonts (`.ttf`) can also be loaded from file paths.
 
+The Base 14 fonts use `WinAnsiEncoding` (Windows-1252): ASCII plus Western European letters,
+the euro sign, dashes and typographic quotes. A character outside Windows-1252 — Polish `ł`,
+any Cyrillic letter, and so on — is written as `?` and measured by `GetWidthPoint` as `?`, so
+measurement matches what is drawn. Text in other scripts needs an embedded font with full
+Unicode support, which is not yet available.
+
 ## Samples
 
 The [`DabblerPdf.Samples`](DabblerPdf.Samples/) project includes 11 working examples:
@@ -256,6 +262,22 @@ are captured in [`docs/MAINTAINING.md`](docs/MAINTAINING.md) → Testing.
 
 Byte-level stream assertions are still used for *structural* properties (object IDs,
 `/Info` dictionary keys, cross-reference-table validity) where a parser would add nothing.
+
+### Content-stream compression
+
+By default `PdfWriter` Flate-compresses a page or template content stream only when its
+uncompressed length is over 128 bytes; one of 128 bytes or fewer is written as plain operators.
+A small page therefore shows its text operators in the file's bytes, and the same page with one
+more line does not. A byte-level text search of a generated PDF needs either a content stream
+of 128 bytes or fewer or compression turned off:
+
+```csharp
+var writer = PdfWriter.GetInstance(document, stream);
+writer.CompressContentStreams = false; // page and template content streams written uncompressed
+```
+
+`CompressContentStreams` (default `true`) affects only page and template content streams;
+font programs and images are compressed as before.
 
 ### Test dependencies
 

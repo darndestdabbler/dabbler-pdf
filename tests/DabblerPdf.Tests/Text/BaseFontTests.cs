@@ -105,11 +105,21 @@ public class BaseFontTests
         }
 
         [Fact]
-        public void GetCharWidth_OutOfRange_ReturnsZero()
+        public void GetCharWidth_OutOfRange_ReturnsZeroOrQuestionMark()
         {
             var font = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
-            Assert.Equal(0, font.GetCharWidth(300));
+            // 300 is a character outside Windows-1252: written, and so measured, as '?'
+            Assert.Equal(font.GetCharWidth('?'), font.GetCharWidth(300));
             Assert.Equal(0, font.GetCharWidth(-1));
+        }
+
+        [Theory]
+        [InlineData("Zażółć gęślą jaźń", "Za?ó?? g??l? ja??")]
+        [InlineData("Привет", "??????")]
+        public void GetWidthPoint_OutsideWindows1252_MeasuredAsQuestionMarks(string text, string asWritten)
+        {
+            var font = BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false);
+            Assert.Equal(font.GetWidthPoint(asWritten, 12), font.GetWidthPoint(text, 12), 6);
         }
     }
 
