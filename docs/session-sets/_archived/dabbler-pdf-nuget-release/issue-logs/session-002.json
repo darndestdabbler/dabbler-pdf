@@ -1,0 +1,32 @@
+[
+  {
+    "issue": "Code examples use unverified API types/namespaces",
+    "severity": "Medium",
+    "status": "fixed",
+    "response": "All namespaces verified against actual source: DabblerPdf.Document, DabblerPdf.Pdf, DabblerPdf.Text, DabblerPdf.Image, DabblerPdf.Utilities all exist. TextLayout.WrapText (TextLayout.cs:39), CoordinateTranslator.FromTopLeftInches (CoordinateTranslator.cs), Image.GetInstance, BaseFont.CreateFont, PdfWriter.GetInstance, Document, PdfContentByte all confirmed. Verifier lacked source access."
+  },
+  {
+    "issue": "NewPage() before first content may create blank page",
+    "severity": "Low",
+    "status": "fixed",
+    "response": "NewPage() IS required. PdfWriter.EndCurrentPage says 'On the first call, simply marks the first page as started (no flush needed).' All 10 samples use doc.NewPage() after Open(). No blank page created."
+  },
+  {
+    "issue": "double vs float return types unverified",
+    "severity": "Low",
+    "status": "fixed",
+    "response": "Verified: GetWidthPoint returns double (BaseFont.cs:153), GetFontDescriptor returns double (BaseFont.cs:175). The C# port uses double, not float. README is correct."
+  },
+  {
+    "issue": "Samples table accuracy unverified",
+    "severity": "Medium",
+    "status": "fixed",
+    "response": "All 10 samples verified via filesystem: S01_BasicText.cs through S10_StressTest.cs all exist in DabblerPdf.Samples/Samples/."
+  },
+  {
+    "issue": "LICENSE copyright year 2026 is in the future",
+    "severity": "Low",
+    "status": "fixed",
+    "response": "Today's date is 2026-04-09. The year 2026 is correct, not a future date. Verifier assumed current year was 2025."
+  }
+]
