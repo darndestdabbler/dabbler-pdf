@@ -197,8 +197,40 @@ The Base 14 fonts use `WinAnsiEncoding` (Windows-1252): ASCII plus Western Europ
 the euro sign, dashes and typographic quotes. A character outside Windows-1252 — Polish `ł`,
 any Cyrillic letter, and so on — is written as `?` and measured by `GetWidthPoint` as `?`, so
 measurement matches what is drawn. A TrueType font loaded with `WinAnsiEncoding` has the same
-Windows-1252 limit and is measured the same way. Text in other scripts needs an embedded font
-with full Unicode support, which is not yet available.
+Windows-1252 limit and is measured the same way.
+
+### Unicode text
+
+To draw text in other scripts, load a TrueType font with `BaseFont.IdentityH`:
+
+```csharp
+var font = BaseFont.CreateFont("fonts/LiberationSans-Regular.ttf", BaseFont.IdentityH, true);
+
+var cb = writer.DirectContent;
+cb.BeginText();
+cb.SetFontAndSize(font, 12);
+cb.SetTextMatrix(72, 720);
+cb.ShowText("Zażółć gęślą jaźń — Привет — Καλημέρα");
+cb.EndText();
+```
+
+Every character the font has a glyph for is drawn: Polish and other Latin-extended letters,
+Cyrillic, Greek, and CJK with a font that covers it. Each character is measured by its own
+glyph, and copying, searching and text extraction give the text back. `CanEncode(c)` says
+whether the font has a glyph for `c`; a character it lacks is drawn and measured as the font's
+`.notdef` glyph (usually an empty box). One `.ttf` can be loaded with both encodings, and each
+is its own font in the document.
+
+Limits:
+
+- No shaping, ligatures or right-to-left layout, so Arabic, Hebrew, Indic and Thai text does
+  not draw correctly.
+- No characters beyond U+FFFF (emoji, rarer CJK): each draws as `.notdef`.
+- No fallback to another font for a missing glyph.
+- TrueType (`.ttf`) fonts only, not OpenType CFF (`.otf`); horizontal writing only.
+- The whole font file is embedded in each document that uses it; subsetting it to the glyphs
+  used is planned for Session 17.
+- The 14 standard fonts cannot use `IdentityH`: `CreateFont` throws `ArgumentException`.
 
 ## Samples
 

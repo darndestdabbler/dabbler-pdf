@@ -4,6 +4,7 @@
 //
 // SPDX-License-Identifier: LGPL-2.1-only AND MPL-2.0
 
+using System.Globalization;
 using DabblerPdf.Pdf;
 
 namespace DabblerPdf.Text;
@@ -37,7 +38,8 @@ public static class TextLayout
     /// interior and trailing spaces. A paragraph that does not fit is broken only at a run of
     /// spaces: the run at which a line break is taken is dropped, so no line starts or ends
     /// with it, and every other run is kept at its full length. A word wider than
-    /// <paramref name="maxWidth"/> is broken at character boundaries.
+    /// <paramref name="maxWidth"/> is broken between text elements (<see cref="StringInfo"/>), so a
+    /// surrogate pair or a letter and its combining marks stay on one line.
     /// </remarks>
     /// <param name="text">The text to wrap.</param>
     /// <param name="font">The font used for measurement.</param>
@@ -113,7 +115,7 @@ public static class TextLayout
     }
 
     /// <summary>
-    /// Starts a line with <paramref name="word"/>, breaking it at character boundaries
+    /// Starts a line with <paramref name="word"/>, breaking it between text elements
     /// when it is wider than <paramref name="maxWidth"/>.
     /// </summary>
     private static string PlaceWord(string word, BaseFont font, double fontSize, double maxWidth, List<string> lines)
@@ -124,19 +126,22 @@ public static class TextLayout
     }
 
     /// <summary>
-    /// Breaks a single word at character boundaries when it exceeds maxWidth.
+    /// Breaks a single word between text elements when it exceeds maxWidth, so a surrogate
+    /// pair or a letter and its combining marks are never split.
     /// Completed lines are added to <paramref name="lines"/>; the remaining fragment is returned.
     /// </summary>
     private static string BreakWord(string word, BaseFont font, double fontSize, double maxWidth, List<string> lines)
     {
         var fragment = "";
-        foreach (var c in word)
+        var elements = StringInfo.GetTextElementEnumerator(word);
+        while (elements.MoveNext())
         {
-            var test = fragment + c;
+            var element = elements.GetTextElement();
+            var test = fragment + element;
             if (font.GetWidthPoint(test, fontSize) > maxWidth && fragment.Length > 0)
             {
                 lines.Add(fragment);
-                fragment = c.ToString();
+                fragment = element;
             }
             else
             {

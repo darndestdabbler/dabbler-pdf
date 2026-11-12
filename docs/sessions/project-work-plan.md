@@ -27,7 +27,7 @@ The numbered sessions are declared from `session-plan.md`; each one's task is wh
 | 13 | WrapText keeps interior spaces, and content-stream compression can be turned off | no | 2026-11-12 |
 | 14 | Windows-1252 characters measure at their real width | no | 2026-11-12 |
 | 15 | Bump the version to 1.2.0 | no | 2026-11-12 |
-| 16 | TrueType fonts with Identity-H draw any character the font has | — | not declared |
+| 16 | TrueType fonts with Identity-H draw any character the font has | no | 2026-11-12 |
 | 17 | Embed only the glyphs an Identity-H font uses | — | not declared |
 | 18 | Bump the version to 1.3.0 | — | not declared |
 
@@ -120,3 +120,9 @@ Make Windows-1252 characters measure at their real width. In src/DabblerPdf/Text
 **Releasable: no.**
 
 Bump DabblerPdf to 1.2.0 (minor). In src/DabblerPdf/DabblerPdf.csproj set <Version> to 1.2.0, rewrite PackageReleaseNotes for 1.2.0, and set PackageValidationBaselineVersion to 1.1.3, the last published version. Add a 1.2.0 entry at the top of CHANGELOG.md: Added, PdfWriter.CompressContentStreams; Changed, TextLayout.WrapText (and CountLines, MeasureHeight and DrawText through it) keeps runs of spaces, so text that relied on the collapse wraps and measures differently; Fixed, Base 14 widths for Windows-1252 codes 128-159, and Base 14 and TrueType fonts measure a character outside Windows-1252 as the '?' they draw (both change measured widths, so wrapped text can break differently); Documented, the 128-byte compression rule and the Windows-1252 replacement with '?'. The check is that a Release pack, with package validation against 1.1.3, exits 0 and produces DabblerPdf.1.2.0.nupkg.
+
+### Session 16 — TrueType fonts with Identity-H draw any character the font has
+
+**Releasable: no.**
+
+Make BaseFont.CreateFont(ttfPath, BaseFont.IdentityH, true) return a Unicode TrueType font: a new internal class TrueTypeFontUnicode beside TrueTypeFont (ported from OpenPDF's TrueTypeFontUnicode, sharing TrueTypeFont's table reader) that measures each character by its own glyph's advance through the font's cmap and full hmtx, treats a character without a glyph and a surrogate pair as glyph 0 (.notdef), and answers CanEncode true exactly when the font has the glyph. PdfContentByte remembers the font set by SetFontAndSize and ShowText writes that font's text as 2-byte glyph IDs in a hex string. The writer reserves the font's reference when it is first set, records the glyphs that writer draws (in the writer, since CreateFont shares a BaseFont across documents), keys font objects so one .ttf used with both encodings gives two resources, and at Close writes a Type0 font with /Encoding /Identity-H whose descendant is a CIDFontType2 with /CIDSystemInfo (Adobe, Identity, 0), /CIDToGIDMap /Identity, a font descriptor with the whole font file as FontFile2, a /W array for the used glyphs and a /ToUnicode CMap mapping each used glyph back to its characters. A Base 14 font with IdentityH throws ArgumentException; the WinAnsiEncoding paths are unchanged. Tests in TrueTypeFontUnicodeTests use Liberation Sans: Polish, Cyrillic and Greek text extracted exactly by PdfPig, width equals the sum of glyph advances, a CJK ideograph measures as .notdef with CanEncode false, one font in two documents gives each its own /W, both encodings of one file in one document draw both texts, and text in a PdfTemplate is extracted. BaseFont's docs for IdentityH, WinAnsiEncoding and CreateFont and the README's Font Support section say how to draw Unicode text, what it covers and its limits. Then TextLayout's BreakWord breaks between text elements (StringInfo) so it never splits a surrogate pair or a letter from its combining mark, with tests in TextLayoutTests.

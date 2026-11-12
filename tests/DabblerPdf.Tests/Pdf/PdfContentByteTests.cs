@@ -7,6 +7,7 @@
 using System.Text;
 using DabblerPdf.Document;
 using DabblerPdf.Pdf;
+using DabblerPdf.Text;
 using Xunit;
 
 namespace DabblerPdf.Tests.Pdf;
@@ -261,6 +262,31 @@ public class PdfContentByteTests
             var cb = CreateContentByte();
             cb.SetFontAndSize(new PdfName("Helvetica"), 12);
             Assert.Equal("/Helvetica 12 Tf\n", GetContent(cb));
+        }
+
+        private static readonly string FontPath =
+            Path.Combine(AppContext.BaseDirectory, "Fonts", "LiberationSans-Regular.ttf");
+
+        [Fact]
+        public void ShowText_IdentityHFont_EmitsHexGlyphIds()
+        {
+            var cb = CreateContentByte();
+            cb.SetFontAndSize(BaseFont.CreateFont(FontPath, BaseFont.IdentityH, true), 12);
+            cb.ShowText("Ah");
+            Assert.EndsWith(" 12 Tf\n<0024004B> Tj\n", GetContent(cb));
+        }
+
+        [Fact]
+        public void ShowText_AfterRestoreState_UsesTheFontSetBeforeSaveState()
+        {
+            var cb = CreateContentByte();
+            cb.SetFontAndSize(BaseFont.CreateFont(FontPath, BaseFont.IdentityH, true), 12);
+            cb.SaveState();
+            cb.SetFontAndSize(BaseFont.CreateFont(BaseFont.Helvetica, BaseFont.WinAnsiEncoding, false), 12);
+            cb.ShowText("Ah");
+            cb.RestoreState();
+            cb.ShowText("Ah");
+            Assert.EndsWith("(Ah) Tj\nQ\n<0024004B> Tj\n", GetContent(cb));
         }
     }
 

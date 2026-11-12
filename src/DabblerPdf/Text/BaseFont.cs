@@ -8,23 +8,28 @@ namespace DabblerPdf.Text;
 
 /// <summary>
 /// Provides font metrics and PDF font dictionaries for the 14 standard PDF fonts
-/// and (in future) TrueType fonts. This is the primary text measurement API.
+/// and TrueType fonts. This is the primary text measurement API.
 /// </summary>
 public abstract class BaseFont
 {
     /// <summary>
     /// Windows-1252 encoding. Supports ASCII plus Western European characters
     /// including accented letters (e, n, u), the Euro sign, em/en dashes,
-    /// and typographic quotes. Characters outside this range are replaced with '?'.
+    /// and typographic quotes. Characters outside this range are drawn and measured as '?'.
+    /// This is the only encoding of the 14 standard fonts.
     ///
-    /// For full Unicode support, use <see cref="IdentityH"/> encoding with an
-    /// embedded TrueType font. (Note: Identity-H support is planned for a future release.)
+    /// For other scripts (Polish, Cyrillic, Greek, CJK and the rest of the Basic
+    /// Multilingual Plane), use <see cref="IdentityH"/> with a TrueType font.
     /// </summary>
     public const string WinAnsiEncoding = "Cp1252";
 
     /// <summary>
-    /// Identity-H encoding for full Unicode CIDFont support.
-    /// Requires an embedded TrueType font. Not yet implemented — planned for a future release.
+    /// Identity-H encoding: with a TrueType (.ttf) font, every character the font has a
+    /// glyph for is drawn, and copying and text extraction give the text back. The whole
+    /// font file is embedded. A character the font lacks, and any character beyond U+FFFF,
+    /// is drawn as the font's <c>.notdef</c> glyph. There is no shaping and no right-to-left
+    /// layout, so scripts that need them (Arabic, Hebrew, Indic, Thai) do not draw correctly.
+    /// The 14 standard fonts have no glyphs to embed and cannot use it.
     /// </summary>
     public const string IdentityH = "Identity-H";
 
@@ -114,22 +119,36 @@ public abstract class BaseFont
     /// by the font's encoding before rendering.
     /// </summary>
     /// <param name="name">Font name (e.g., "Helvetica") or a .ttf file path.</param>
-    /// <param name="encoding">Encoding (e.g., <see cref="WinAnsiEncoding"/>). Currently only
-    /// WinAnsi (Windows-1252) is supported, which covers ASCII and Western European characters.</param>
+    /// <param name="encoding"><see cref="WinAnsiEncoding"/> (Windows-1252: ASCII and Western
+    /// European characters) for any font, or <see cref="IdentityH"/> (every character the
+    /// font has a glyph for) for a TrueType font. Any other value is treated as
+    /// <see cref="WinAnsiEncoding"/>. The font is cached per name and encoding, so one .ttf
+    /// can be created with both, and they are two fonts.</param>
     /// <param name="embedded">Whether to embed the font (always true for TrueType).</param>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is neither a standard font nor a
+    /// .ttf path, or it is a standard font and <paramref name="encoding"/> is <see cref="IdentityH"/>.</exception>
     public static BaseFont CreateFont(string name, string encoding, bool embedded)
     {
         string key = $"{name}-{encoding}";
         return _fontCache.GetOrAdd(key, _ =>
         {
+            bool identityH = encoding == IdentityH;
             if (BuiltinFonts.IsStandardFont(name))
+            {
+                if (identityH)
+                    throw new ArgumentException(
+                        $"Font '{name}' is a standard PDF font, which has no glyphs to embed; {IdentityH} needs a TrueType font.",
+                        nameof(encoding));
                 return new Type1Font(name);
+            }
 
             if (IsTrueTypeFontFile(name))
             {
                 byte[] fontData = File.ReadAllBytes(name);
                 string psName = TrueTypeFont.ExtractPostscriptName(fontData);
-                return new TrueTypeFont(psName, fontData);
+                return identityH
+                    ? new TrueTypeFontUnicode(psName, fontData)
+                    : new TrueTypeFont(psName, fontData);
             }
 
             throw new ArgumentException(
@@ -150,7 +169,7 @@ public abstract class BaseFont
     /// <param name="text">The text to measure.</param>
     /// <param name="fontSize">The font size in points.</param>
     /// <returns>The width of the text in points.</returns>
-    public double GetWidthPoint(string text, double fontSize)
+    public virtual double GetWidthPoint(string text, double fontSize)
     {
         double totalWidth = 0;
         foreach (char c in text)
@@ -176,11 +195,12 @@ public abstract class BaseFont
 
     /// <summary>
     /// Returns whether the given character can be represented in the current encoding.
-    /// For WinAnsi fonts, returns true for characters in the Windows-1252 range.
+    /// For WinAnsi fonts, returns true for characters in the Windows-1252 range; for an
+    /// <see cref="IdentityH"/> font, true exactly when the font has a glyph for it.
     /// </summary>
     /// <param name="c">The character to test.</param>
     /// <returns><c>true</c> if the character can be encoded; otherwise, <c>false</c>.</returns>
-    public bool CanEncode(char c)
+    public virtual bool CanEncode(char c)
     {
         return PdfEncodings.CharToWinAnsi(c) >= 0;
     }

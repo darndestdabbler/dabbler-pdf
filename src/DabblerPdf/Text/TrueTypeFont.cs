@@ -12,11 +12,19 @@ namespace DabblerPdf.Text;
 /// <summary>
 /// Represents a TrueType font loaded from a .ttf file. Parses the font's binary
 /// tables to extract glyph widths, metrics, and the font program for PDF embedding.
+/// Drawn as a simple font with <c>/WinAnsiEncoding</c>; <see cref="TrueTypeFontUnicode"/>
+/// draws the same font file with Identity-H.
 /// </summary>
-internal sealed class TrueTypeFont : BaseFont
+internal class TrueTypeFont : BaseFont
 {
     private readonly byte[] _fontData;
     private readonly int[] _widths; // WinAnsi char code (0–255) → width in 1/1000 em
+
+    /// <summary>Every glyph's advance width in 1/1000 em, indexed by glyph ID.</summary>
+    private protected readonly int[] GlyphWidths;
+
+    /// <summary>The font's cmap: a BMP character → its glyph ID (never 0).</summary>
+    private protected readonly Dictionary<char, int> CharToGlyph;
     private readonly FontDescriptor _descriptor;
     private readonly string _familyName;
     private readonly int _flags;
@@ -56,8 +64,14 @@ internal sealed class TrueTypeFont : BaseFont
         _isBold = head.MacStyle.HasFlag(TtfMacStyle.Bold);
         _isItalic = head.MacStyle.HasFlag(TtfMacStyle.Italic);
 
-        // Build WinAnsi widths: map each WinAnsi byte value → Unicode → glyph ID → width
+        // Every glyph's advance in 1/1000 em
         double scale = 1000.0 / _unitsPerEm;
+        GlyphWidths = new int[hmtx.Length];
+        for (int g = 0; g < hmtx.Length; g++)
+            GlyphWidths[g] = (int)Math.Round(hmtx[g] * scale);
+        CharToGlyph = cmap;
+
+        // Build WinAnsi widths: map each WinAnsi byte value → Unicode → glyph ID → width
         _widths = new int[256];
         for (int i = 0; i < 256; i++)
         {
@@ -65,9 +79,9 @@ internal sealed class TrueTypeFont : BaseFont
             if (unicode == '\uFFFD' || unicode == '\0')
                 continue;
 
-            if (cmap.TryGetValue(unicode, out int glyphId) && glyphId < hmtx.Length)
+            if (cmap.TryGetValue(unicode, out int glyphId) && glyphId < GlyphWidths.Length)
             {
-                _widths[i] = (int)Math.Round(hmtx[glyphId] * scale);
+                _widths[i] = GlyphWidths[glyphId];
             }
         }
 
@@ -122,26 +136,8 @@ internal sealed class TrueTypeFont : BaseFont
     /// </summary>
     internal PdfDictionary CreateFontDictionary(PdfWriter writer)
     {
-        // 1. Embed the font file as a stream
-        var fontStream = new PdfStream(_fontData);
-        fontStream.FlateCompress();
-        fontStream.Put(PdfName.Length1, new PdfNumber(_fontData.Length));
-        var fontStreamRef = writer.AddIndirectObject(fontStream);
-
-        // 2. Build the FontDescriptor dictionary
-        var descriptorDict = new PdfDictionary(PdfName.FontDescriptor);
-        descriptorDict.Put(PdfName.FontName, new PdfName(PostscriptName));
-        descriptorDict.Put(new PdfName("Flags"), new PdfNumber(_flags));
-        descriptorDict.Put(new PdfName("FontBBox"), new PdfArray(
-            _descriptor.BBoxLLX, _descriptor.BBoxLLY,
-            _descriptor.BBoxURX, _descriptor.BBoxURY));
-        descriptorDict.Put(new PdfName("ItalicAngle"), new PdfNumber(_descriptor.ItalicAngle));
-        descriptorDict.Put(new PdfName("Ascent"), new PdfNumber(_descriptor.Ascent));
-        descriptorDict.Put(new PdfName("Descent"), new PdfNumber(_descriptor.Descent));
-        descriptorDict.Put(new PdfName("CapHeight"), new PdfNumber(_descriptor.CapHeight));
-        descriptorDict.Put(new PdfName("StemV"), new PdfNumber(_isBold ? 140 : 80));
-        descriptorDict.Put(PdfName.FontFile2, fontStreamRef);
-        var descriptorRef = writer.AddIndirectObject(descriptorDict);
+        // 1–2. Embed the font file and write its FontDescriptor
+        var descriptorRef = AddFontDescriptor(writer);
 
         // 3. Build the Widths array (FirstChar=32, LastChar=255)
         var widthsArray = new PdfArray();
@@ -159,6 +155,32 @@ internal sealed class TrueTypeFont : BaseFont
         fontDict.Put(PdfName.FontDescriptor, descriptorRef);
 
         return fontDict;
+    }
+
+    /// <summary>
+    /// Writes the whole font file as a <c>FontFile2</c> stream and the FontDescriptor that
+    /// names it, and returns the descriptor's reference.
+    /// </summary>
+    private protected PdfIndirectReference AddFontDescriptor(PdfWriter writer)
+    {
+        var fontStream = new PdfStream(_fontData);
+        fontStream.FlateCompress();
+        fontStream.Put(PdfName.Length1, new PdfNumber(_fontData.Length));
+        var fontStreamRef = writer.AddIndirectObject(fontStream);
+
+        var descriptorDict = new PdfDictionary(PdfName.FontDescriptor);
+        descriptorDict.Put(PdfName.FontName, new PdfName(PostscriptName));
+        descriptorDict.Put(new PdfName("Flags"), new PdfNumber(_flags));
+        descriptorDict.Put(new PdfName("FontBBox"), new PdfArray(
+            _descriptor.BBoxLLX, _descriptor.BBoxLLY,
+            _descriptor.BBoxURX, _descriptor.BBoxURY));
+        descriptorDict.Put(new PdfName("ItalicAngle"), new PdfNumber(_descriptor.ItalicAngle));
+        descriptorDict.Put(new PdfName("Ascent"), new PdfNumber(_descriptor.Ascent));
+        descriptorDict.Put(new PdfName("Descent"), new PdfNumber(_descriptor.Descent));
+        descriptorDict.Put(new PdfName("CapHeight"), new PdfNumber(_descriptor.CapHeight));
+        descriptorDict.Put(new PdfName("StemV"), new PdfNumber(_isBold ? 140 : 80));
+        descriptorDict.Put(PdfName.FontFile2, fontStreamRef);
+        return writer.AddIndirectObject(descriptorDict);
     }
 
     private int ComputeFlags(Os2Table? os2, PostTable? post)

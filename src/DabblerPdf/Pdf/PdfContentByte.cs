@@ -25,6 +25,11 @@ public sealed class PdfContentByte
     // Graphics state stack depth tracking
     private int _stateDepth;
 
+    // The font set by SetFontAndSize, which decides how ShowText encodes; q/Q save and
+    // restore it as they do the PDF text font. Null after a raw-name SetFontAndSize.
+    private BaseFont? _font;
+    private readonly Stack<BaseFont?> _savedFonts = new();
+
     // Current color state for optimization (avoid redundant operators)
     private BaseColor? _currentStrokeColor;
     private BaseColor? _currentFillColor;
@@ -61,6 +66,8 @@ public sealed class PdfContentByte
         _stateDepth = 0;
         _currentStrokeColor = null;
         _currentFillColor = null;
+        _font = null;
+        _savedFonts.Clear();
     }
 
     // ─── Graphics State ────────────────────────────────────────────
@@ -70,6 +77,7 @@ public sealed class PdfContentByte
     {
         Append("q\n");
         _stateDepth++;
+        _savedFonts.Push(_font);
     }
 
     /// <summary>Restores the previous graphics state (PDF <c>Q</c> operator).</summary>
@@ -79,6 +87,7 @@ public sealed class PdfContentByte
             throw new InvalidOperationException("Graphics state stack underflow.");
         Append("Q\n");
         _stateDepth--;
+        _font = _savedFonts.Pop();
         // After restore, cached colors are unknown
         _currentStrokeColor = null;
         _currentFillColor = null;
@@ -465,12 +474,16 @@ public sealed class PdfContentByte
     /// <summary>
     /// Sets the font and size for subsequent text operations (PDF <c>Tf</c> operator).
     /// Automatically registers the font in the current page's resources.
+    /// <see cref="ShowText"/> then encodes text for this font.
     /// </summary>
     public void SetFontAndSize(BaseFont font, double size)
     {
-        // Check if this font is already registered in the writer (avoid creating
-        // duplicate font stream/descriptor indirect objects for TrueType fonts)
-        var fontRef = _writer.GetCachedFontRef(font.PostscriptName);
+        // An Identity-H font's objects are written at Close, from the glyphs the document drew
+        var fontRef = font is TrueTypeFontUnicode unicodeFont
+            ? _writer.GetUnicodeFont(unicodeFont).Reference
+            // Check if this font is already registered in the writer (avoid creating
+            // duplicate font stream/descriptor indirect objects for TrueType fonts)
+            : _writer.GetCachedFontRef(font.PostscriptName);
         if (fontRef == null)
         {
             PdfDictionary fontDict;
@@ -494,6 +507,7 @@ public sealed class PdfContentByte
         var resourceName = _template != null
             ? _template.AddFont(new PdfName(font.PostscriptName), fontRef)
             : _writer.AddPageFont(new PdfName(font.PostscriptName), fontRef);
+        _font = font;
 
         Append("/");
         Append(resourceName.Value);
@@ -508,6 +522,7 @@ public sealed class PdfContentByte
     /// </summary>
     public void SetFontAndSize(PdfName fontName, double size)
     {
+        _font = null;
         Append("/");
         Append(fontName.Value);
         Append(" ");
@@ -516,9 +531,21 @@ public sealed class PdfContentByte
     }
 
     /// <summary>Shows a text string (PDF <c>Tj</c> operator).</summary>
+    /// <remarks>
+    /// With an <see cref="BaseFont.IdentityH"/> font set, the text is written as 2-byte glyph
+    /// IDs in a hex string (<c>&lt;0024004B&gt; Tj</c>); otherwise as Windows-1252 bytes.
+    /// </remarks>
     /// <param name="text">The text to display.</param>
     public void ShowText(string text)
     {
+        if (_font is TrueTypeFontUnicode unicodeFont)
+        {
+            Append("<");
+            Append(unicodeFont.EncodeHex(text, _writer.GetUnicodeFont(unicodeFont).Glyphs));
+            Append("> Tj\n");
+            return;
+        }
+
         Append("(");
         AppendEscapedPdfString(text);
         Append(") Tj\n");

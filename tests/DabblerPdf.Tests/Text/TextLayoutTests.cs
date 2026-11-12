@@ -86,6 +86,44 @@ public class TextLayoutTests
         }
 
         [Fact]
+        public void OversizedWord_NeverSplitsASurrogatePair()
+        {
+            const string grin = "\U0001F600";
+            var font = BaseFont.CreateFont(
+                Path.Combine(AppContext.BaseDirectory, "Fonts", "LiberationSans-Regular.ttf"),
+                BaseFont.IdentityH, true);
+            // Width of 1pt: every text element is its own line
+            var lines = TextLayout.WrapText("A" + grin + grin + "B", font, 10, 1);
+            Assert.Equal(["A", grin, grin, "B"], lines);
+        }
+
+        [Fact]
+        public void OversizedWord_NeverSplitsALetterFromItsCombiningMarks()
+        {
+            const string eAcute = "é";        // e + combining acute accent
+            const string aRingDot = "ạ̊"; // a + two combining marks
+            var font = BaseFont.CreateFont(
+                Path.Combine(AppContext.BaseDirectory, "Fonts", "LiberationSans-Regular.ttf"),
+                BaseFont.IdentityH, true);
+            var lines = TextLayout.WrapText(eAcute + aRingDot + eAcute, font, 10, 1);
+            Assert.Equal([eAcute, aRingDot, eAcute], lines);
+        }
+
+        [Fact]
+        public void OversizedWord_BreaksBetweenTextElementsToFillEachLine()
+        {
+            const string eAcute = "é";
+            var font = BaseFont.CreateFont(
+                Path.Combine(AppContext.BaseDirectory, "Fonts", "LiberationSans-Regular.ttf"),
+                BaseFont.IdentityH, true);
+            string word = string.Concat(Enumerable.Repeat(eAcute, 6));
+            // Room for two accented letters but not three
+            double maxWidth = font.GetWidthPoint(eAcute + eAcute, 10) + 0.1;
+            var lines = TextLayout.WrapText(word, font, 10, maxWidth);
+            Assert.Equal([eAcute + eAcute, eAcute + eAcute, eAcute + eAcute], lines);
+        }
+
+        [Fact]
         public void MixedContent_WithOversizedWord()
         {
             var font = Helvetica;

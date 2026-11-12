@@ -42,6 +42,17 @@ public class BaseFontTests
                 BaseFont.CreateFont("NonExistent", BaseFont.WinAnsiEncoding, false));
         }
 
+        [Theory]
+        [InlineData(BaseFont.Helvetica)]
+        [InlineData(BaseFont.TimesRoman)]
+        [InlineData(BaseFont.Symbol)]
+        public void CreateFont_StandardFontWithIdentityH_Throws(string fontName)
+        {
+            var ex = Assert.Throws<ArgumentException>(() =>
+                BaseFont.CreateFont(fontName, BaseFont.IdentityH, true));
+            Assert.Equal("encoding", ex.ParamName);
+        }
+
         [Fact]
         public void CreateFont_CachesInstances()
         {

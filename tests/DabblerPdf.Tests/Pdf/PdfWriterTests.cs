@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using DabblerPdf.Document;
 using DabblerPdf.Image;
 using DabblerPdf.Pdf;
+using DabblerPdf.Text;
 using DabblerPdf.Tests.Image;
 using Xunit;
 
@@ -154,6 +155,36 @@ public class PdfWriterTests
             // No /BaseFont entry
 
             Assert.Throws<ArgumentException>(() => writer.AddFontObject(fontDict));
+        }
+
+        [Fact]
+        public void SameTrueTypeFileWithBothEncodings_GetsTwoFontResources()
+        {
+            var fontPath = Path.Combine(AppContext.BaseDirectory, "Fonts", "LiberationSans-Regular.ttf");
+            var (writer, ms, doc) = CreateWriter();
+            doc.Open();
+            var cb = writer.DirectContent;
+            cb.SetFontAndSize(BaseFont.CreateFont(fontPath, BaseFont.WinAnsiEncoding, true), 12);
+            cb.SetFontAndSize(BaseFont.CreateFont(fontPath, BaseFont.IdentityH, true), 12);
+            doc.Close();
+
+            var content = Encoding.ASCII.GetString(ms.ToArray());
+            Assert.Contains("/F1 12 Tf", content);
+            Assert.Contains("/F2 12 Tf", content);
+        }
+
+        [Fact]
+        public void GetUnicodeFont_ReservesOneReferencePerFont()
+        {
+            var fontPath = Path.Combine(AppContext.BaseDirectory, "Fonts", "LiberationSans-Regular.ttf");
+            var font = (TrueTypeFontUnicode)BaseFont.CreateFont(fontPath, BaseFont.IdentityH, true);
+            var (writer, _, _) = CreateWriter();
+
+            var first = writer.GetUnicodeFont(font);
+            var second = writer.GetUnicodeFont(font);
+
+            Assert.Equal(first.Reference.Number, second.Reference.Number);
+            Assert.Same(first.Glyphs, second.Glyphs);
         }
 
         [Fact]

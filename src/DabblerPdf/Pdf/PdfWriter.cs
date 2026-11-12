@@ -35,6 +35,10 @@ public sealed class PdfWriter
     private readonly Dictionary<PdfName, PdfIndirectReference> _pageXObjects = new();
     // Document-level font cache: font PostScript name → indirect reference
     private readonly Dictionary<string, PdfIndirectReference> _fontObjects = new();
+    // Identity-H fonts, keyed by instance apart from _fontObjects (so one .ttf drawn with
+    // both encodings is two resources): the reserved reference, written at Close, and the
+    // glyphs this document drew with it (glyph ID → the character it was drawn for).
+    private readonly Dictionary<Text.TrueTypeFontUnicode, (PdfIndirectReference Reference, SortedDictionary<int, char> Glyphs)> _unicodeFonts = new();
     // Document-level image cache: Image instance → indirect reference
     private readonly Dictionary<Image.Image, PdfIndirectReference> _imageObjects = new();
     private int _imageCounter;
@@ -153,6 +157,28 @@ public sealed class PdfWriter
     internal PdfIndirectReference AddIndirectObject(PdfObject obj)
     {
         return _body.Add(obj, _outputStream);
+    }
+
+    /// <summary>Writes <paramref name="obj"/> at a reference reserved earlier.</summary>
+    internal void AddIndirectObject(PdfObject obj, PdfIndirectReference reference)
+    {
+        _body.Add(obj, reference, _outputStream);
+    }
+
+    /// <summary>
+    /// The reserved reference of an Identity-H font in this document and the glyphs drawn
+    /// with it so far. The first call reserves the reference; the font's objects are
+    /// written at <see cref="Close"/>, when every glyph the document draws is known.
+    /// </summary>
+    internal (PdfIndirectReference Reference, SortedDictionary<int, char> Glyphs) GetUnicodeFont(
+        Text.TrueTypeFontUnicode font)
+    {
+        if (!_unicodeFonts.TryGetValue(font, out var entry))
+        {
+            entry = (_body.ReserveReference(), new SortedDictionary<int, char>());
+            _unicodeFonts[font] = entry;
+        }
+        return entry;
     }
 
     /// <summary>
@@ -305,6 +331,10 @@ public sealed class PdfWriter
             var formXObject = template.ToFormXObject(CompressContentStreams);
             _body.Add(formXObject, template.Reference, _outputStream);
         }
+
+        // Identity-H fonts: every page and template has been drawn, so the glyphs are known
+        foreach (var (font, (reference, glyphs)) in _unicodeFonts)
+            font.WriteFont(this, reference, glyphs);
 
         // Write info dictionary
         var info = new PdfDictionary();
