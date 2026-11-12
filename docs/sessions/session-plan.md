@@ -397,7 +397,63 @@ fail when the page grows past the undocumented compression threshold. Both
 were confirmed in the source. `dabbler-platform` takes this release before
 its own `2.0.0`.
 
-### Session 14: Bump the version to 1.2.0
+### Session 14: Windows-1252 characters measure at their real width
+
+1. Register.
+2. Every one of the twelve Base 14 text fonts (the Helvetica, Times and
+   Courier families) holds a width of 0 for Windows-1252 codes 128–159 in
+   `src/DabblerPdf/Text/BuiltinFonts.cs`, so `€`, `‚`, `ƒ`, `„`, `…`, `†`,
+   `‡`, `ˆ`, `‰`, `Š`, `‹`, `Œ`, `Ž`, `‘`, `’`, `“`, `”`, `•`, `–`, `—`,
+   `˜`, `™`, `š`, `›`, `œ`, `ž` and `Ÿ` are drawn with their glyphs and
+   measured as nothing. Fill those codes from the Adobe Core 14 AFM metrics
+   that OpenPDF ships (its `pdf/fonts/*.afm` resources), taking each code's
+   width by the glyph name Windows-1252 gives it (an unencoded `C -1` entry
+   counts), and say where the numbers came from in a comment. Check codes
+   32–127 and 160–255 of the same twelve fonts against the same files and
+   correct any that differ. Codes 129, 141, 143, 144 and 157, which
+   Windows-1252 leaves undefined, stay 0. In
+   `tests/DabblerPdf.Tests/Text/BuiltinFontsTests.cs` add tests that, in each
+   of the twelve fonts, no code Windows-1252 defines from 32 to 255 has width
+   0, and that `€`, `–`, `—`, `•`, `’` and `”` have the AFM's widths in
+   Helvetica, Times-Roman and Courier. The step's check: `dotnet test
+   DabblerPdf.slnx --filter
+   "FullyQualifiedName~BuiltinFontsTests|FullyQualifiedName~Type1FontTests"`
+   passes.
+3. `TrueTypeFont` (`src/DabblerPdf/Text/TrueTypeFont.cs`) builds its width
+   table by Windows-1252 code, but `GetCharWidth` looks it up by the
+   caller's Unicode value, so a TrueType font measures `€`, the typographic
+   quotes and dashes, and every character outside Windows-1252 as 0, while
+   it draws them as their glyphs or as `?`. Measure the way `Type1Font` does
+   since Session 13 (through the Windows-1252 code, `?` when there is none),
+   with the mapping in one place both classes use. In
+   `tests/DabblerPdf.Tests/Text/TrueTypeFontTests.cs`, the test that
+   asserts `GetCharWidth(300)` is 0 now asserts the width of `?`; add tests
+   with the Liberation Sans fixture that `€` measures as the font's Euro
+   advance (not 0) and that `ł` and `Ж` measure as `?`. In `README.md`'s
+   Font Support section, say that a TrueType font with `WinAnsiEncoding`
+   has the same Windows-1252 limit. The step's check: `dotnet test
+   DabblerPdf.slnx --filter
+   "FullyQualifiedName~TrueTypeFontTests|FullyQualifiedName~Type1FontTests"`
+   passes.
+4. Cross-provider verification.
+5. The `dotnet` suite once against the verified tree, recorded as the run of
+   record.
+6. Close-out.
+
+Non-goals: no encoding beyond Windows-1252 (Session 16's); no change to the
+Symbol and ZapfDingbats tables, which use their own built-in encodings; no
+change to what is drawn, only to what is measured; no version change
+(Session 15's).
+
+Why now (2026-11-12): found while closing Session 13. Text with a euro sign,
+typographic quotes or dashes measures short, so `WrapText` puts too much on
+a line and right and centre alignment are off; `dabbler-platform` measures
+every report field with the Base 14 fonts. Session 13 fixed Base 14
+measurement of characters outside Windows-1252 and named TrueType a
+non-goal; this session lifts that, because the TrueType path has the same
+mismatch.
+
+### Session 15: Bump the version to 1.2.0
 
 1. Register.
 2. Set `<Version>` to `1.2.0` and rewrite `PackageReleaseNotes` in
@@ -406,19 +462,22 @@ its own `2.0.0`.
    `CHANGELOG.md`: added, `PdfWriter.CompressContentStreams`; changed,
    `TextLayout.WrapText` (and `CountLines`, `MeasureHeight`, `DrawText`
    through it) keeps runs of spaces, so text that relied on the collapse
-   wraps and measures differently; documented, the 128-byte compression rule
-   and the Windows-1252 replacement with `?`. The step's check: `dotnet pack
-   src/DabblerPdf/DabblerPdf.csproj -c Release -o <scratch dir>` exits 0,
-   package validation against 1.1.3 included, and produces
-   `DabblerPdf.1.2.0.nupkg`.
+   wraps and measures differently; fixed, Base 14 widths for Windows-1252
+   codes 128–159, and Base 14 and TrueType fonts measure a character
+   outside Windows-1252 as the `?` they draw (both change measured widths,
+   so wrapped text can break differently); documented, the 128-byte
+   compression rule and the Windows-1252 replacement with `?`. The step's
+   check: `dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release -o
+   <scratch dir>` exits 0, package validation against 1.1.3 included, and
+   produces `DabblerPdf.1.2.0.nupkg`.
 3. Cross-provider verification.
 4. The `dotnet` suite once against the verified tree, recorded as the run of
    record.
 5. Close-out.
 
 Proposed version: **1.2.0 (minor)**. `CompressContentStreams` is an added
-public member, and the `WrapText` change is a fix that alters output for
-text with runs of spaces, which a patch should not do silently.
+public member, and the `WrapText` and width changes are fixes that alter
+output, which a patch should not do silently.
 
 There is no `(release: 1.2.0)` session: Session 11 showed that with a
 pack-only declaration the router makes a `session-<N>` tag that publishes
@@ -426,3 +485,138 @@ nothing. After this session has pushed, the operator runs the dry run
 (`gh workflow run publish.yml`), and when it is green tags by hand as
 `docs/MAINTAINING.md` → *Release* says (`git tag -a nuget-v1.2.0 -m "Release
 1.2.0"`, `git push origin nuget-v1.2.0`) and confirms 1.2.0 on nuget.org.
+TRIMS takes 1.2.0, and `dabbler-platform` Session 27 waits for it.
+
+### Session 16: TrueType fonts with Identity-H draw any character the font has
+
+1. Register.
+2. `BaseFont.CreateFont(ttfPath, BaseFont.IdentityH, true)` today returns
+   the same Windows-1252 font as `WinAnsiEncoding` (the encoding argument
+   only keys the cache), and `BaseFont.IdentityH`'s doc says "not yet
+   implemented". Make it return a Unicode TrueType font, a new internal
+   class beside `TrueTypeFont` (ported from OpenPDF's
+   `TrueTypeFontUnicode`), that:
+   - measures each character by its own glyph's advance, through the
+     font's `cmap` and its full `hmtx` (not a 256-entry table); a character
+     the font has no glyph for, and a surrogate pair, is glyph 0
+     (`.notdef`) and measures as its advance; `CanEncode` is true exactly
+     when the font has the glyph;
+   - is drawn by `ShowText` as 2-byte glyph IDs in a hex string
+     (`<0024004B> Tj`), which needs `PdfContentByte` to know the font set by
+     `SetFontAndSize`;
+   - is written as a Type0 font, `/Encoding /Identity-H`, whose descendant
+     is a `CIDFontType2` with `/CIDSystemInfo` (Adobe, Identity, 0),
+     `/CIDToGIDMap /Identity`, the font descriptor with the font file as
+     `FontFile2`, a `/W` array for the glyphs used, and a `/ToUnicode` CMap
+     that maps each used glyph back to its characters, so copying,
+     searching and text extraction get the text.
+
+   `/W` and `/ToUnicode` depend on everything the document draws, so the
+   writer reserves the font's reference when the font is first set and
+   writes its objects at `Close`, from the glyphs recorded for that writer.
+   A `BaseFont` is shared across documents by `CreateFont`'s cache, so the
+   used-glyph record lives in the writer, not the font. The writer keys font
+   objects by PostScript name today, so the same `.ttf` used with both
+   encodings in one document needs two resources: key them so it gets two.
+   A Base 14 font with `IdentityH` throws `ArgumentException`: it has no
+   glyphs to embed. The `WinAnsiEncoding` TrueType path is unchanged. The
+   tests go in a file named after the new class, using the Liberation Sans
+   fixture: a Polish, a Cyrillic and a Greek string are drawn and PdfPig
+   extracts exactly that text from the page; the measured width of a string
+   is the sum of its glyphs' advances; a character the font lacks (a CJK
+   ideograph) measures as `.notdef` and `CanEncode` is false; one font
+   drawn in two documents gives each document its own `/W`; the same file
+   with both encodings in one document draws both texts; text drawn into a
+   `PdfTemplate` is extracted too. Update `BaseFont`'s docs for
+   `IdentityH`, `WinAnsiEncoding` and `CreateFont`, and the README's Font
+   Support section: how to draw Unicode text, what it covers, and its
+   limits (no shaping, no right-to-left, no characters beyond U+FFFF, the
+   whole font file embedded until Session 17). The step's check: `dotnet
+   test DabblerPdf.slnx --filter
+   "FullyQualifiedName~TrueType|FullyQualifiedName~TextIntegrationTests|FullyQualifiedName~BaseFontTests"`
+   passes.
+3. `TextLayout`'s character-level break (`BreakWord`) can cut a word between
+   the two halves of a surrogate pair, or between a letter and its
+   combining mark. Break between text elements (`StringInfo`) instead. Add
+   tests to `tests/DabblerPdf.Tests/Text/TextLayoutTests.cs` that neither is
+   split. The step's check: `dotnet test DabblerPdf.slnx --filter
+   "FullyQualifiedName~TextLayoutTests"` passes.
+4. Cross-provider verification.
+5. The `dotnet` suite once against the verified tree, recorded as the run of
+   record.
+6. Close-out.
+
+Non-goals: no shaping, ligatures or right-to-left text (Arabic, Hebrew,
+Indic and Thai scripts need a shaping engine, which this port does not
+take); no glyphs beyond U+FFFF (they draw as `.notdef`); no fallback from
+one font to another for a missing glyph; no OpenType CFF (`.otf`) fonts; no
+vertical writing; no subsetting (Session 17's); no change to the
+`WinAnsiEncoding` paths; no version change (Session 18's).
+
+Why now (2026-11-12): the operator asked for Unicode text. Every PDF viewer
+draws it from an embedded font with Identity-H encoding; DabblerPdf has the
+constant and the TrueType reader but writes only one-byte Windows-1252
+fonts, so Polish, Cyrillic, Greek and CJK text comes out as `?`.
+`dabbler-platform` Session 28 builds report fonts on this.
+
+### Session 17: Embed only the glyphs an Identity-H font uses
+
+1. Register.
+2. A TrueType font is embedded as its whole file today, so a document that
+   draws one word in a CJK font carries megabytes of glyphs. For an
+   Identity-H font, write `FontFile2` at `Close` as a subset (ported from
+   OpenPDF's `TrueTypeFontSubSet`): glyph 0, every glyph the writer
+   recorded, and every component of a composite glyph among them,
+   recursively; glyph IDs keep their numbers (an unused glyph's outline is
+   empty), so `/CIDToGIDMap /Identity` and `/W` stand; the tables a PDF
+   TrueType font program needs (`head`, `hhea`, `maxp`, `loca`, `glyf`,
+   `hmtx`, and `cvt `, `fpgm` and `prep` when present) are written with
+   their checksums. The font's `/BaseFont` and `/FontName` take a subset
+   tag, six uppercase letters and `+` (ISO 32000-1, 9.6.4). The tests go
+   in a file named after the subsetting class, with the Liberation Sans
+   fixture: a document drawing "Hello" embeds a font program under a tenth
+   of the full file's size; the subset parses back with `TtfReader` and
+   keeps each used glyph's advance; a composite glyph's components are in
+   the subset and PdfPig extracts the text that uses it; the tag has the
+   required form; two documents drawing different text embed different
+   subsets. The README's Font Support section says Identity-H fonts are
+   subset. The step's check: `dotnet test DabblerPdf.slnx --filter
+   "FullyQualifiedName~TrueType"` passes.
+3. Cross-provider verification.
+4. The `dotnet` suite once against the verified tree, recorded as the run of
+   record.
+5. Close-out.
+
+Non-goals: no subsetting of `WinAnsiEncoding` TrueType fonts (a small file
+uses Identity-H); no option to turn subsetting off; no change to hinting
+instructions; no CFF fonts; no version change (Session 18's).
+
+Why now (2026-11-12): Unicode fonts are large, and without subsetting every
+generated PDF carries the whole file.
+
+### Session 18: Bump the version to 1.3.0
+
+1. Register.
+2. Set `<Version>` to `1.3.0` and rewrite `PackageReleaseNotes` in
+   `src/DabblerPdf/DabblerPdf.csproj`, set `PackageValidationBaselineVersion`
+   to `1.2.0`, and add a `1.3.0` entry to `CHANGELOG.md`: added, Unicode
+   TrueType fonts with `BaseFont.IdentityH` (Type0 fonts with a ToUnicode
+   map, subset when embedded); changed, `CreateFont` with `IdentityH` on a
+   TrueType file returns a Unicode font where it used to return the
+   Windows-1252 one, and with a Base 14 name throws; fixed, `TextLayout`
+   never splits a surrogate pair or a combining sequence. The step's check:
+   `dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release -o <scratch
+   dir>` exits 0, package validation against 1.2.0 included, and produces
+   `DabblerPdf.1.3.0.nupkg`.
+3. Cross-provider verification.
+4. The `dotnet` suite once against the verified tree, recorded as the run of
+   record.
+5. Close-out.
+
+Proposed version: **1.3.0 (minor)**. Identity-H was documented as not yet
+implemented, so giving it its documented meaning adds a feature; no public
+member is removed or changes signature.
+
+As with 1.2.0, the operator runs the dry run after this session has pushed,
+tags `nuget-v1.3.0` by hand when it is green, and confirms 1.3.0 on
+nuget.org. `dabbler-platform` Session 28 waits for it.
