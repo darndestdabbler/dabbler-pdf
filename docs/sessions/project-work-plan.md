@@ -1,0 +1,106 @@
+# Project work plan — sessions
+
+**Written by `dabbler` as a fold of `activity-log.json`.**
+Hand edits are overwritten by the next append. The record is the log;
+this page is one view of it.
+
+---
+
+## Sessions
+
+The numbered sessions are declared from `session-plan.md`; each one's task is what its own plan step declared.
+
+| # | Session | Releasable | Declared |
+| ---: | --- | --- | --- |
+| 1 | Author or import the solution plan | no | 2026-11-07 |
+| 2 | Challenge the plan, then break it into numbered sessions | no | 2026-11-07 |
+| 3 | Adopt the solution and narrow the test suite | no | 2026-11-07 |
+| 4 | Repository hygiene | no | 2026-11-07 |
+| 5 | Continuous integration | no | 2026-11-07 |
+| 6 | Trusted publishing | no | 2026-11-07 |
+| 7 | Packaging | no | 2026-11-07 |
+| 8 | Make the TrueType tests run on Linux | no | 2026-11-07 |
+| 9 | Maintainer guide | no | 2026-11-07 |
+| 10 | Bump the version to 1.1.3 | no | 2026-11-07 |
+| 11 | Release 1.1.3 (release: 1.1.3) | yes | 2026-11-07 |
+| 12 | Make the publish smoke test restore from the packed output | no | 2026-11-08 |
+| 13 | WrapText keeps interior spaces, and content-stream compression can be turned off | no | 2026-11-12 |
+| 14 | Bump the version to 1.2.0 | — | not declared |
+
+### Session 1 — Author or import the solution plan
+
+**Releasable: no.**
+
+Import the operator's brief (docs/planning/brief.md) into docs/planning/solution-plan.md: an objective a reader can act on (keep DabblerPdf rebuildable, testable and republishable by someone who holds no key on any machine, for dabbler-platform's reporting and any other consumer); the Production split the brief answers (not applicable -- a dependency-free library, one module); the Handoff artifact (a NuGet package from `dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release -o {output}`); the single module DabblerPdf with its responsibility, contract (inputs, guarantees, failure modes), dependency direction (Samples and Tests depend on the library; Tests also reach Samples by project reference) and the cuts deferred; an assessment of the existing DabblerPdf.slnx against the framework's module-per-folder layout (three projects all listed in the slnx and joined by ProjectReference; the Samples project sits at the root rather than under a folder, and the test project references Samples -- both kept, no restructuring proposed); the six decisions the brief asks the plan to make (branches, v1 relics, CI and trusted publishing, dabbler.yaml suite, maintainer guide and policy, release 1.1.3) carried as the operator's leanings for Session 2 to challenge; and the phases -- alignment first (repository hygiene, dabbler.yaml suite fitted to src/tests/Samples), then CI, trusted publishing, maintainer guide, and the 1.1.3 release -- each scoped to a handful of sessions, with what still holds from project-guidance.md and lessons-learned.md noted for import into docs/MAINTAINING.md later.
+
+### Session 2 — Challenge the plan, then break it into numbered sessions
+
+**Releasable: no.**
+
+Challenge the cuts and decisions in docs/planning/solution-plan.md and record the answers as a rationale section in that file: for the one module DabblerPdf, whether it should exist, whether each clause of its contract is a promise something can prove (and the cheapest proof where one is missing, e.g. SDK package validation against 1.1.2 for the additive-only surface), whether the dependency direction hides the decisions most likely to change, and a decision on each deferred cut (separate metrics package, moving the samples, the packaging block) and on each of the brief's six decisions. Then append the numbered sessions to docs/sessions/session-plan.md, starting at Session 3 with the session that adopts the existing DabblerPdf.slnx (narrowing the dotnet suite in dabbler.yaml to src, tests and DabblerPdf.Samples with test_roots [tests], expensive: true and a --blame-hang-timeout 5m hang limit, adding no project), followed by repository hygiene, continuous integration, trusted publishing, a packaging session that writes only the packaging: block (checked by dabbler packaging --rehearse), the maintainer guide, the 1.1.3 version bump, and a step-less Release 1.1.3 (release: 1.1.3) session proposed as a patch release.
+
+### Session 3 — Adopt the solution and narrow the test suite
+
+**Releasable: no.**
+
+Adopt DabblerPdf.slnx and its three existing projects (src/DabblerPdf, tests/DabblerPdf.Tests, DabblerPdf.Samples) as they stand, and narrow the dotnet test suite in dabbler.yaml: covers [src, tests, DabblerPdf.Samples], test_roots [tests], expensive true, command `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m`, and select `dotnet test DabblerPdf.slnx --blame-hang-timeout 5m --filter {names}`. Then replace the scaffold's commented packaging block in dabbler.yaml with one line saying the packaging: block is written by Session 7 and that nuget.org publication is CI's on a nuget-v<version> tag.
+
+### Session 4 — Repository hygiene
+
+**Releasable: no.**
+
+Clean the repository of the v1 AI-led workflow: delete the v1 relics (ai-router/, utils/, docs/ai-led-session-workflow.md, docs/claude-instructions/, docs/gemini-instructions/, GEMINI.md) and the .gitignore lines that only served them (the router-state.db entry); move every docs/session-sets/<set>/ under docs/session-sets/_archived/ with git mv and add an _archived/README.md marking them as closed v1 history not to be resumed or migrated; and replace the v1 text above the managed fence in AGENTS.md and CLAUDE.md with a short project note (what DabblerPdf is, that it is a scoped port of OpenPDF, the build and test commands, and pointers to README.md and docs/planning/solution-plan.md), leaving the managed bodies and engine tails untouched.
+
+### Session 5 — Continuous integration
+
+**Releasable: no.**
+
+Add continuous integration to DabblerPdf. Pin the test project's floating package versions (Microsoft.NET.Test.Sdk 17.*, xunit 2.*, xunit.runner.visualstudio 2.*, PdfPig 0.1.*) to the exact versions restore resolves today (17.14.1, 2.9.3, 2.8.2, 0.1.16) so CI builds are reproducible; write a GitHub Actions workflow (.github/workflows/build.yml) that on push and pull request to main restores, builds DabblerPdf.slnx in Release and runs the whole test suite with a 5-minute hang timeout on ubuntu-latest with .NET 10.0.x; and write .github/dependabot.yml so Dependabot proposes weekly updates for the nuget and github-actions ecosystems at the repository root. Green on a clean runner is confirmed from the push's Actions run, linked in the session notes.
+
+### Session 6 — Trusted publishing
+
+**Releasable: no.**
+
+Set up trusted publishing for the DabblerPdf NuGet package. Turn on package validation in src/DabblerPdf/DabblerPdf.csproj (EnablePackageValidation true, PackageValidationBaselineVersion 1.1.2) so a pack fails on a breaking change to the public surface relative to the published 1.1.2. Write .github/workflows/publish.yml: on push of a nuget-v* tag it fails before packing unless the tag's version equals <Version> in the csproj, restores, builds and runs the whole suite in Release with a 5-minute hang timeout, packs the library, builds a throwaway console project that references DabblerPdf at that version from the pack output folder as a local source, then logs in through NuGet/login (id-token: write, user darndestdabbler) and pushes the .nupkg and .snupkg to nuget.org; a workflow_dispatch run does the same build, test, pack and smoke consumer but pushes to GitHub Packages instead of nuget.org. Before the session closes the operator creates the nuget.org trusted-publishing policy with Workflow File publish.yml and runs the workflow_dispatch dry run once; that run is linked in the notes.
+
+### Session 7 — Packaging
+
+**Releasable: no.**
+
+Declare how this repository packs by writing the packaging: block in dabbler.yaml and nothing else: a pack-only declaration whose argv is ["dotnet", "pack", "src/DabblerPdf/DabblerPdf.csproj", "-c", "Release", "-o", "{output}"], so the package version comes from the csproj's <Version> that the CI gate reads, with no push block and no credential, because nuget.org publication stays with CI on the nuget-v<version> tag. The comment that stood in for the block is replaced by a short one saying why there is no push. The check is that `dabbler packaging --rehearse` exits 0.
+
+### Session 8 — Make the TrueType tests run on Linux
+
+**Releasable: no.**
+
+Make the 17 TrueType tests pass on any OS by vendoring Liberation Sans Regular (SIL OFL 1.1, metric-compatible with Arial, from the liberationfonts/liberation-fonts 2.1.5 release) with its LICENSE under tests/DabblerPdf.Tests/Fonts/, copied to the test output directory, and pointing TrueTypeFontTests.cs and MvpValidationTests.cs at that fixture relative to AppContext.BaseDirectory. SkipIfNoArial is replaced by a precondition that fails naming the fixture path when it is missing; the PostScript-name and /BaseFont assertions that expect ArialMT (the PostscriptName check, Scenario 8, and the two other /ArialMT content assertions in TrueTypeFontTests that would otherwise fail) expect LiberationSans; the TrueTypeFontTests class doc comment is rewritten. Width and metric tolerances stay as they are. The whole suite then passes with 614 passed and 0 skipped, and no tracked file under tests/ names Windows\Fonts.
+
+### Session 9 — Maintainer guide
+
+**Releasable: no.**
+
+Write docs/MAINTAINING.md, the one maintainer document: how to clone, build, run the whole test suite (`dotnet test DabblerPdf.slnx --blame-hang-timeout 5m`), run the samples, pack, release by pushing a `nuget-v<version>` tag that `publish.yml` publishes, how a consumer pins a version, and what a redistributor owes under LGPL-2.1-only or MPL-2.0. It also takes in what still holds from the v1 project guidance and lessons learned, as listed in the solution plan's *What carries over*. Then delete the three v1 planning documents (docs/planning/project-guidance.md, docs/planning/lessons-learned.md, docs/planning/project-status.md) and repoint the two links to the guidance file, in README.md and in the doc comment of RenderingVisibilityDisciplineTests.cs, to docs/MAINTAINING.md. Last, add a README section "If this library stops being maintained" (vendor the source under either license and keep the notices), link docs/MAINTAINING.md from the README and from AGENTS.md's project note (outside the managed fence), and change the LICENSE attribution line from "openpdf-dotnet contributors" to `darndestdabbler`. The no-remaining-references check also skips the plan records that describe this retirement: docs/sessions/ (the framework's records and the session plan) and docs/planning/brief.md and solution-plan.md. Those names are history there, not links, and the plan records are not this session's to rewrite.
+
+### Session 10 — Bump the version to 1.1.3
+
+**Releasable: no.**
+
+Bump DabblerPdf to version 1.1.3: set <Version> to 1.1.3 and rewrite PackageReleaseNotes in src/DabblerPdf/DabblerPdf.csproj, and add a 1.1.3 entry at the top of CHANGELOG.md stating that there is no API change and that this is the first release built, validated and published from CI through trusted publishing. The step is proved by packing the project in Release to a scratch directory and confirming DabblerPdf.1.1.3.nupkg is produced.
+
+### Session 11 — Release 1.1.3 (release: 1.1.3)
+
+**Releasable: yes.**
+
+Release 1.1.3: the framework packs and publishes what is on the trunk.
+
+### Session 12 — Make the publish smoke test restore from the packed output
+
+**Releasable: no.**
+
+Fix the "Smoke-test the package" step of .github/workflows/publish.yml so the consumer project restores DabblerPdf from the freshly packed output instead of from the default sources only. Today `dotnet add package --source out` records the reference but the following `dotnet build` restores against nuget.org alone, so a version not yet published there (1.1.3) fails with NU1102, as dry run 42482132357 did. The step will add the reference without restoring, restore explicitly with `--source "$GITHUB_WORKSPACE/out"` beside nuget.org into the separate packages folder, and build with `--no-restore`. The fix is proven by a workflow_dispatch run of publish.yml on the changed workflow that reaches "Push to GitHub Packages" green; its run id is recorded in the step's notes.
+
+### Session 13 — WrapText keeps interior spaces, and content-stream compression can be turned off
+
+**Releasable: no.**
+
+Fix three behaviours that TRIMS reported or that the maintainer findings left unverified, without a version change. TextLayout.WrapText stops collapsing runs of spaces: a paragraph that fits is returned exactly as given, and a paragraph that does not fit breaks only at a run of spaces, dropping only the run where the break is taken and keeping every other run at full length; explicit \n breaks, the empty-string result and character-level breaking of an oversized word are unchanged, and CountLines, MeasureHeight and DrawText follow. PdfWriter gains a public bool CompressContentStreams property (default true) that PdfWriter.FlushCurrentPage and PdfTemplate read when flushing: true keeps today's deflate-over-128-bytes rule, false writes page and template content streams uncompressed; the README's testing section documents the 128-byte rule and the property. Finally, tests pin that a Base 14 WinAnsi font draws Polish and Cyrillic text without throwing, writes each character outside Windows-1252 as '?', and measures it as '?' -- Type1Font.GetCharWidth currently indexes its width table by the raw Unicode code (giving 0 for such characters), so it is changed to measure through the Windows-1252 mapping with '?' as the fallback, and the README's font section states the limit.
