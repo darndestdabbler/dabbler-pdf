@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session 018 transcript</title>
+<style>
+:root {
+  --page: #ffffff;
+  --ink: #1f1f1f;
+  --faint: #e4e4e4;
+  --panel: #f6f6f6;
+  --tone-milestone: #2a5db0;
+  --tone-good: #256029;
+  --tone-warn: #8a6100;
+  --tone-bad: #a31515;
+  --tone-muted: #6b6b6b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #1e1e1e;
+    --ink: #d4d4d4;
+    --faint: #3a3a3a;
+    --panel: #252526;
+  --tone-milestone: #3874db;
+  --tone-good: #54a33b;
+  --tone-warn: #b79427;
+  --tone-bad: #f14c4c;
+  --tone-muted: #8c8c8c;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px 64px;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.6 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+main { max-width: 68rem; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.05rem; margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--faint); padding-bottom: .3rem; }
+.stamp { color: var(--tone-muted); font-size: .85rem; margin: 0 0 .25rem; }
+.mono, pre, code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.lines { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; }
+.line { white-space: pre-wrap; word-break: break-word; padding-left: 10.5ch; text-indent: -10.5ch; }
+.at { color: var(--tone-muted); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--faint); vertical-align: top; }
+th { color: var(--tone-muted); font-weight: 600; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; }
+td details { margin: 0; }
+tr:has(details:not([open])) + tr.findings { display: none; }
+tr.findings > td { padding: 0 0 .5rem 1.5rem; }
+pre { background: var(--panel); padding: .75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font-size: 12.5px; }
+.stop, .cancelled { border-left: 3px solid var(--tone-bad); background: var(--panel); padding: .6rem .9rem; }
+.milestone { color: var(--tone-milestone); }
+.good { color: var(--tone-good); }
+.warn { color: var(--tone-warn); }
+.bad { color: var(--tone-bad); }
+.muted { color: var(--tone-muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Session 018 transcript</h1>
+<p class="stamp">Rendered 2026-11-12T17:57:55.426Z by dabbler-ai-router 3.32.4 at 34a80861d163fb299df0c23b3b53bd0bb56ace87.</p>
+<p class="stamp">Engine cli, last phase <span class="milestone">log</span>, started 2026-11-12T12:56:13.725-05:00.</p>
+<h2>Session Plan</h2>
+<h3>Session 18: Bump the version to 1.3.0</h3>
+<ol><li>Register.</li><li>Set <code>&lt;Version&gt;</code> to <code>1.3.0</code> and rewrite <code>PackageReleaseNotes</code> in <code>src/DabblerPdf/DabblerPdf.csproj</code>, set <code>PackageValidationBaselineVersion</code> to <code>1.2.0</code>, and add a <code>1.3.0</code> entry to <code>CHANGELOG.md</code>: added, Unicode TrueType fonts with <code>BaseFont.IdentityH</code> (Type0 fonts with a ToUnicode map, subset when embedded); changed, <code>CreateFont</code> with <code>IdentityH</code> on a TrueType file returns a Unicode font where it used to return the Windows-1252 one, and with a Base 14 name throws; fixed, <code>TextLayout</code> never splits a surrogate pair or a combining sequence. The step's check: <code>dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release -o &lt;scratch dir&gt;</code> exits 0, package validation against 1.2.0 included, and produces <code>DabblerPdf.1.3.0.nupkg</code>.</li><li>Cross-provider verification.</li><li>The <code>dotnet</code> suite once against the verified tree, recorded as the run of record.</li><li>Close-out.</li></ol>
+<p>Proposed version: <strong>1.3.0 (minor)</strong>. Identity-H was documented as not yet implemented, so giving it its documented meaning adds a feature; no public member is removed or changes signature.</p>
+<p>As with 1.2.0, the operator runs the dry run after this session has pushed, tags <code>nuget-v1.3.0</code> by hand when it is green, and confirms 1.3.0 on nuget.org. <code>dabbler-platform</code> Session 28 waits for it.</p>
+<h2>Work Plan</h2>
+<p>Bump DabblerPdf to 1.3.0 (minor). In src/DabblerPdf/DabblerPdf.csproj set &lt;Version&gt; to 1.3.0, rewrite PackageReleaseNotes for 1.3.0, and set PackageValidationBaselineVersion to 1.2.0, the last published version. Add a 1.3.0 entry at the top of CHANGELOG.md: Added, Unicode TrueType fonts with BaseFont.IdentityH (Type0 fonts with a ToUnicode map, subset when embedded); Changed, CreateFont with IdentityH on a TrueType file returns a Unicode font where it used to return the Windows-1252 one, and with a Base 14 name throws; Fixed, TextLayout never splits a surrogate pair or a combining sequence. The check is that a Release pack, with package validation against 1.2.0, exits 0 and produces DabblerPdf.1.3.0.nupkg.</p>
+<p>Landed <a href="https://github.com/darndestdabbler/dabbler-pdf/commit/5f92225afb9eef79aa62e6e1193af2975f26837d"><code>5f92225afb9eef79aa62e6e1193af2975f26837d</code></a>.</p>
+<table>
+<tr><th>Step</th><th>Ask</th><th>Files</th><th>Checks</th><th>Accepted</th></tr>
+<tr><td>Bump version</td><td><p>In src/DabblerPdf/DabblerPdf.csproj set &lt;Version&gt; to 1.3.0, rewrite PackageReleaseNotes as a 1.3.0 summary (adds Unicode TrueType fonts with BaseFont.IdentityH; CreateFont with IdentityH changes behavior; TextLayout no longer splits surrogate pairs or combining sequences; see CHANGELOG.md), and set PackageValidationBaselineVersion to 1.2.0. Add a '## 1.3.0' entry above '## 1.2.0' in CHANGELOG.md with Added (Unicode TrueType fonts with BaseFont.IdentityH: Type0 fonts with a ToUnicode map, subset when embedded), Changed (CreateFont with IdentityH on a TrueType file returns a Unicode font where it used to return the Windows-1252 one, and with a Base 14 name throws) and Fixed (TextLayout never splits a surrogate pair or a combining sequence).</p></td><td><span class="mono">src/DabblerPdf/DabblerPdf.csproj</span><br><span class="mono">CHANGELOG.md</span></td><td><code>dotnet pack src/DabblerPdf/DabblerPdf.csproj -c Release -o .dabbler/scratch/pack-1.3.0</code><br><code>pwsh -NoProfile -Command if (-not (Test-Path .dabbler/scratch/pack-1.3.0/DabblerPdf.1.3.0.nupkg)) { exit 1 }</code></td><td>yes</td></tr>
+</table>
+<p>Non-goals:</p>
+<ul><li>No library source or test changes: only the version, release notes, validation baseline and changelog.</li><li>No publish and no tag: the operator runs the publish dry run and tags nuget-v1.3.0 by hand after this session pushes, and confirms 1.3.0 on nuget.org.</li><li>No packaging: block in dabbler.yaml.</li><li>No changes in dabbler-platform (its Session 28 waits for this release).</li></ul>
+<h2>What the framework said</h2>
+<div class="lines"><div class="line"><span class="at">[17:56:13]</span> <span class="muted">run-started</span> session=018 mode=pull</div>
+<div class="line"><span class="at">[17:56:13]</span> <span class="muted">instruction-issued</span> seq=1 kind=step step=plan</div>
+<div class="line"><span class="at">[17:56:39]</span> <span class="muted">run-resumed</span> session=018 phase=<span class="milestone">plan</span> mode=pull</div>
+<div class="line"><span class="at">[17:56:39]</span> <span class="muted">plan-accepted</span> steps=[&quot;bump-version&quot;] non_goals=4</div>
+<div class="line"><span class="at">[17:56:39]</span> <span class="milestone">phase</span> phase=<span class="milestone">work</span></div>
+<div class="line"><span class="at">[17:56:39]</span> <span class="muted">instruction-issued</span> seq=2 kind=step step=bump-version</div>
+<div class="line"><span class="at">[17:57:16]</span> <span class="muted">run-resumed</span> session=018 phase=<span class="milestone">work</span> mode=pull</div>
+<div class="line"><span class="at">[17:57:18]</span> <span class="muted">check-passed</span> step=bump-version argv=[&quot;dotnet&quot;,&quot;pack&quot;,&quot;src/DabblerPdf/DabblerPdf.csproj&quot;,&quot;-c&quot;,&quot;Release&quot;,&quot;-o&quot;,&quot;.dabbler/scratch/pack-1.3.0&quot;]</div>
+<div class="line"><span class="at">[17:57:18]</span> <span class="muted">check-passed</span> step=bump-version argv=[&quot;pwsh&quot;,&quot;-NoProfile&quot;,&quot;-Command&quot;,&quot;if (-not (Test-Path .dabbler/scratch/pack-1.3.0/DabblerPdf.1.3.0.nupkg)) { exit 1 }&quot;]</div>
+<div class="line"><span class="at">[17:57:18]</span> <span class="muted">report-accepted</span> seq=2 step=bump-version files=[&quot;src/DabblerPdf/DabblerPdf.csproj&quot;,&quot;CHANGELOG.md&quot;] notes=Version 1.3.0, release notes rewritten, validation baseline 1.2.0, CHANGELOG 1.3.0 entry; Release pack with validation exits 0 and produces DabblerPdf.1.3.0.nupkg.</div>
+<div class="line"><span class="at">[17:57:18]</span> <span class="milestone">phase</span> phase=<span class="milestone">preverify</span></div>
+<div class="line"><span class="at">[17:57:18]</span> <span class="milestone">phase</span> phase=<span class="milestone">verify</span></div>
+<div class="line"><span class="at">[17:57:19]</span> <span class="muted">job-started</span> name=verification pid=32980 log=.dabbler/runs/s18/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:57:37]</span> <span class="muted">job-finished</span> name=verification exit=<span class="good">0</span> log=.dabbler/runs/s18/driver/jobs/verification.log</div>
+<div class="line"><span class="at">[17:57:37]</span> <span class="muted">verification-passed</span></div>
+<div class="line"><span class="at">[17:57:37]</span> <span class="milestone">phase</span> phase=<span class="milestone">run-of-record</span></div>
+<div class="line"><span class="at">[17:57:37]</span> <span class="muted">run-of-record</span> suite=dotnet stage=final-full why=the last whole run of dotnet took 4s, within 60s command=dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</div>
+<div class="line"><span class="at">[17:57:37]</span> <span class="muted">job-started</span> name=run of record: dotnet pid=27820 log=.dabbler/runs/s18/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:57:43]</span> <span class="muted">job-finished</span> name=run of record: dotnet exit=<span class="good">0</span> log=.dabbler/runs/s18/driver/jobs/run-of-record-dotnet.log</div>
+<div class="line"><span class="at">[17:57:43]</span> <span class="milestone">phase</span> phase=<span class="milestone">land</span></div>
+<div class="line"><span class="at">[17:57:49]</span> <span class="muted">landed</span> commit=5f92225afb9eef79aa62e6e1193af2975f26837d</div>
+<div class="line"><span class="at">[17:57:49]</span> <span class="milestone">phase</span> phase=<span class="milestone">publish</span></div>
+<div class="line"><span class="at">[17:57:50]</span> <span class="muted">publish-skipped</span> reason=an ordinary session never publishes</div>
+<div class="line"><span class="at">[17:57:50]</span> <span class="milestone">phase</span> phase=<span class="milestone">close</span></div>
+<div class="line"><span class="at">[17:57:50]</span> <span class="muted">job-started</span> name=close pid=32176 log=.dabbler/runs/s18/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:57:55]</span> <span class="muted">job-finished</span> name=close exit=<span class="good">0</span> log=.dabbler/runs/s18/driver/jobs/close.log</div>
+<div class="line"><span class="at">[17:57:55]</span> <span class="milestone">phase</span> phase=<span class="milestone">log</span></div></div>
+<h2>Verification</h2>
+<table>
+<tr><th>Round</th><th>Phase</th><th>Verdict</th><th>Reviewer</th><th>Provider</th><th>Transport</th><th>Findings</th></tr>
+<tr><td>1</td><td>full</td><td><span class="good">VERIFIED</span></td><td>gpt-5.6-terra</td><td>openai</td><td>api</td><td>0</td></tr>
+</table>
+<h2>Test runs</h2>
+<table>
+<tr><th>Suite</th><th>Stage</th><th>Outcome</th><th>Duration</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Command</th></tr>
+<tr><td>dotnet</td><td>final-full</td><td><span class="good">passed</span></td><td>6s</td><td>707</td><td>0</td><td>0</td><td><span class="mono">dotnet test DabblerPdf.slnx --blame-hang-timeout 5m</span></td></tr>
+</table>
+<h2>Jobs</h2>
+<div><strong>close</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>run-of-record-dotnet</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+<div><strong>verification</strong> exit <span class="good">0</span> <span class="muted">(passed -- output not carried; dabbler transcript --full carries it)</span></div>
+</main>
+</body>
+</html>
