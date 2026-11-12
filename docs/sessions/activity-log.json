@@ -120,6 +120,13 @@
       "dateTime": "2026-11-12T12:31:39.528000-05:00",
       "task": "Embed only the glyphs an Identity-H TrueType font uses. A new internal class TrueTypeFontSubSet (src/DabblerPdf/Text/TrueTypeFontSubSet.cs), ported from OpenPDF's TrueTypeFontSubSet, builds a TrueType font program from the original file holding glyph 0, every glyph the writer recorded, and every component of a composite glyph among them, recursively; glyph IDs keep their numbers (an unused glyph's outline is empty in a rewritten loca/glyf), so /CIDToGIDMap /Identity and /W stand. It writes head (checkSumAdjustment recomputed), hhea, maxp, loca, glyf, hmtx, and cvt , fpgm and prep when present, each with its checksum, padded to four bytes, in a valid table directory. TrueTypeFontUnicode.WriteFont writes that subset as FontFile2 at Close, and its /BaseFont (CIDFont and Type0) and the descriptor's /FontName take a subset tag of six uppercase letters and '+' (ISO 32000-1, 9.6.4), derived from the used glyphs. TrueTypeFont's private TtfReader becomes internal so the tests can parse the subset back, and AddFontDescriptor takes the font program and name it embeds, so the WinAnsiEncoding path keeps embedding the whole file under its plain name. Tests in tests/DabblerPdf.Tests/Text/TrueTypeFontSubSetTests.cs, with the Liberation Sans fixture: a document drawing \"Hello\" embeds a font program under a tenth of the full file's size; the subset parses back with TtfReader and keeps each used glyph's advance; a composite glyph's components are in the subset and PdfPig extracts the text that uses it; the tag has the required form; two documents drawing different text embed different subsets. The README's Font Support section says Identity-H fonts are subset.",
       "releasable": false
+    },
+    {
+      "kind": "task-declaration",
+      "sessionNumber": 18,
+      "dateTime": "2026-11-12T12:56:39.604000-05:00",
+      "task": "Bump DabblerPdf to 1.3.0 (minor). In src/DabblerPdf/DabblerPdf.csproj set <Version> to 1.3.0, rewrite PackageReleaseNotes for 1.3.0, and set PackageValidationBaselineVersion to 1.2.0, the last published version. Add a 1.3.0 entry at the top of CHANGELOG.md: Added, Unicode TrueType fonts with BaseFont.IdentityH (Type0 fonts with a ToUnicode map, subset when embedded); Changed, CreateFont with IdentityH on a TrueType file returns a Unicode font where it used to return the Windows-1252 one, and with a Base 14 name throws; Fixed, TextLayout never splits a surrogate pair or a combining sequence. The check is that a Release pack, with package validation against 1.2.0, exits 0 and produces DabblerPdf.1.3.0.nupkg.",
+      "releasable": false
     }
   ]
 }

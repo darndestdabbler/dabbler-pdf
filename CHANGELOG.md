@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.3.0
+
+### Added
+- Unicode TrueType fonts: `BaseFont.CreateFont(path, BaseFont.IdentityH,
+  ...)` on a `.ttf` file draws and measures every character the font has a
+  glyph for. The font is written as a Type0 (CID) font with a ToUnicode
+  map, so its text can be copied and searched, and only the glyphs the
+  document uses are embedded.
+
+### Changed
+- `BaseFont.CreateFont` with `BaseFont.IdentityH` on a TrueType file
+  returns a Unicode font where it used to return the Windows-1252 one, and
+  with a Base 14 font name it throws `ArgumentException`.
+
+### Fixed
+- `TextLayout` never splits a surrogate pair or a combining sequence when
+  it breaks a line.
+
 ## 1.2.0
 
 ### Added
