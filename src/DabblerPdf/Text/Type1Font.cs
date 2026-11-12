@@ -29,12 +29,8 @@ internal sealed class Type1Font : BaseFont
     /// </summary>
     public override int GetCharWidth(int c)
     {
-        if (c < 0 || c > char.MaxValue)
-            return 0;
-        int code = PdfEncodings.CharToWinAnsi((char)c);
-        if (code < 0)
-            code = '?';
-        return code < _widths.Length ? _widths[code] : 0;
+        int code = PdfEncodings.MeasuredWinAnsiCode(c);
+        return code >= 0 ? _widths[code] : 0;
     }
 
     public override double GetFontDescriptor(int key, double fontSize)

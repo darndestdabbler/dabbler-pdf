@@ -88,11 +88,14 @@ internal sealed class TrueTypeFont : BaseFont
         _flags = ComputeFlags(os2, post);
     }
 
+    /// <summary>
+    /// Measures <paramref name="c"/> the way <see cref="PdfContentByte.ShowText"/> writes it:
+    /// through its Windows-1252 code, or as '?' when it is outside Windows-1252.
+    /// </summary>
     public override int GetCharWidth(int c)
     {
-        if (c >= 0 && c < _widths.Length)
-            return _widths[c];
-        return 0;
+        int code = PdfEncodings.MeasuredWinAnsiCode(c);
+        return code >= 0 ? _widths[code] : 0;
     }
 
     public override double GetFontDescriptor(int key, double fontSize)

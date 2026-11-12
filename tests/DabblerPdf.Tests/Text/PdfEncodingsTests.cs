@@ -128,6 +128,36 @@ public class PdfEncodingsTests
         }
     }
 
+    public class MeasuredWinAnsiCodeTests
+    {
+        [Theory]
+        [InlineData('A', 65)]
+        [InlineData('é', 233)] // e acute
+        [InlineData('€', 128)] // Euro sign
+        [InlineData('—', 151)] // em dash
+        public void EncodableCharacter_ReturnsItsCode(char c, int expected)
+        {
+            Assert.Equal(expected, PdfEncodings.MeasuredWinAnsiCode(c));
+        }
+
+        [Theory]
+        [InlineData('ł')] // l with stroke
+        [InlineData('Ж')] // Cyrillic Zhe
+        [InlineData('\u0081')] // undefined in Windows-1252
+        public void CharacterOutsideWindows1252_ReturnsQuestionMark(char c)
+        {
+            Assert.Equal('?', PdfEncodings.MeasuredWinAnsiCode(c));
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(0x10000)]
+        public void ValueOutsideCharRange_ReturnsMinusOne(int c)
+        {
+            Assert.Equal(-1, PdfEncodings.MeasuredWinAnsiCode(c));
+        }
+    }
+
     public class RoundTripTests
     {
         [Fact]

@@ -196,8 +196,9 @@ TrueType fonts (`.ttf`) can also be loaded from file paths.
 The Base 14 fonts use `WinAnsiEncoding` (Windows-1252): ASCII plus Western European letters,
 the euro sign, dashes and typographic quotes. A character outside Windows-1252 — Polish `ł`,
 any Cyrillic letter, and so on — is written as `?` and measured by `GetWidthPoint` as `?`, so
-measurement matches what is drawn. Text in other scripts needs an embedded font with full
-Unicode support, which is not yet available.
+measurement matches what is drawn. A TrueType font loaded with `WinAnsiEncoding` has the same
+Windows-1252 limit and is measured the same way. Text in other scripts needs an embedded font
+with full Unicode support, which is not yet available.
 
 ## Samples
 

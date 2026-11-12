@@ -106,13 +106,34 @@ public class TrueTypeFontTests
         }
 
         [Fact]
-        public void GetCharWidth_OutOfRange_ReturnsZero()
+        public void GetCharWidth_OutsideWindows1252_MeasuresAsQuestionMark()
         {
             RequireFontFixture();
 
             var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
-            Assert.Equal(0, font.GetCharWidth(300));
+            Assert.Equal(font.GetCharWidth('?'), font.GetCharWidth(300));
             Assert.Equal(0, font.GetCharWidth(-1));
+        }
+
+        [Fact]
+        public void GetCharWidth_Euro_IsTheFontsEuroAdvance()
+        {
+            RequireFontFixture();
+
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
+            // Liberation Sans, like Arial, advances the Euro by 1139/2048 em.
+            Assert.Equal(556, font.GetCharWidth('€'));
+        }
+
+        [Theory]
+        [InlineData('ł')]
+        [InlineData('Ж')]
+        public void GetCharWidth_OutsideWindows1252_LetterMeasuresAsQuestionMark(char c)
+        {
+            RequireFontFixture();
+
+            var font = BaseFont.CreateFont(FontPath, BaseFont.WinAnsiEncoding, true);
+            Assert.Equal(font.GetCharWidth('?'), font.GetCharWidth(c));
         }
     }
 

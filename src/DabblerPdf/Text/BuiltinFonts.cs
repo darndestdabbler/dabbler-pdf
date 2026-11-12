@@ -10,6 +10,13 @@ namespace DabblerPdf.Text;
 /// Registry of the 14 standard PDF fonts and their metrics.
 /// Width values are from the Adobe Font Metrics (AFM) files, in units of 1/1000 em.
 /// </summary>
+/// <remarks>
+/// The Helvetica, Times and Courier tables are indexed by Windows-1252 code. Each code's
+/// width is the WX of the glyph Windows-1252 names for it in the Adobe Core 14 AFM file
+/// OpenPDF ships (openpdf-core/src/main/resources/org/openpdf/text/pdf/fonts/*.afm),
+/// including glyphs listed unencoded (C -1), such as Euro. Codes 129, 141, 143, 144 and
+/// 157, which Windows-1252 leaves undefined, are 0.
+/// </remarks>
 internal static class BuiltinFonts
 {
     private static readonly HashSet<string> StandardFontNames =
@@ -78,7 +85,7 @@ internal static class BuiltinFonts
     };
 
     // ── Helvetica (from AFM data) ──────────────────────────────────
-    // Characters 0–31 and 128–159 are control characters with 0 width.
+    // Characters 0–31 are control characters with 0 width.
     // Printable ASCII starts at 32 (space).
     private static readonly int[] HelveticaWidths = CreateHelveticaWidths();
     private static int[] CreateHelveticaWidths()
@@ -180,6 +187,35 @@ internal static class BuiltinFonts
         w[124] = 260; // bar
         w[125] = 334; // braceright
         w[126] = 584; // asciitilde
+
+        // Windows-1252 128–159
+        w[128] = 556; // Euro
+        w[130] = 222; // quotesinglbase
+        w[131] = 556; // florin
+        w[132] = 333; // quotedblbase
+        w[133] = 1000; // ellipsis
+        w[134] = 556; // dagger
+        w[135] = 556; // daggerdbl
+        w[136] = 333; // circumflex
+        w[137] = 1000; // perthousand
+        w[138] = 667; // Scaron
+        w[139] = 333; // guilsinglleft
+        w[140] = 1000; // OE
+        w[142] = 611; // Zcaron
+        w[145] = 222; // quoteleft
+        w[146] = 222; // quoteright
+        w[147] = 333; // quotedblleft
+        w[148] = 333; // quotedblright
+        w[149] = 350; // bullet
+        w[150] = 556; // endash
+        w[151] = 1000; // emdash
+        w[152] = 333; // tilde
+        w[153] = 1000; // trademark
+        w[154] = 500; // scaron
+        w[155] = 333; // guilsinglright
+        w[156] = 944; // oe
+        w[158] = 500; // zcaron
+        w[159] = 667; // Ydieresis
 
         // Extended Latin (Windows-1252 / WinAnsi, 160–255)
         w[160] = 278; // nbspace
@@ -306,7 +342,13 @@ internal static class BuiltinFonts
         w[112] = 611; w[113] = 611; w[114] = 389; w[115] = 556; w[116] = 333;
         w[117] = 611; w[118] = 556; w[119] = 778; w[120] = 556; w[121] = 556;
         w[122] = 500; w[123] = 389; w[124] = 280; w[125] = 389; w[126] = 584;
-        // Extended Latin subset (most common)
+        // Windows-1252 128–159
+        w[128] = 556; w[130] = 278; w[131] = 556; w[132] = 500; w[133] = 1000; w[134] = 556;
+        w[135] = 556; w[136] = 333; w[137] = 1000; w[138] = 667; w[139] = 333; w[140] = 1000;
+        w[142] = 611; w[145] = 278; w[146] = 278; w[147] = 500; w[148] = 500; w[149] = 350;
+        w[150] = 556; w[151] = 1000; w[152] = 333; w[153] = 1000; w[154] = 556; w[155] = 333;
+        w[156] = 944; w[158] = 500; w[159] = 667;
+        // Extended Latin (160-255 from AFM)
         w[160] = 278; w[161] = 333; w[162] = 556; w[163] = 556; w[164] = 556;
         w[165] = 556; w[166] = 280; w[167] = 556; w[168] = 333; w[169] = 737;
         w[170] = 370; w[171] = 556; w[172] = 584; w[173] = 333; w[174] = 737;
@@ -356,7 +398,13 @@ internal static class BuiltinFonts
         w[112] = 500; w[113] = 500; w[114] = 333; w[115] = 389; w[116] = 278;
         w[117] = 500; w[118] = 500; w[119] = 722; w[120] = 500; w[121] = 500;
         w[122] = 444; w[123] = 480; w[124] = 200; w[125] = 480; w[126] = 541;
-        // Extended Latin (160+)
+        // Windows-1252 128–159
+        w[128] = 500; w[130] = 333; w[131] = 500; w[132] = 444; w[133] = 1000; w[134] = 500;
+        w[135] = 500; w[136] = 333; w[137] = 1000; w[138] = 556; w[139] = 333; w[140] = 889;
+        w[142] = 611; w[145] = 333; w[146] = 333; w[147] = 444; w[148] = 444; w[149] = 350;
+        w[150] = 500; w[151] = 1000; w[152] = 333; w[153] = 980; w[154] = 389; w[155] = 333;
+        w[156] = 722; w[158] = 444; w[159] = 722;
+        // Extended Latin (160-255 from AFM)
         w[160] = 250; w[161] = 333; w[162] = 500; w[163] = 500; w[164] = 500;
         w[165] = 500; w[166] = 200; w[167] = 500; w[168] = 333; w[169] = 760;
         w[170] = 276; w[171] = 500; w[172] = 564; w[173] = 333; w[174] = 760;
@@ -406,6 +454,12 @@ internal static class BuiltinFonts
         w[112] = 556; w[113] = 556; w[114] = 444; w[115] = 389; w[116] = 333;
         w[117] = 556; w[118] = 500; w[119] = 722; w[120] = 500; w[121] = 500;
         w[122] = 444; w[123] = 394; w[124] = 220; w[125] = 394; w[126] = 520;
+        // Windows-1252 128–159
+        w[128] = 500; w[130] = 333; w[131] = 500; w[132] = 500; w[133] = 1000; w[134] = 500;
+        w[135] = 500; w[136] = 333; w[137] = 1000; w[138] = 556; w[139] = 333; w[140] = 1000;
+        w[142] = 667; w[145] = 333; w[146] = 333; w[147] = 500; w[148] = 500; w[149] = 350;
+        w[150] = 500; w[151] = 1000; w[152] = 333; w[153] = 1000; w[154] = 389; w[155] = 333;
+        w[156] = 722; w[158] = 444; w[159] = 722;
         // Extended Latin (160-255 from AFM)
         w[160] = 250; w[161] = 333; w[162] = 500; w[163] = 500; w[164] = 500;
         w[165] = 500; w[166] = 220; w[167] = 500; w[168] = 333; w[169] = 747;
@@ -457,6 +511,12 @@ internal static class BuiltinFonts
         w[112] = 500; w[113] = 500; w[114] = 389; w[115] = 389; w[116] = 278;
         w[117] = 500; w[118] = 444; w[119] = 667; w[120] = 444; w[121] = 444;
         w[122] = 389; w[123] = 400; w[124] = 275; w[125] = 400; w[126] = 541;
+        // Windows-1252 128–159
+        w[128] = 500; w[130] = 333; w[131] = 500; w[132] = 556; w[133] = 889; w[134] = 500;
+        w[135] = 500; w[136] = 333; w[137] = 1000; w[138] = 500; w[139] = 333; w[140] = 944;
+        w[142] = 556; w[145] = 333; w[146] = 333; w[147] = 556; w[148] = 556; w[149] = 350;
+        w[150] = 500; w[151] = 889; w[152] = 333; w[153] = 980; w[154] = 389; w[155] = 333;
+        w[156] = 667; w[158] = 389; w[159] = 556;
         // Extended Latin (160-255 from AFM)
         w[160] = 250; w[161] = 389; w[162] = 500; w[163] = 500; w[164] = 500;
         w[165] = 500; w[166] = 275; w[167] = 500; w[168] = 333; w[169] = 760;
@@ -508,6 +568,12 @@ internal static class BuiltinFonts
         w[112] = 500; w[113] = 500; w[114] = 389; w[115] = 389; w[116] = 278;
         w[117] = 556; w[118] = 444; w[119] = 667; w[120] = 500; w[121] = 444;
         w[122] = 389; w[123] = 348; w[124] = 220; w[125] = 348; w[126] = 570;
+        // Windows-1252 128–159
+        w[128] = 500; w[130] = 333; w[131] = 500; w[132] = 500; w[133] = 1000; w[134] = 500;
+        w[135] = 500; w[136] = 333; w[137] = 1000; w[138] = 556; w[139] = 333; w[140] = 944;
+        w[142] = 611; w[145] = 333; w[146] = 333; w[147] = 500; w[148] = 500; w[149] = 350;
+        w[150] = 500; w[151] = 1000; w[152] = 333; w[153] = 1000; w[154] = 389; w[155] = 333;
+        w[156] = 722; w[158] = 389; w[159] = 611;
         // Extended Latin (160-255 from AFM)
         w[160] = 250; w[161] = 389; w[162] = 500; w[163] = 500; w[164] = 500;
         w[165] = 500; w[166] = 220; w[167] = 500; w[168] = 333; w[169] = 747;
@@ -541,8 +607,8 @@ internal static class BuiltinFonts
         var w = new int[256];
         for (int i = 32; i < 256; i++)
             w[i] = 600;
-        // Clear control char range 128-159
-        for (int i = 128; i < 160; i++)
+        // The codes Windows-1252 leaves undefined
+        foreach (int i in new[] { 129, 141, 143, 144, 157 })
             w[i] = 0;
         return w;
     }

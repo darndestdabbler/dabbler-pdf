@@ -53,6 +53,19 @@ internal static class PdfEncodings
         return -1;
     }
 
+    /// <summary>
+    /// The Windows-1252 code a font measures <paramref name="c"/> by, matching what
+    /// <see cref="DabblerPdf.Pdf.PdfContentByte.ShowText"/> writes: its own code, or '?' when it has none.
+    /// Returns -1 when <paramref name="c"/> is outside the <see cref="char"/> range.
+    /// </summary>
+    internal static int MeasuredWinAnsiCode(int c)
+    {
+        if (c < 0 || c > char.MaxValue)
+            return -1;
+        int code = CharToWinAnsi((char)c);
+        return code < 0 ? '?' : code;
+    }
+
     private static char[] CreateWinAnsiToUnicodeMap()
     {
         var map = new char[256];

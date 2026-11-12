@@ -180,4 +180,70 @@ public class BuiltinFontsTests
             }
         }
     }
+
+    public class WindowsCp1252Tests
+    {
+        private static readonly int[] UndefinedCodes = [129, 141, 143, 144, 157];
+
+        [Theory]
+        [InlineData(BaseFont.Helvetica)]
+        [InlineData(BaseFont.HelveticaBold)]
+        [InlineData(BaseFont.HelveticaOblique)]
+        [InlineData(BaseFont.HelveticaBoldOblique)]
+        [InlineData(BaseFont.TimesRoman)]
+        [InlineData(BaseFont.TimesBold)]
+        [InlineData(BaseFont.TimesItalic)]
+        [InlineData(BaseFont.TimesBoldItalic)]
+        [InlineData(BaseFont.Courier)]
+        [InlineData(BaseFont.CourierBold)]
+        [InlineData(BaseFont.CourierOblique)]
+        [InlineData(BaseFont.CourierBoldOblique)]
+        public void EveryDefinedCode_32To255_IsNonZero(string fontName)
+        {
+            var widths = BuiltinFonts.GetWidths(fontName);
+            for (int i = 32; i <= 255; i++)
+            {
+                if (i == 127 || UndefinedCodes.Contains(i))
+                    continue;
+                Assert.True(widths[i] > 0,
+                    $"{fontName}: width[{i}] should be non-zero but was {widths[i]}");
+            }
+        }
+
+        [Theory]
+        [InlineData(BaseFont.Helvetica)]
+        [InlineData(BaseFont.TimesRoman)]
+        [InlineData(BaseFont.Courier)]
+        public void UndefinedCodes_AreZero(string fontName)
+        {
+            var widths = BuiltinFonts.GetWidths(fontName);
+            foreach (int i in UndefinedCodes)
+                Assert.Equal(0, widths[i]);
+        }
+
+        // Widths from the Adobe Core 14 AFM files OpenPDF ships.
+        [Theory]
+        [InlineData(BaseFont.Helvetica, '€', 556)]
+        [InlineData(BaseFont.Helvetica, '–', 556)]
+        [InlineData(BaseFont.Helvetica, '—', 1000)]
+        [InlineData(BaseFont.Helvetica, '•', 350)]
+        [InlineData(BaseFont.Helvetica, '’', 222)]
+        [InlineData(BaseFont.Helvetica, '”', 333)]
+        [InlineData(BaseFont.TimesRoman, '€', 500)]
+        [InlineData(BaseFont.TimesRoman, '–', 500)]
+        [InlineData(BaseFont.TimesRoman, '—', 1000)]
+        [InlineData(BaseFont.TimesRoman, '•', 350)]
+        [InlineData(BaseFont.TimesRoman, '’', 333)]
+        [InlineData(BaseFont.TimesRoman, '”', 444)]
+        [InlineData(BaseFont.Courier, '€', 600)]
+        [InlineData(BaseFont.Courier, '–', 600)]
+        [InlineData(BaseFont.Courier, '—', 600)]
+        [InlineData(BaseFont.Courier, '•', 600)]
+        [InlineData(BaseFont.Courier, '’', 600)]
+        [InlineData(BaseFont.Courier, '”', 600)]
+        public void Character_HasAfmWidth(string fontName, char c, int expectedWidth)
+        {
+            Assert.Equal(expectedWidth, new Type1Font(fontName).GetCharWidth(c));
+        }
+    }
 }
